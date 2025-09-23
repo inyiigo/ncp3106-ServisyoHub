@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Blue - Redirecting...</title>
+    <style>
+        body {
+            font-family: Inter, system-ui, -apple-system, sans-serif;
+            background: linear-gradient(180deg, #0b1526, #0e1a2b 60%, #0b1526);
+            color: #e8e6df;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .redirect-container {
+            text-align: center;
+            padding: 2rem;
+        }
+        .spinner {
+            border: 3px solid #20314d;
+            border-top: 3px solid #1f6fe0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            color: #a9a49a;
+            font-size: 14px;
+        }
+        .link {
+            color: #cfc7b3;
+            text-decoration: underline;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="redirect-container">
+        <div class="spinner"></div>
+        <div class="message">Redirecting to Job Blue...</div>
+        <a href="index.php" class="link">Click here if not redirected automatically</a>
+    </div>
+
+    <script>
+        // Redirect to PHP version
+        window.location.href = 'index.php';
+    </script>
+</body>
+</html>
