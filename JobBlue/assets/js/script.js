@@ -43,6 +43,58 @@
     });
   }
   attachHints(loginPanel); attachHints(signupPanel);
+
+  // Temporary: redirect to home after successful validation
+  function attachRedirect(form){
+    form?.addEventListener('submit', (e)=>{
+      if(form.checkValidity()){
+        e.preventDefault();
+        window.location.href = 'home.php';
+      }
+    });
+  }
+  attachRedirect(loginPanel); attachRedirect(signupPanel);
+
+  // Drawer toggle
+  const hamburger = document.querySelector('.hamburger');
+  const drawer = document.getElementById('drawer');
+  const drawerClose = document.querySelector('.drawer__close');
+  const overlay = document.querySelector('.drawer-overlay');
+  function openDrawer(){
+    if(!drawer) return;
+    drawer.classList.add('is-open');
+    overlay?.removeAttribute('hidden');
+    hamburger?.setAttribute('aria-expanded','true');
+    drawer?.setAttribute('aria-hidden','false');
+    document.body.classList.add('no-scroll');
+  }
+  function closeDrawer(){
+    if(!drawer) return;
+    drawer.classList.remove('is-open');
+    overlay?.setAttribute('hidden','');
+    hamburger?.setAttribute('aria-expanded','false');
+    drawer?.setAttribute('aria-hidden','true');
+    document.body.classList.remove('no-scroll');
+  }
+  hamburger?.addEventListener('click', openDrawer);
+  drawerClose?.addEventListener('click', closeDrawer);
+  overlay?.addEventListener('click', closeDrawer);
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeDrawer(); });
+
+  // Ensure correct state on resize (close drawer on desktop->mobile transitions)
+  let lastIsMobile = window.innerWidth < 1024;
+  window.addEventListener('resize', ()=>{
+    const isMobile = window.innerWidth < 1024;
+    if(!isMobile && drawer?.classList.contains('is-open')){
+      // keep it open on desktop but allow scrolling
+      document.body.classList.remove('no-scroll');
+    }
+    if(isMobile !== lastIsMobile && !isMobile){
+      // transition to desktop: hide overlay
+      overlay?.setAttribute('hidden','');
+    }
+    lastIsMobile = isMobile;
+  });
 })();
 
 
