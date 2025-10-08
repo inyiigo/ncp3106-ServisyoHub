@@ -29,3 +29,7 @@ $bodyClass = "title-page";
 </main>
 
 <?php include 'components/footer.php'; ?>
+
+
+<!-- Main JavaScript -->
+<script src="assets/js/main.js"></script>
