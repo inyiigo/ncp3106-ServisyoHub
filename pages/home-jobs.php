@@ -51,10 +51,7 @@
 				</div>
 			</section>
 
-			<section class="dash-explore">
-				<h4>Explore</h4>
-				<div class="dash-list-item">Application Tips: How to get approved faster</div>
-			</section>
+
 		</main>
 
 		<aside class="dash-aside">

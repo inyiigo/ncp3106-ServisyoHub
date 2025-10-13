@@ -54,10 +54,7 @@
 				</div>
 			</section>
 
-			<section class="dash-explore">
-				<h4>Explore</h4>
-				<div class="dash-list-item">Getting Started: How requesting services works</div>
-			</section>
+			
 
 					<section class="dash-svc" id="available-services">
 						<h4>Available Services</h4>
@@ -157,6 +154,5 @@
 		</a>
 	</nav>
 </body>
-</html>
 </html>
 
