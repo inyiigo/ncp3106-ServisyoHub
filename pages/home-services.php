@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Home • Services • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
+	<script defer src="../assets/js/script.js"></script>
 </head>
 <body>
 	<?php
@@ -22,13 +23,15 @@
 	?>
 	<div class="dash-topbar">
 		<div class="dash-brand">Servisyo Hub</div>
+		<div class="dash-center-logo"><img src="../assets/images/job_logo.png" alt="Servisyo Hub Logo" /></div>
 		<div class="dash-top-spacer"></div>
 		<div class="dash-avatar" title="<?php echo htmlspecialchars($display); ?>"><?php echo htmlspecialchars($avatar); ?></div>
-		<button class="dash-icon-btn" title="Settings" aria-label="Settings">
-			<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 .6 1.65 1.65 0 0 0-.33 1.82l.02.06a2 2 0 1 1-3.38 0l.02-.06A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82-.33l-.06.02a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15c0-.32-.1-.63-.27-.9a1.65 1.65 0 0 0-1.55-.78H2.7a2 2 0 1 1 0-4h.08c.64 0 1.22-.3 1.55-.78.17-.27.27-.58.27-.9s-.1-.63-.27-.9A1.65 1.65 0 0 0 3 4.6l-.06-.06A2 2 0 0 1 5.77 1.7l.06.06c.46.46 1.1.66 1.73.52.31-.06.6-.19.85-.38.25-.19.45-.44.6-.72l.02-.06a2 2 0 1 1 3.38 0l.02.06c.15.28.35.53.6.72.25.19.54.32.85.38.63.14 1.27-.06 1.73-.52l.06-.06A2 2 0 1 1 22.3 4.6l-.06.06c-.46.46-.66 1.1-.52 1.73.06.31.19.6.38.85.19.25.44.45.72.6l.06.02a2 2 0 1 1 0 3.38l-.06.02c-.28.15-.53.35-.72.6-.19.25-.32.54-.38.85-.14.63.06 1.27.52 1.73l.06.06Z"/></svg>
+		<button class="dash-icon-btn" data-nav-toggle title="Menu" aria-label="Menu">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
 		</button>
 	</div>
 
+	<div class="dash-overlay"></div>
 	<div class="dash-shell">
 		<main class="dash-content">
 			<h1 class="dash-greet">Hi <?php echo htmlspecialchars($display); ?>!</h1>
@@ -140,5 +143,6 @@
 		</aside>
 	</div>
 </body>
+</html>
 </html>
 

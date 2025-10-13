@@ -13,13 +13,19 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title><?php echo htmlspecialchars($title); ?> • Servisyo Hub</title>
   <link rel="stylesheet" href="../../assets/css/styles.css" />
+  <script defer src="../../assets/js/script.js"></script>
 </head>
 <body>
   <div class="dash-topbar">
     <div class="dash-brand">Servisyo Hub</div>
+    <div class="dash-center-logo"><img src="../../assets/images/job_logo.png" alt="Servisyo Hub Logo" /></div>
     <div class="dash-top-spacer"></div>
     <div class="dash-avatar" title="<?php echo htmlspecialchars($display); ?>"><?php echo htmlspecialchars($avatar); ?></div>
+    <button class="dash-icon-btn" data-nav-toggle title="Menu" aria-label="Menu">
+      <svg class="dash-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+    </button>
   </div>
+  <div class="dash-overlay"></div>
   <div class="dash-shell">
     <main class="dash-content">
       <h1><?php echo htmlspecialchars($title); ?></h1>
