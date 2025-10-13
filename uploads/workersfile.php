@@ -127,21 +127,8 @@ if (!empty($errors)) {
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Application <?php echo empty($errors) ? 'Received' : 'Error'; ?> • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
-	<style>
-		body { display: grid; place-items: center; min-height: 100vh; background: #f8fafc; }
-		.card { width: 100%; max-width: 720px; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
-		h2 { margin-top: 0; }
-		.errors { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; }
-		.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; padding: 12px; border-radius: 8px; }
-		.meta { color: #475569; }
-		.actions { margin-top: 16px; display: flex; gap: 12px; }
-		.btn { appearance: none; border: none; background: #111827; color: #fff; padding: 12px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; text-decoration: none; display: inline-block; }
-		.btn.secondary { background: #e5e7eb; color: #111827; }
-		ul { margin: 8px 0 0 18px; }
-		li { margin: 4px 0; }
-	</style>
 </head>
-<body>
+<body class="notify-body">
 	<div class="card">
 		<?php if (!empty($errors)): ?>
 			<h2>Submission Error</h2>
