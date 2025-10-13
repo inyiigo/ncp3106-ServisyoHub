@@ -32,6 +32,8 @@
 			<h1 class="dash-greet">Hi <?php echo htmlspecialchars($display); ?>!</h1>
 			<p class="dash-muted">Welcome to your job application dashboard.</p>
 
+			<p class="dash-muted">Where skilled hands meet local demand.</p>
+
 			<section class="dash-cards">
 				<div class="dash-card green">
 					<div>
