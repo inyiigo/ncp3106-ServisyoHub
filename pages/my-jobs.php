@@ -6,8 +6,8 @@ $pageTitle = "My Jobs";
 $bodyClass = "my-jobs-page";
 ?>
 
-<?php include '../components/header.php'; ?>
-<?php include '../components/navbar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -26,7 +26,7 @@ $bodyClass = "my-jobs-page";
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->
