@@ -117,11 +117,16 @@ body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Ar
 .dash-svc { margin-top: 22px; }
 .dash-svc h4 { margin: 0 0 12px; }
 .dash-svc-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-.dash-svc-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dash-svc-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); padding: 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: transform .15s ease, box-shadow .15s ease; }
+.dash-svc-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(2,6,23,.12); }
+.dash-svc-card:active { transform: translateY(0); }
+.dash-svc-card.info-only { justify-content: flex-start; }
 .dash-svc-card .info { display: grid; gap: 4px; }
 .dash-svc-card .title { font-weight: 800; }
 .dash-svc-card .sub { color: var(--muted); font-size: .92rem; }
-.dash-svc-card a.cta { background: var(--brand); color: #fff; text-decoration: none; padding: 8px 12px; border-radius: 10px; font-weight: 700; white-space: nowrap; }
+.dash-svc-card .pic { width: 96px; height: 64px; background-repeat: no-repeat; background-position: center right; background-size: contain; border-radius: 10px; flex: 0 0 96px; }
+/* Anchor card */
+a.dash-svc-card { text-decoration: none; color: inherit; }
 
 @media (max-width: 900px) {
   .dash-shell { grid-template-columns: 1fr; }
@@ -129,4 +134,28 @@ body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Ar
   .dash-cards { grid-template-columns: 1fr; }
   .dash-svc-grid { grid-template-columns: 1fr; }
 }
+
+/* Categorized services */
+.dash-cat { margin-top: 26px; }
+.dash-cat .dash-cat-title { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+.dash-cat .dash-cat-title span { font-weight: 900; font-size: 1.05rem; }
+.dash-cat .dash-svc-grid { grid-template-columns: repeat(2,1fr); }
+@media (min-width: 980px) {
+  .dash-cat .dash-svc-grid { grid-template-columns: repeat(3,1fr); }
+}
+
+/* Service image mappings (use SVGs under assets/images/services) */
+.svc-cleaning { background-image: url('../images/services/cleaning.svg'); }
+.svc-aircon { background-image: url('../images/services/aircon.svg'); }
+.svc-upholstery { background-image: url('../images/services/upholstery.svg'); }
+.svc-electrical-appliance { background-image: url('../images/services/electrical-appliance.svg'); }
+.svc-plumbing-handyman { background-image: url('../images/services/plumbing-handyman.svg'); }
+.svc-pest-control { background-image: url('../images/services/pest-control.svg'); }
+.svc-ironing { background-image: url('../images/services/ironing.svg'); }
+.svc-beauty { background-image: url('../images/services/beauty.svg'); }
+.svc-massage { background-image: url('../images/services/massage.svg'); }
+.svc-hair-care { background-image: url('../images/services/hair-care.svg'); }
+.svc-wax { background-image: url('../images/services/wax.svg'); }
+.svc-car-spa { background-image: url('../images/services/car-spa.svg'); }
+.svc-pet-care { background-image: url('../images/services/pet-care.svg'); }
 

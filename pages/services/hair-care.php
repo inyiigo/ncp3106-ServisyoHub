@@ -1,0 +1,1 @@
+<?php $title='Hair Care'; $subtitle='Cut, style, color'; $ctaHref='../home-services.php'; include __DIR__.'/_template.php';

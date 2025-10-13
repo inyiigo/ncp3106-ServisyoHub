@@ -1,0 +1,1 @@
+<?php $title='Wax'; $subtitle='Body waxing'; $ctaHref='../home-services.php'; include __DIR__.'/_template.php';
