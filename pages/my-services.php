@@ -6,8 +6,8 @@ $pageTitle = "My Services";
 $bodyClass = "my-services-page";
 ?>
 
-<?php include '../components/header.php'; ?>
-<?php include '../components/navbar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -53,44 +53,16 @@ $bodyClass = "my-services-page";
             
             <div class="services-list">
                 <div class="service-item">
-                    <div class="service-info">
-                        <h3>Custom Logo Design</h3>
-                        <p>Professional logo design with unlimited revisions</p>
-                        <div class="service-stats">
-                            <span class="stat">$150 starting</span>
-                            <span class="stat">3 days delivery</span>
-                            <span class="stat">⭐ 4.9 (127 reviews)</span>
-                        </div>
-                    </div>
-                    <div class="service-actions">
-                        <button class="btn btn-secondary">Edit</button>
-                        <button class="btn btn-outline">View</button>
-                        <button class="btn btn-outline">Pause</button>
-                    </div>
                 </div>
                 
                 <div class="service-item">
-                    <div class="service-info">
-                        <h3>Website Development</h3>
-                        <p>Full-stack web development with modern technologies</p>
-                        <div class="service-stats">
-                            <span class="stat">$800 starting</span>
-                            <span class="stat">7 days delivery</span>
-                            <span class="stat">⭐ 4.8 (89 reviews)</span>
-                        </div>
-                    </div>
-                    <div class="service-actions">
-                        <button class="btn btn-secondary">Edit</button>
-                        <button class="btn btn-outline">View</button>
-                        <button class="btn btn-outline">Pause</button>
-                    </div>
                 </div>
             </div>
         </div>
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->

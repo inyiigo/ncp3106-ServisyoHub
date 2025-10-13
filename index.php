@@ -6,7 +6,7 @@ $pageTitle = "Welcome to Servisyo Hub";
 $bodyClass = "title-page";
 ?>
 
-<?php include 'components/header.php'; ?>
+<?php include 'includes/header.php'; ?>
 
 <main id="main-content">
     <!-- Title Page Hero Section -->
@@ -28,7 +28,7 @@ $bodyClass = "title-page";
     </section>
 </main>
 
-<?php include 'components/footer.php'; ?>
+<?php include 'includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->

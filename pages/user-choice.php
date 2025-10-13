@@ -6,7 +6,7 @@ $pageTitle = "You are here for";
 $bodyClass = "user-choice-page";
 ?>
 
-<?php include '../components/header.php'; ?>
+<?php include '../includes/header.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -46,7 +46,7 @@ $bodyClass = "user-choice-page";
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->

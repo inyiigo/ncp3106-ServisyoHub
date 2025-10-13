@@ -9,7 +9,7 @@ $pageTitle = "Job Registration";
 $bodyClass = "registration-page";
 ?>
 
-<?php include '../components/header.php'; ?>
+<?php include '../includes/header.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -76,42 +76,12 @@ $bodyClass = "registration-page";
                         <p>Already have an account? <a href="login.php" class="auth-link">Sign in here</a></p>
                     </div>
                 </div>
-                
-                <!-- Registration Benefits -->
-                <div class="auth-benefits">
-                    <h3>Why join as a job seeker?</h3>
-                    <div class="benefits-list">
-                        <div class="benefit-item">
-                            <div class="benefit-icon">💼</div>
-                            <div class="benefit-content">
-                                <h4>Find Your Dream Job</h4>
-                                <p>Browse thousands of job opportunities from local employers.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">📈</div>
-                            <div class="benefit-content">
-                                <h4>Build Your Career</h4>
-                                <p>Track applications and grow your professional network.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🎯</div>
-                            <div class="benefit-content">
-                                <h4>Smart Matching</h4>
-                                <p>Get matched with jobs that fit your skills and interests.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 <!-- Main JavaScript -->
 <script src="../assets/js/main.js"></script>
