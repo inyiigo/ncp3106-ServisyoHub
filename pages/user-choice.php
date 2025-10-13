@@ -1,28 +1,53 @@
 <?php
-// Simple user-type selection
+// User choice page for Servisyo Hub
+session_start();
+
+$pageTitle = "You are here for";
+$bodyClass = "user-choice-page";
 ?>
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Get Started — Servisyo Hub</title>
-<style>
-  body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;background:#fff}
-  .card{max-width:640px;padding:28px;border-radius:10px;box-shadow:0 6px 30px rgba(0,0,0,.06);text-align:center}
-  .choices{display:flex;gap:12px;margin-top:18px;justify-content:center}
-  .btn{padding:12px 20px;border-radius:8px;text-decoration:none;color:#fff;background:#0b6b3a}
-  .btn.secondary{background:#6c757d}
-</style>
-</head>
-<body>
-  <div class="card">
-    <h2>You are here for</h2>
-    <p>Choose one to continue</p>
-    <div class="choices">
-      <a class="btn" href="login.php?type=services">A Service</a>
-      <a class="btn secondary" href="register.php?type=job">A Job</a>
-    </div>
-  </div>
-</body>
-</html>
+
+<?php include '../components/header.php'; ?>
+
+<main id="main-content">
+    <section class="section">
+        <div class="container">
+            <div class="choice-container">
+                <div class="choice-header">
+                    <h1>You are here for</h1>
+                </div>
+                
+                <div class="choice-options">
+                    <div class="choice-card" data-choice="services">
+                        <div class="choice-icon">🔧</div>
+                        <h3>Services</h3>
+                        <p>I want to look for skills and services.</p>
+                        <div class="choice-features">
+                            <span class="feature">✓ Create service listings</span>
+                            <span class="feature">✓ Manage bookings</span>
+                            <span class="feature">✓ Build reputation</span>
+                        </div>
+                        <button class="btn btn-primary">Choose Services</button>
+                    </div>
+                    
+                    <div class="choice-card" data-choice="job">
+                        <div class="choice-icon">💼</div>
+                        <h3>a Job</h3>
+                        <p>I want to find work opportunities and employment</p>
+                        <div class="choice-features">
+                            <span class="feature">✓ Browse job listings</span>
+                            <span class="feature">✓ Apply for positions</span>
+                            <span class="feature">✓ Track applications</span>
+                        </div>
+                        <button class="btn btn-primary">Choose Job</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<?php include '../components/footer.php'; ?>
+
+
+<!-- Main JavaScript -->
+<script src="../assets/js/main.js"></script>

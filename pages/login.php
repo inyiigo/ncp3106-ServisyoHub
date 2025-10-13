@@ -76,36 +76,6 @@ $bodyClass = "login-page";
                         <p>Don't have an account? <a href="signup.php" class="auth-link">Sign up here</a></p>
                     </div>
                 </div>
-                
-                <!-- Login Benefits -->
-                <div class="auth-benefits">
-                    <h3>Why join our community?</h3>
-                    <div class="benefits-list">
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🚀</div>
-                            <div class="benefit-content">
-                                <h4>Access Premium Services</h4>
-                                <p>Connect with top-tier professionals and exclusive opportunities.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🎯</div>
-                            <div class="benefit-content">
-                                <h4>Smart Matching</h4>
-                                <p>Our AI matches you with the perfect projects and collaborators.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">💼</div>
-                            <div class="benefit-content">
-                                <h4>Professional Network</h4>
-                                <p>Build lasting relationships with verified professionals worldwide.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
