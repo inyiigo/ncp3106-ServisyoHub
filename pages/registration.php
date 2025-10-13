@@ -28,7 +28,7 @@
 		<h2>Register to apply for a job</h2>
 		<p class="hint">Fill in your details and upload required files for your application.</p>
 
-		<form action="../uploads/workersfile.php" method="POST" enctype="multipart/form-data" novalidate>
+		<form action="./home-jobs.php" method="POST" enctype="multipart/form-data" novalidate>
 			<div class="grid">
 				<div class="field col-6">
 					<label for="first_name">First Name</label>
@@ -63,11 +63,7 @@
 					<label for="address">Address</label>
 					<textarea id="address" name="address" rows="3" placeholder="Street, Barangay, City, Province" required></textarea>
 				</div>
-				<div class="field col-12">
-					<label for="image">Profile Image</label>
-					<input type="file" id="image" name="image" accept="image/*" required />
-					<small class="hint">Upload a clear photo of yourself. JPG or PNG.</small>
-				</div>
+				
 				<div class="field col-12">
 					<label for="application_files">Application Files</label>
 					<input type="file" id="application_files" name="application_files[]" multiple />
@@ -81,6 +77,6 @@
 			</div>
 		</form>
 	</main>
-</body>
-</html>
+		</body>
+		</html>
 

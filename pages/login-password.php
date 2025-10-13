@@ -27,7 +27,7 @@ $mobile = isset($_POST['mobile']) ? trim($_POST['mobile']) : '';
     <h2>Enter your password</h2>
     <p class="hint">We found mobile number: <strong><?php echo htmlspecialchars($mobile ?: 'Unknown'); ?></strong></p>
 
-    <form action="./home.php" method="POST" novalidate>
+  <form action="./home-services.php" method="POST" novalidate>
       <input type="hidden" name="mobile" value="<?php echo htmlspecialchars($mobile); ?>" />
       <div class="field">
         <label for="password">Password</label>

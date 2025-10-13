@@ -61,12 +61,27 @@ if (!isset($_FILES['image']) || $_FILES['image']['error'] === UPLOAD_ERR_NO_FILE
 					$map = [
 						IMAGETYPE_JPEG => 'image/jpeg',
 						IMAGETYPE_PNG => 'image/png',
+						IMAGETYPE_GIF => 'image/gif',
+						IMAGETYPE_BMP => 'image/bmp',
+						IMAGETYPE_WEBP => 'image/webp',
+						IMAGETYPE_TIFF_II => 'image/tiff',
+						IMAGETYPE_TIFF_MM => 'image/tiff',
 					];
 					$mime = $map[$type] ?? null;
 				}
-				$allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
+				$allowed = [
+					'image/jpeg' => 'jpg',
+					'image/pjpeg' => 'jpg',
+					'image/png' => 'png',
+					'image/webp' => 'webp',
+					'image/gif' => 'gif',
+					'image/bmp' => 'bmp',
+					'image/tiff' => 'tiff',
+					'image/heic' => 'heic',
+					'image/heif' => 'heif'
+				];
 				if (!isset($allowed[$mime])) {
-						$errors[] = 'Image must be JPG or PNG.';
+					$errors[] = 'Image must be a valid picture (JPG, PNG, WEBP, GIF, BMP, TIFF, HEIC/HEIF).';
 				} else {
 						$safeBase = preg_replace('/[^a-zA-Z0-9_-]+/', '_', strtolower($firstName . '_' . $lastName));
 						$filename = $safeBase . '_profile_' . time() . '.' . $allowed[$mime];

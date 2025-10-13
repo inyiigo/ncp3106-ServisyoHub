@@ -1,0 +1,1 @@
+<?php $title='Painting'; $subtitle='Interior & exterior'; $ctaHref='../home-services.php'; include __DIR__.'/_template.php';
