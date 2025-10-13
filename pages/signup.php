@@ -10,10 +10,18 @@ if (isset($_SESSION['user_id'])) {
 
 $pageTitle = "Sign Up";
 $bodyClass = "signup-page";
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $_SESSION['user_id'] = time();
+    $_SESSION['username'] = trim($_POST['username'] ?? 'ServiceUser');
+    $_SESSION['user_choice'] = 'services';
+    header('Location: home.php');
+    exit;
+}
 ?>
 
-<?php include '../components/header.php'; ?>
-<?php include '../components/navbar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -25,7 +33,7 @@ $bodyClass = "signup-page";
                         <p>Create your account and start connecting with professionals</p>
                     </div>
                     
-                    <form class="auth-form" id="signup-form">
+                    <form class="auth-form" id="signup-form" method="post">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="firstName" class="form-label">First Name</label>
@@ -112,50 +120,12 @@ $bodyClass = "signup-page";
                         <p>Already have an account? <a href="login.php" class="auth-link">Sign in here</a></p>
                     </div>
                 </div>
-                
-                <!-- Signup Benefits -->
-                <div class="auth-benefits">
-                    <h3>What you'll get</h3>
-                    <div class="benefits-list">
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🎯</div>
-                            <div class="benefit-content">
-                                <h4>Smart Project Matching</h4>
-                                <p>Get matched with projects that fit your skills and interests automatically.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">💼</div>
-                            <div class="benefit-content">
-                                <h4>Professional Portfolio</h4>
-                                <p>Showcase your work and build credibility with our professional portfolio tools.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">🚀</div>
-                            <div class="benefit-content">
-                                <h4>Growth Opportunities</h4>
-                                <p>Access exclusive learning resources and networking events.</p>
-                            </div>
-                        </div>
-                        
-                        <div class="benefit-item">
-                            <div class="benefit-icon">💰</div>
-                            <div class="benefit-content">
-                                <h4>Secure Payments</h4>
-                                <p>Get paid securely and on time with our protected payment system.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->

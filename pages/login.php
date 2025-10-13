@@ -15,8 +15,8 @@ $pageTitle = "Login";
 $bodyClass = "login-page";
 ?>
 
-<?php include '../components/header.php'; ?>
-<?php include '../components/navbar.php'; ?>
+<?php include '../includes/header.php'; ?>
+<?php include '../includes/navbar.php'; ?>
 
 <main id="main-content">
     <section class="section">
@@ -28,7 +28,8 @@ $bodyClass = "login-page";
                         <p>Sign in to your account to continue</p>
                     </div>
                     
-                    <form class="auth-form" id="login-form">
+                    <form class="auth-form" id="login-form" method="post">
+                        <input type="hidden" name="type" value="<?php echo htmlspecialchars($type); ?>">
                         <div class="form-group">
                             <label for="email" class="form-label">Email Address</label>
                             <input type="email" id="email" name="email" class="form-input" required 
@@ -110,7 +111,7 @@ $bodyClass = "login-page";
     </section>
 </main>
 
-<?php include '../components/footer.php'; ?>
+<?php include '../includes/footer.php'; ?>
 
 
 <!-- Main JavaScript -->
