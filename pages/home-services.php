@@ -22,13 +22,11 @@
 		$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	?>
 	<div class="dash-topbar">
-		<div class="dash-brand">Servisyo Hub</div>
-		<div class="dash-center-logo"><img src="../assets/images/job_logo.png" alt="Servisyo Hub Logo" /></div>
+		<div class="dash-brand">
+			<img class="dash-brand-logo" src="../assets/images/job_logo.png" alt="Servisyo Hub" />
+			<span>Servisyo Hub</span>
+		</div>
 		<div class="dash-top-spacer"></div>
-		<div class="dash-avatar" title="<?php echo htmlspecialchars($display); ?>"><?php echo htmlspecialchars($avatar); ?></div>
-		<button class="dash-icon-btn" data-nav-toggle title="Menu" aria-label="Menu">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
-		</button>
 	</div>
 
 	<div class="dash-overlay"></div>
@@ -142,6 +140,22 @@
 			</nav>
 		</aside>
 	</div>
+
+	<!-- Floating bottom navigation -->
+	<nav class="dash-bottom-nav">
+		<a href="./home-services.php" class="active" aria-label="Home">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
+			<span>Home</span>
+		</a>
+		<a href="./my-services.php" aria-label="My Services">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+			<span>My Services</span>
+		</a>
+		<a href="./profile.php" aria-label="Profile">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+			<span>Profile</span>
+		</a>
+	</nav>
 </body>
 </html>
 </html>

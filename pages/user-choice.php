@@ -10,7 +10,7 @@
   <main class="choice-container">
     <h2 class="choice-heading">You are here for</h2>
     <div class="choice-buttons">
-      <a href="./login.php" class="choice-btn">A Services</a>
+      <a href="./login.php" class="choice-btn">A Service</a>
       <a href="./registration.php" class="choice-btn alt">A Job</a>
     </div>
   </main>
