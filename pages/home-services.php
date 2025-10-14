@@ -22,7 +22,7 @@
 		$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	?>
 	<div class="dash-topbar center">
-		<div class="dash-brand"><img src="../assets/images/newlogo.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
+		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
 
 	<div class="dash-overlay"></div>
