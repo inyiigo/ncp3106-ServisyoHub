@@ -50,7 +50,7 @@
 			<div class="home-sections">
 				<!-- Artwork -->
 				<section>
-					<h3 class="section-title">Artwork <span class="arrow">›</span></h3>
+					<h3 class="section-title">Available Services <span class="arrow">›</span></h3>
 					<div class="art-scroller">
 						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @Sukocchi</div></a>
 						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @RenChain</div></a>
