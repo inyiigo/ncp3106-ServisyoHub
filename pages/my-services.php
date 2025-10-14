@@ -11,11 +11,10 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
 	<style>
-		.empty-wrap { display:grid; place-items:center; min-height: calc(100vh - 64px - 120px); padding: 24px; }
+		.empty-wrap { display:grid; place-items:center; min-height: 0; padding: 24px; }
 		.empty-card { max-width: 720px; width: 100%; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow: var(--shadow); padding: 28px 22px; text-align:center; }
 		.empty-title { margin: 0 0 8px; font-size: clamp(18px,2.4vw,22px); font-weight: 800; }
 		.empty-text { margin: 0; color: var(--muted); }
-		.empty-actions { margin-top: 16px; display:flex; gap:10px; justify-content:center; }
 	</style>
 	</head>
 <body>
@@ -24,16 +23,24 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	</div>
 	<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
 
-	<div class="empty-wrap">
+		<!-- Browse CTA card placed above empty state -->
+		<section class="dash-cards" aria-label="Browse services">
+			<div class="dash-card blue">
+				<div>
+					<div class="dash-pill">Need to browse services?</div>
+					<h3>Find a Provider</h3>
+					<p>Explore verified services around you.</p>
+				</div>
+				<a href="./home-services.php" class="dash-pill">Browse</a>
+			</div>
+		</section>
+
+		<div class="empty-wrap">
 		<div class="empty-card">
 			<p class="empty-title">No bookings yet</p>
 			<p class="empty-text">When you book a service, it will appear here so you can track its progress.</p>
-			<div class="empty-actions">
-				<a class="btn" href="./home-services.php">Explore services</a>
-				<a class="btn secondary" href="./home-services.php#available-services">Browse categories</a>
 			</div>
 		</div>
-	</div>
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
