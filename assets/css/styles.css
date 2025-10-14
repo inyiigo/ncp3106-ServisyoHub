@@ -223,6 +223,6 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .info-meta { color: var(--muted); font-size: .92rem; margin: 4px 0 0; }
 
 @media (min-width: 980px) {
-  .home-sections { grid-template-columns: 1.2fr 1.1fr 1fr; }
+  .home-sections { grid-template-columns: 1fr; }
 }
 

@@ -59,50 +59,7 @@
 					<a class="home-cta-wide" href="#available-services">View More</a>
 				</section>
 
-				<!-- Recent Search -->
-				<section>
-					<h3 class="section-title">Recent Search</h3>
-					<div class="search-list">
-						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla ascension material</div><div class="pill-avatar"></div></div>
-						<div class="pill-wrap">
-							<div class="search-pill dark"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla build</div><div class="pill-avatar"></div></div>
-							<div class="pill-close">×</div>
-						</div>
-						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Kalpalata lotus locations</div><div class="pill-avatar"></div></div>
-						<div class="pill-wrap">
-							<div class="search-pill dark"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla cosplay</div><div class="pill-avatar"></div></div>
-							<div class="pill-close">×</div>
-						</div>
-						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla Wallpaper</div><div class="pill-avatar"></div></div>
-					</div>
-				</section>
-
-				<!-- Info cards -->
-				<section>
-					<div class="info-cards">
-						<a class="info-card" href="#">
-							<div class="info-ico">❄</div>
-							<div>
-								<div class="title" style="font-weight:800">Cryo character</div>
-								<div class="info-meta">Cryo is one of the seven elements...</div>
-							</div>
-						</a>
-						<a class="info-card" href="#">
-							<div class="info-ico">🌼</div>
-							<div>
-								<div class="title" style="font-weight:800">Sumeru</div>
-								<div class="info-meta">Sumeru is one of the seven regions of Teyvat...</div>
-							</div>
-						</a>
-						<a class="info-card" href="#">
-							<div class="info-ico">🏛</div>
-							<div>
-								<div class="title" style="font-weight:800">Akademiya</div>
-								<div class="info-meta">The Sumeru Akademiya is Sumeru's main governing body...</div>
-							</div>
-						</a>
-					</div>
-				</section>
+                
 			</div>
 
 			<!-- Keep existing services below as your actual content -->
