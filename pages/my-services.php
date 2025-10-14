@@ -19,7 +19,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	</head>
 	<body class="theme-profile-bg">
 	<div class="dash-topbar center">
-		<div class="dash-brand">Servisyo Hub</div>
+		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
 	<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
 
