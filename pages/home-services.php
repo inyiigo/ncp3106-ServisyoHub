@@ -28,34 +28,86 @@
 	<div class="dash-overlay"></div>
 	<div class="dash-shell">
 		<main class="dash-content">
-			<h1 class="dash-greet">Hi <?php echo htmlspecialchars($display); ?>!</h1>
-			<p class="dash-muted">Welcome back. What would you like to do today?</p>
-
-			<p class="dash-muted">Where skilled hands meet local demand.</p>
-
-			<section class="dash-cards">
-				<div class="dash-card green">
-					<div>
-						<div class="dash-pill">Have a service to request?</div>
-						<h3>Post a Service Request</h3>
-						<p>Tell us what you need; we’ll connect you.</p>
+			<!-- Hero banner -->
+			<section class="home-hero">
+				<div class="hero-copy">
+					<h2 class="hero-title">Layla</h2>
+					<p class="hero-sub">She is a student in the Rtawahist Darshan, specializing in Theoretical Astrology.</p>
+					<a href="#available-services" class="hero-link">Read More</a>
+					<div class="hero-dots">
+						<span class="hero-dot active"></span>
+						<span class="hero-dot"></span>
+						<span class="hero-dot"></span>
 					</div>
-					<a href="./my-services.php" class="dash-pill">Get started</a>
 				</div>
-				<div class="dash-card blue">
-					<div>
-						<div class="dash-pill">Need to browse services?</div>
-						<h3>Find a Provider</h3>
-						<p>Explore verified services around you.</p>
-					</div>
-					<a href="./my-services.php" class="dash-pill">Browse</a>
+				<div class="hero-art" aria-hidden="true">
+					<!-- Placeholder art area; we can swap for an image later -->
+					<svg width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.8"><circle cx="12" cy="12" r="10"/></svg>
 				</div>
 			</section>
 
-			
+			<!-- Sections row: Artwork / Recent Search / Info Cards -->
+			<div class="home-sections">
+				<!-- Artwork -->
+				<section>
+					<h3 class="section-title">Artwork <span class="arrow">›</span></h3>
+					<div class="art-scroller">
+						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @Sukocchi</div></a>
+						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @RenChain</div></a>
+						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @Someone</div></a>
+					</div>
+					<a class="home-cta-wide" href="#available-services">View More</a>
+				</section>
 
-					<section class="dash-svc" id="available-services">
-						<h4>Available Services</h4>
+				<!-- Recent Search -->
+				<section>
+					<h3 class="section-title">Recent Search</h3>
+					<div class="search-list">
+						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla ascension material</div><div class="pill-avatar"></div></div>
+						<div class="pill-wrap">
+							<div class="search-pill dark"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla build</div><div class="pill-avatar"></div></div>
+							<div class="pill-close">×</div>
+						</div>
+						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Kalpalata lotus locations</div><div class="pill-avatar"></div></div>
+						<div class="pill-wrap">
+							<div class="search-pill dark"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla cosplay</div><div class="pill-avatar"></div></div>
+							<div class="pill-close">×</div>
+						</div>
+						<div class="search-pill"><svg class="pill-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.4-3.4"/></svg><div class="pill-text">Layla Wallpaper</div><div class="pill-avatar"></div></div>
+					</div>
+				</section>
+
+				<!-- Info cards -->
+				<section>
+					<div class="info-cards">
+						<a class="info-card" href="#">
+							<div class="info-ico">❄</div>
+							<div>
+								<div class="title" style="font-weight:800">Cryo character</div>
+								<div class="info-meta">Cryo is one of the seven elements...</div>
+							</div>
+						</a>
+						<a class="info-card" href="#">
+							<div class="info-ico">🌼</div>
+							<div>
+								<div class="title" style="font-weight:800">Sumeru</div>
+								<div class="info-meta">Sumeru is one of the seven regions of Teyvat...</div>
+							</div>
+						</a>
+						<a class="info-card" href="#">
+							<div class="info-ico">🏛</div>
+							<div>
+								<div class="title" style="font-weight:800">Akademiya</div>
+								<div class="info-meta">The Sumeru Akademiya is Sumeru's main governing body...</div>
+							</div>
+						</a>
+					</div>
+				</section>
+			</div>
+
+			<!-- Keep existing services below as your actual content -->
+			<section class="dash-svc" id="available-services">
+				<h4>Available Services</h4>
 
 						<div class="dash-cat">
 							<div class="dash-cat-title"><span>Home Service</span></div>
