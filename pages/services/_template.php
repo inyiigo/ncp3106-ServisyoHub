@@ -16,12 +16,8 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
   <script defer src="../../assets/js/script.js"></script>
 </head>
 <body>
-  <div class="dash-topbar">
-    <div class="dash-brand">
-      <img class="dash-brand-logo" src="../../assets/images/job_logo.png" alt="Servisyo Hub" />
-      <span>Servisyo Hub</span>
-    </div>
-    <div class="dash-top-spacer"></div>
+  <div class="dash-topbar center">
+    <div class="dash-brand">Servisyo Hub</div>
   </div>
   <div class="dash-overlay"></div>
   <div class="dash-shell">

@@ -18,7 +18,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	</style>
 	</head>
 <body>
-	<div class="dash-topbar">
+	<div class="dash-topbar center">
 		<div class="dash-brand">Servisyo Hub</div>
 	</div>
 	<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
