@@ -46,84 +46,65 @@
 				</div>
 			</section>
 
-			<!-- Sections row: Artwork / Recent Search / Info Cards -->
-			<div class="home-sections">
-				<!-- Artwork -->
-				<section>
-					<h3 class="section-title">Available Services <span class="arrow">›</span></h3>
-					<div class="art-scroller">
-						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @Sukocchi</div></a>
-						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @RenChain</div></a>
-						<a class="art-card" href="#"><div class="art-thumb"></div><div class="art-credit">by @Someone</div></a>
+			<!-- Category sections (original card style) -->
+			<div class="home-sections" id="available-services">
+				<div class="dash-cat">
+					<div class="dash-cat-title"><span>Home Service</span></div>
+					<div class="dash-svc-grid">
+						<a class="dash-svc-card" href="./services/cleaning.php">
+							<div class="info"><div class="title">Cleaning</div><div class="sub">Home and office cleaning</div></div>
+							<div class="pic svc-cleaning"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/aircon.php">
+							<div class="info"><div class="title">Aircon</div><div class="sub">Cleaning & maintenance</div></div>
+							<div class="pic svc-aircon"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/upholstery.php">
+							<div class="info"><div class="title">Upholstery</div><div class="sub">Deep clean sofas & more</div></div>
+							<div class="pic svc-upholstery"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/electrical-appliance.php">
+							<div class="info"><div class="title">Electrical & Appliance</div><div class="sub">Wiring & appliance fix</div></div>
+							<div class="pic svc-electrical-appliance"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/plumbing-handyman.php">
+							<div class="info"><div class="title">Plumbing & Handyman</div><div class="sub">Repairs & installations</div></div>
+							<div class="pic svc-plumbing-handyman"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/pest-control.php">
+							<div class="info"><div class="title">Pest Control</div><div class="sub">Termites, roaches, more</div></div>
+							<div class="pic svc-pest-control"></div>
+						</a>
+						<a class="dash-svc-card" href="./services/ironing.php">
+							<div class="info"><div class="title">Ironing</div><div class="sub">Clothes ironing service</div></div>
+							<div class="pic svc-ironing"></div>
+						</a>
 					</div>
-					<a class="home-cta-wide" href="#available-services">View More</a>
-				</section>
-
-                
+				</div>
+				<div class="dash-cat">
+					<div class="dash-cat-title"><span>Personal Care</span></div>
+					<div class="dash-svc-grid">
+						<a class="dash-svc-card" href="./services/beauty.php"><div class="info"><div class="title">Beauty</div><div class="sub">Skin & nails</div></div><div class="pic svc-beauty"></div></a>
+						<a class="dash-svc-card" href="./services/massage.php"><div class="info"><div class="title">Massage</div><div class="sub">Relaxation & therapy</div></div><div class="pic svc-massage"></div></a>
+						<a class="dash-svc-card" href="./services/hair-care.php"><div class="info"><div class="title">Hair Care</div><div class="sub">Cut, style, color</div></div><div class="pic svc-hair-care"></div></a>
+						<a class="dash-svc-card" href="./services/wax.php"><div class="info"><div class="title">Wax</div><div class="sub">Body waxing</div></div><div class="pic svc-wax"></div></a>
+					</div>
+				</div>
+				<div class="dash-cat">
+					<div class="dash-cat-title"><span>Automotive Service</span></div>
+					<div class="dash-svc-grid">
+						<a class="dash-svc-card" href="./services/car-spa.php"><div class="info"><div class="title">Car Spa</div><div class="sub">Wash, wax, detail</div></div><div class="pic svc-car-spa"></div></a>
+					</div>
+				</div>
+				<div class="dash-cat">
+					<div class="dash-cat-title"><span>Pet Service</span></div>
+					<div class="dash-svc-grid">
+						<a class="dash-svc-card" href="./services/pet-care.php"><div class="info"><div class="title">Pet Care</div><div class="sub">Grooming & sitting</div></div><div class="pic svc-pet-care"></div></a>
+					</div>
+				</div>
 			</div>
 
-			<!-- Keep existing services below as your actual content -->
-			<section class="dash-svc" id="available-services">
-				<h4>Available Services</h4>
-
-						<div class="dash-cat">
-							<div class="dash-cat-title"><span>Home Service</span></div>
-										<div class="dash-svc-grid">
-											<a class="dash-svc-card" href="./services/cleaning.php">
-												<div class="info"><div class="title">Cleaning</div><div class="sub">Home and office cleaning</div></div>
-												<div class="pic svc-cleaning"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/aircon.php">
-												<div class="info"><div class="title">Aircon</div><div class="sub">Cleaning & maintenance</div></div>
-												<div class="pic svc-aircon"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/upholstery.php">
-												<div class="info"><div class="title">Upholstery</div><div class="sub">Deep clean sofas & more</div></div>
-												<div class="pic svc-upholstery"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/electrical-appliance.php">
-												<div class="info"><div class="title">Electrical & Appliance</div><div class="sub">Wiring & appliance fix</div></div>
-												<div class="pic svc-electrical-appliance"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/plumbing-handyman.php">
-												<div class="info"><div class="title">Plumbing & Handyman</div><div class="sub">Repairs & installations</div></div>
-												<div class="pic svc-plumbing-handyman"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/pest-control.php">
-												<div class="info"><div class="title">Pest Control</div><div class="sub">Termites, roaches, more</div></div>
-												<div class="pic svc-pest-control"></div>
-											</a>
-											<a class="dash-svc-card" href="./services/ironing.php">
-												<div class="info"><div class="title">Ironing</div><div class="sub">Clothes ironing service</div></div>
-												<div class="pic svc-ironing"></div>
-											</a>
-										</div>
-						</div>
-
-						<div class="dash-cat">
-							<div class="dash-cat-title"><span>Personal Care</span></div>
-										<div class="dash-svc-grid">
-											<a class="dash-svc-card" href="./services/beauty.php"><div class="info"><div class="title">Beauty</div><div class="sub">Skin & nails</div></div><div class="pic svc-beauty"></div></a>
-											<a class="dash-svc-card" href="./services/massage.php"><div class="info"><div class="title">Massage</div><div class="sub">Relaxation & therapy</div></div><div class="pic svc-massage"></div></a>
-											<a class="dash-svc-card" href="./services/hair-care.php"><div class="info"><div class="title">Hair Care</div><div class="sub">Cut, style, color</div></div><div class="pic svc-hair-care"></div></a>
-											<a class="dash-svc-card" href="./services/wax.php"><div class="info"><div class="title">Wax</div><div class="sub">Body waxing</div></div><div class="pic svc-wax"></div></a>
-										</div>
-						</div>
-
-						<div class="dash-cat">
-							<div class="dash-cat-title"><span>Automotive Service</span></div>
-										<div class="dash-svc-grid">
-											<a class="dash-svc-card" href="./services/car-spa.php"><div class="info"><div class="title">Car Spa</div><div class="sub">Wash, wax, detail</div></div><div class="pic svc-car-spa"></div></a>
-										</div>
-						</div>
-
-						<div class="dash-cat">
-							<div class="dash-cat-title"><span>Pet Service</span></div>
-										<div class="dash-svc-grid">
-											<a class="dash-svc-card" href="./services/pet-care.php"><div class="info"><div class="title">Pet Care</div><div class="sub">Grooming & sitting</div></div><div class="pic svc-pet-care"></div></a>
-										</div>
-						</div>
-					</section>
+			<!-- Removed full duplicate list for a cleaner page -->
 		</main>
 
 		<aside class="dash-aside">
