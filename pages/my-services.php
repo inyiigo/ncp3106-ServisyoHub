@@ -17,7 +17,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		.empty-text { margin: 0; color: var(--muted); }
 	</style>
 	</head>
-<body>
+	<body class="theme-profile-bg">
 	<div class="dash-topbar center">
 		<div class="dash-brand">Servisyo Hub</div>
 	</div>

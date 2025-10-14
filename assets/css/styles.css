@@ -47,6 +47,30 @@ body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Ar
   .choice-buttons { grid-template-columns: 1fr 1fr; }
 }
 
+/* Page-scoped themes */
+.theme-pal5-bg { background: color-mix(in srgb, var(--pal-5) 80%, #000); }
+.theme-pal5-bg .dash-shell { background: color-mix(in srgb, var(--pal-5) 80%, #000); }
+.theme-pal5-bg .dash-topbar { background: transparent; border-bottom-color: rgba(255,255,255,.18); }
+.theme-pal5-bg .dash-bottom-nav { background: rgba(255,255,255,.9); }
+.theme-pal5-bg .dash-bottom-nav a { color: #0f172a; }
+.theme-pal5-bg .dash-bottom-nav a.active, .theme-pal5-bg .dash-bottom-nav a:hover { background: var(--pal-4); color: #fff; }
+/* Improve contrast for standalone hero tagline on dark background */
+.theme-pal5-bg .hero-tagline { color: #ffffff; text-shadow: 0 1px 3px rgba(0,0,0,.2); }
+
+/* Reusable profile-style background (same as profile.php) */
+.profile-bg { background: radial-gradient(900px 450px at 50% -10%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%), linear-gradient(180deg, #0ea5e9 0%, #06b6d4 55%, #22d3ee 100%); min-height: calc(100vh - 64px); padding: 18px; }
+
+/* Glass effect for cards (matches profile menu aesthetic) */
+.glass-card { background: rgba(255,255,255,.35) !important; border: 2px solid rgba(255,255,255,.6) !important; backdrop-filter: blur(4px); box-shadow: 0 8px 20px rgba(2,6,23,.15); }
+
+/* Theme: page-wide profile gradient */
+.theme-profile-bg { background: radial-gradient(900px 450px at 50% -10%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%), linear-gradient(180deg, #0ea5e9 0%, #06b6d4 55%, #22d3ee 100%); background-attachment: fixed; background-size: cover; }
+.theme-profile-bg .dash-shell { background: transparent; }
+.theme-profile-bg .dash-topbar { background: transparent; border-bottom-color: rgba(255,255,255,.18); }
+.theme-profile-bg .dash-bottom-nav { background: rgba(255,255,255,.9); }
+.theme-profile-bg .dash-bottom-nav a { color: #0f172a; }
+.theme-profile-bg .dash-bottom-nav a.active, .theme-profile-bg .dash-bottom-nav a:hover { background: var(--pal-4); color: #fff; }
+
 /* Mobile tweaks */
 @media (max-width: 480px) {
   .splash-content { padding: 8px; max-width: 94vw; }
@@ -219,7 +243,7 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .dash-svc-card .svc-pet-care::after { content: '🐾'; }
 
 /* Home */
-.home-hero { display: grid; place-items: center; background: linear-gradient(180deg, var(--pal-3) 0%, var(--pal-2) 65%, var(--pal-4) 100%); color: #0b1a2b; border-radius: 18px; padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; aspect-ratio: 16/9; min-height: clamp(200px, 28vh, 360px); max-height: 360px; margin: 0 0 16px; width: 100%; }
+.home-hero { display: block; background: none; color: inherit; border-radius: 0; padding: 0; box-shadow: none; position: static; overflow: visible; margin: 0 0 12px; width: 100%; min-height: 0; max-height: none; }
 .home-hero .hero-copy { display: grid; gap: 10px; align-content: center; text-align: left; width: 100%; max-width: 640px; }
 .home-hero .hero-title { font-weight: 800; font-size: clamp(26px, 5.8vw, 44px); line-height: 1.05; margin: 0; }
 .home-hero .hero-sub { margin: 0; color: #0f172a; opacity: .9; font-size: clamp(14px, 2.6vw, 16px); }
@@ -231,7 +255,7 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .home-hero .hero-dot.active { opacity: 1; }
 
 /* Hero tagline centered inside banner */
-.hero-tagline { margin: 0; text-align: center; font-style: italic; font-weight: 800; font-size: clamp(18px, 4.4vw, 32px); color: #ffffff; text-shadow: 0 2px 8px rgba(0,0,0,.18); letter-spacing: .2px; }
+.hero-tagline { margin: 0; text-align: center; font-style: italic; font-weight: 800; font-size: clamp(18px, 4.4vw, 32px); color: #0f172a; letter-spacing: .2px; }
 
 .home-sections { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 16px; }
 .section-title { font-weight: 900; font-size: 1.2rem; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }

@@ -15,7 +15,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
   <link rel="stylesheet" href="../../assets/css/styles.css" />
   <script defer src="../../assets/js/script.js"></script>
 </head>
-<body>
+<body class="theme-profile-bg">
   <div class="dash-topbar center">
     <div class="dash-brand">Servisyo Hub</div>
   </div>

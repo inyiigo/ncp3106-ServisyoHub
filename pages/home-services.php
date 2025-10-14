@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
 </head>
-<body>
+<body class="theme-profile-bg">
 	<?php
 		session_start();
 		// Capture mobile from POST if present and keep in session for future requests
@@ -38,31 +38,31 @@
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Home Service</span></div>
 					<div class="dash-svc-grid">
-						<a class="dash-svc-card" href="./services/cleaning.php">
+						<a class="dash-svc-card glass-card" href="./services/cleaning.php">
 							<div class="info"><div class="title">Cleaning</div><div class="sub">Home and office cleaning</div></div>
 							<div class="pic svc-cleaning"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/aircon.php">
+						<a class="dash-svc-card glass-card" href="./services/aircon.php">
 							<div class="info"><div class="title">Aircon</div><div class="sub">Cleaning & maintenance</div></div>
 							<div class="pic svc-aircon"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/upholstery.php">
+						<a class="dash-svc-card glass-card" href="./services/upholstery.php">
 							<div class="info"><div class="title">Upholstery</div><div class="sub">Deep clean sofas & more</div></div>
 							<div class="pic svc-upholstery"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/electrical-appliance.php">
+						<a class="dash-svc-card glass-card" href="./services/electrical-appliance.php">
 							<div class="info"><div class="title">Electrical & Appliance</div><div class="sub">Wiring & appliance fix</div></div>
 							<div class="pic svc-electrical-appliance"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/plumbing-handyman.php">
+						<a class="dash-svc-card glass-card" href="./services/plumbing-handyman.php">
 							<div class="info"><div class="title">Plumbing & Handyman</div><div class="sub">Repairs & installations</div></div>
 							<div class="pic svc-plumbing-handyman"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/pest-control.php">
+						<a class="dash-svc-card glass-card" href="./services/pest-control.php">
 							<div class="info"><div class="title">Pest Control</div><div class="sub">Termites, roaches, more</div></div>
 							<div class="pic svc-pest-control"></div>
 						</a>
-						<a class="dash-svc-card" href="./services/ironing.php">
+						<a class="dash-svc-card glass-card" href="./services/ironing.php">
 							<div class="info"><div class="title">Ironing</div><div class="sub">Clothes ironing service</div></div>
 							<div class="pic svc-ironing"></div>
 						</a>
@@ -71,22 +71,22 @@
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Personal Care</span></div>
 					<div class="dash-svc-grid">
-						<a class="dash-svc-card" href="./services/beauty.php"><div class="info"><div class="title">Beauty</div><div class="sub">Skin & nails</div></div><div class="pic svc-beauty"></div></a>
-						<a class="dash-svc-card" href="./services/massage.php"><div class="info"><div class="title">Massage</div><div class="sub">Relaxation & therapy</div></div><div class="pic svc-massage"></div></a>
-						<a class="dash-svc-card" href="./services/hair-care.php"><div class="info"><div class="title">Hair Care</div><div class="sub">Cut, style, color</div></div><div class="pic svc-hair-care"></div></a>
-						<a class="dash-svc-card" href="./services/wax.php"><div class="info"><div class="title">Wax</div><div class="sub">Body waxing</div></div><div class="pic svc-wax"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/beauty.php"><div class="info"><div class="title">Beauty</div><div class="sub">Skin & nails</div></div><div class="pic svc-beauty"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/massage.php"><div class="info"><div class="title">Massage</div><div class="sub">Relaxation & therapy</div></div><div class="pic svc-massage"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/hair-care.php"><div class="info"><div class="title">Hair Care</div><div class="sub">Cut, style, color</div></div><div class="pic svc-hair-care"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/wax.php"><div class="info"><div class="title">Wax</div><div class="sub">Body waxing</div></div><div class="pic svc-wax"></div></a>
 					</div>
 				</div>
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Automotive Service</span></div>
 					<div class="dash-svc-grid">
-						<a class="dash-svc-card" href="./services/car-spa.php"><div class="info"><div class="title">Car Spa</div><div class="sub">Wash, wax, detail</div></div><div class="pic svc-car-spa"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/car-spa.php"><div class="info"><div class="title">Car Spa</div><div class="sub">Wash, wax, detail</div></div><div class="pic svc-car-spa"></div></a>
 					</div>
 				</div>
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Pet Service</span></div>
 					<div class="dash-svc-grid">
-						<a class="dash-svc-card" href="./services/pet-care.php"><div class="info"><div class="title">Pet Care</div><div class="sub">Grooming & sitting</div></div><div class="pic svc-pet-care"></div></a>
+						<a class="dash-svc-card glass-card" href="./services/pet-care.php"><div class="info"><div class="title">Pet Care</div><div class="sub">Grooming & sitting</div></div><div class="pic svc-pet-care"></div></a>
 					</div>
 				</div>
 			</div>

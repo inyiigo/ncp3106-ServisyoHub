@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
 </head>
-<body>
+<body class="theme-profile-bg">
 	<?php
 		session_start();
 		// Capture first_name from POST if present and keep in session for future requests
@@ -18,7 +18,7 @@
 		$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	?>
 	<div class="dash-topbar center">
-		<div class="dash-brand">Servisyo Hub</div>
+		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
 
 	<div class="dash-overlay"></div>

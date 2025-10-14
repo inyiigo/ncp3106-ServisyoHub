@@ -29,9 +29,9 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		.prof-sep { height: 1px; background: rgba(255,255,255,.6); margin: 4px 0; border-radius: 999px; }
 	</style>
 	</head>
-<body>
+<body class="theme-profile-bg">
 	<div class="dash-topbar center">
-		<div class="dash-brand">Servisyo Hub</div>
+		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
 
 	<div class="profile-bg">
