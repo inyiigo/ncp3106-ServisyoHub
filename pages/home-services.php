@@ -30,20 +30,7 @@
 		<main class="dash-content">
 			<!-- Hero banner -->
 			<section class="home-hero">
-				<div class="hero-copy">
-					<h2 class="hero-title">Layla</h2>
-					<p class="hero-sub">She is a student in the Rtawahist Darshan, specializing in Theoretical Astrology.</p>
-					<a href="#available-services" class="hero-link">Read More</a>
-					<div class="hero-dots">
-						<span class="hero-dot active"></span>
-						<span class="hero-dot"></span>
-						<span class="hero-dot"></span>
-					</div>
-				</div>
-				<div class="hero-art" aria-hidden="true">
-					<!-- Placeholder art area; we can swap for an image later -->
-					<svg width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="opacity:.8"><circle cx="12" cy="12" r="10"/></svg>
-				</div>
+				<p class="hero-tagline">Where skilled hands meet local demand.</p>
 			</section>
 
 			<!-- Category sections (original card style) -->

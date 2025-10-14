@@ -204,7 +204,7 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .dash-svc-card .svc-pet-care::after { content: '🐾'; }
 
 /* Home */
-.home-hero { display: grid; place-items: center; background: linear-gradient(180deg,#c7d2fe 0%, #a5b4fc 65%, #93c5fd 100%); color: #111827; border-radius: 18px; padding: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; aspect-ratio: 16/9; }
+.home-hero { display: grid; place-items: center; background: linear-gradient(180deg,#c7d2fe 0%, #a5b4fc 65%, #93c5fd 100%); color: #111827; border-radius: 18px; padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden; aspect-ratio: 16/9; min-height: clamp(200px, 28vh, 360px); max-height: 360px; margin: 0 0 16px; width: 100%; }
 .home-hero .hero-copy { display: grid; gap: 10px; align-content: center; text-align: left; width: 100%; max-width: 640px; }
 .home-hero .hero-title { font-weight: 800; font-size: clamp(26px, 5.8vw, 44px); line-height: 1.05; margin: 0; }
 .home-hero .hero-sub { margin: 0; color: #0f172a; opacity: .9; font-size: clamp(14px, 2.6vw, 16px); }
@@ -214,6 +214,9 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .home-hero .hero-dots { position: absolute; left: 20px; bottom: 16px; display: inline-flex; gap: 8px; }
 .home-hero .hero-dot { width: 38px; height: 6px; border-radius: 8px; background: rgba(255,255,255,.8); opacity: .7; }
 .home-hero .hero-dot.active { opacity: 1; }
+
+/* Hero tagline centered inside banner */
+.hero-tagline { margin: 0; text-align: center; font-style: italic; font-weight: 700; font-size: clamp(18px, 4.4vw, 32px); color: #0f172a; letter-spacing: .2px; }
 
 .home-sections { display: grid; gap: 16px; grid-template-columns: 1fr; margin-top: 16px; }
 .section-title { font-weight: 900; font-size: 1.2rem; margin: 0 0 8px; display: flex; align-items: center; gap: 8px; }
