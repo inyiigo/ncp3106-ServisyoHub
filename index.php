@@ -4,15 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Servisyo Hub</title>
-  <link rel="preload" as="image" href="assets/images/logo.png">
+  <link rel="preload" as="image" href="assets/images/newlogo.png">
   <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 <body class="splash-body">
   <main class="splash" id="splash">
     <div class="splash-content">
-      <img src="assets/images/job_logo.png" alt="Servisyo Hub Logo" class="splash-logo">
-      <h1 class="splash-title">Servisyo Hub</h1>
-      <div class="progress-wrap" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <img src="assets/images/newlogo.png" alt="Servisyo Hub" class="splash-logo">
+  <div class="progress-wrap" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div class="progress-track">
           <div class="progress-bar"></div>
         </div>
