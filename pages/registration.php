@@ -23,7 +23,7 @@
 		.hint { font-size: .9rem; color: #64748b; }
 	</style>
 </head>
-<body class="reg-body">
+<body class="reg-body theme-profile-bg">
 	<main class="form-card">
 		<h2>Register to apply for a job</h2>
 		<p class="hint">Fill in your details and upload required files for your application.</p>

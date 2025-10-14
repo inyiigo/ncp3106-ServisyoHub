@@ -6,7 +6,7 @@
   <title>You are here for • Servisyo Hub</title>
   <link rel="stylesheet" href="../assets/css/styles.css">
 </head>
-<body class="choice-body">
+<body class="choice-body theme-profile-bg">
   <main class="choice-container">
     <h2 class="choice-heading">You are here for</h2>
     <div class="choice-buttons">

@@ -9,7 +9,7 @@ $mobile = isset($_POST['mobile']) ? trim($_POST['mobile']) : '';
   <title>Enter Password • Servisyo Hub</title>
   <link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
-<body class="auth-body">
+<body class="auth-body theme-profile-bg">
   <main class="form-card narrow">
     <h2>Enter your password</h2>
     <p class="hint">We found mobile number: <strong><?php echo htmlspecialchars($mobile ?: 'Unknown'); ?></strong></p>

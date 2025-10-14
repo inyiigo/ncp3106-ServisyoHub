@@ -6,7 +6,7 @@
 	<title>Login / Sign Up • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 </head>
-<body class="auth-body">
+<body class="auth-body theme-profile-bg">
 	<main class="form-card narrow">
 		<h2>Sign in or Sign up</h2>
 		<p class="hint">Enter your mobile number to continue.</p>
