@@ -210,37 +210,20 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
   .dash-cat .dash-svc-grid { grid-template-columns: repeat(3,1fr); }
 }
 
-/* Service image mappings (use SVGs under assets/images/services) */
-.svc-cleaning { background-image: url('../images/services/cleaning.svg'); }
-.svc-aircon { background-image: url('../images/services/aircon.svg'); }
-.svc-upholstery { background-image: url('../images/services/upholstery.svg'); }
-.svc-electrical-appliance { background-image: url('../images/services/electrical-appliance.svg'); }
-.svc-plumbing-handyman { background-image: url('../images/services/plumbing-handyman.svg'); }
-.svc-pest-control { background-image: url('../images/services/pest-control.svg'); }
-.svc-ironing { background-image: url('../images/services/ironing.svg'); }
-.svc-beauty { background-image: url('../images/services/beauty.svg'); }
-.svc-massage { background-image: url('../images/services/massage.svg'); }
-.svc-hair-care { background-image: url('../images/services/hair-care.svg'); }
-.svc-wax { background-image: url('../images/services/wax.svg'); }
-.svc-car-spa { background-image: url('../images/services/car-spa.svg'); }
-.svc-pet-care { background-image: url('../images/services/pet-care.svg'); }
-
-/* Fallback icons if service SVGs are missing */
-.dash-svc-card .pic { position: relative; display: grid; place-items: center; font-size: 28px; color: #0f172a; background: linear-gradient(135deg, var(--pal-3), #e2e8f0); }
-.dash-svc-card .pic::after { content: '🧰'; }
-.dash-svc-card .svc-cleaning::after { content: '🧹'; }
-.dash-svc-card .svc-aircon::after { content: '❄️'; }
-.dash-svc-card .svc-upholstery::after { content: '🛋️'; }
-.dash-svc-card .svc-electrical-appliance::after { content: '🔌'; }
-.dash-svc-card .svc-plumbing-handyman::after { content: '🔧'; }
-.dash-svc-card .svc-pest-control::after { content: '🐜'; }
-.dash-svc-card .svc-ironing::after { content: '🧺'; }
-.dash-svc-card .svc-beauty::after { content: '💅'; }
-.dash-svc-card .svc-massage::after { content: '💆'; }
-.dash-svc-card .svc-hair-care::after { content: '💇'; }
-.dash-svc-card .svc-wax::after { content: '🧴'; }
-.dash-svc-card .svc-car-spa::after { content: '🚗'; }
-.dash-svc-card .svc-pet-care::after { content: '🐾'; }
+/* Service image mappings (use PNGs under assets/images/services) */
+.svc-cleaning { background-image: url('../images/services/cleaning.png'); }
+.svc-aircon { background-image: url('../images/services/aircon.png'); }
+.svc-upholstery { background-image: url('../images/services/upholstery.png'); }
+.svc-electrical-appliance { background-image: url('../images/services/electrical.png'); }
+.svc-plumbing-handyman { background-image: url('../images/services/plumbing_handyman.png'); }
+.svc-pest-control { background-image: url('../images/services/pest-control.png'); }
+.svc-ironing { background-image: url('../images/services/ironing.png'); }
+.svc-beauty { background-image: url('../images/services/beauty.png'); }
+.svc-massage { background-image: url('../images/services/massage.png'); }
+.svc-hair-care { background-image: url('../images/services/hair-care.png'); }
+.svc-wax { background-image: url('../images/services/wax.png'); }
+.svc-car-spa { background-image: url('../images/services/car-spa.png'); }
+.svc-pet-care { background-image: url('../images/services/pet-care.png'); }
 
 /* Home */
 .home-hero { display: block; background: none; color: inherit; border-radius: 0; padding: 0; box-shadow: none; position: static; overflow: visible; margin: 0 0 12px; width: 100%; min-height: 0; max-height: none; }
