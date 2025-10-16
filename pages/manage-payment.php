@@ -19,30 +19,30 @@ $lastConnError = '';
 $dbAvailable = false;
 $mysqli = null;
 foreach ($attempts as $creds) {
-    list($h, $u, $p, $n) = $creds;
+		list($h, $u, $p, $n) = $creds;
 
-    // disable mysqli exceptions for the attempt
-    mysqli_report(MYSQLI_REPORT_OFF);
-    try {
-        // suppress PHP warnings and attempt connection; catch any mysqli_sql_exception
-        $conn = @mysqli_connect($h, $u, $p, $n);
-        if ($conn && !mysqli_connect_errno()) {
-            $mysqli = $conn;
-            $dbAvailable = true;
-            break;
-        } else {
-            $lastConnError = mysqli_connect_error() ?: 'Connection failed';
-            if ($conn) { @mysqli_close($conn); }
-        }
-    } catch (mysqli_sql_exception $ex) {
-        // record exception message but continue to next attempt
-        $lastConnError = $ex->getMessage();
-    } catch (Throwable $ex) {
-        $lastConnError = $ex->getMessage();
-    } finally {
-        // restore default reporting behavior
-        mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
-    }
+		// disable mysqli exceptions for the attempt if available
+		if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
+		try {
+			// suppress PHP warnings and attempt connection; catch any mysqli_sql_exception
+			$conn = @mysqli_connect($h, $u, $p, $n);
+			if ($conn && !mysqli_connect_errno()) {
+				$mysqli = $conn;
+				$dbAvailable = true;
+				break;
+			} else {
+				$lastConnError = mysqli_connect_error() ?: 'Connection failed';
+				if ($conn) { @mysqli_close($conn); }
+			}
+		} catch (mysqli_sql_exception $ex) {
+			// record exception message but continue to next attempt
+			$lastConnError = $ex->getMessage();
+		} catch (Throwable $ex) {
+			$lastConnError = $ex->getMessage();
+		} finally {
+			// restore default reporting behavior if available
+			if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
+		}
 }
 
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
@@ -64,30 +64,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
         if ($amount === '' || !is_numeric($amount)) $errors[] = 'Valid amount is required.';
         if ($method === '') $errors[] = 'Payment method is required.';
         if (empty($errors)) {
+            // normalize values for binding
+            $amount_f = (float)$amount;
+            $method_s = $method;
+            $notes_s  = $notes;
+            $date_s   = $date;
+            $status_s = 'pending';
+
+            // Try prepared statement with string status (most common schema)
             $stmt = $mysqli->prepare("INSERT INTO payments (amount, method, notes, `date`, status) VALUES (?, ?, ?, ?, ?)");
             if ($stmt) {
-                $status = 'pending';
-                $stmt->bind_param('dsssi', $amount, $method, $notes, $date, $dummy = 0); // dummy for numeric field if schema differs
-                // Try a safer query if payments.status is varchar: handle binding accordingly
-                // For flexibility attempt two variants:
-                $stmt->close();
-                // try string-status insert
-                $stmt2 = $mysqli->prepare("INSERT INTO payments (amount, method, notes, `date`, status) VALUES (?, ?, ?, ?, ?)");
-                if ($stmt2) {
-                    $stat = 'pending';
-                    $stmt2->bind_param('dssss', $amount, $method, $notes, $date, $stat);
-                    if ($stmt2->execute()) $success = 'Payment added.';
-                    else $errors[] = 'Insert failed: '.$mysqli->error;
-                    $stmt2->close();
+                $stmt->bind_param('dssss', $amount_f, $method_s, $notes_s, $date_s, $status_s);
+                if ($stmt->execute()) {
+                    $success = 'Payment added.';
                 } else {
-                    // fallback simpler insert
-                    $sql = "INSERT INTO payments (amount, method, notes, `date`, status) VALUES ('".$mysqli->real_escape_string($amount)."', '".$mysqli->real_escape_string($method)."', '".$mysqli->real_escape_string($notes)."', '".$mysqli->real_escape_string($date)."', 'pending')";
-                    if ($mysqli->query($sql)) $success = 'Payment added.';
-                    else $errors[] = 'Insert failed: '.$mysqli->error;
+                    $errors[] = 'Insert failed: ' . $stmt->error;
                 }
+                $stmt->close();
             } else {
-                // fallback simple insert
-                $sql = "INSERT INTO payments (amount, method, notes, `date`, status) VALUES ('".$mysqli->real_escape_string($amount)."', '".$mysqli->real_escape_string($method)."', '".$mysqli->real_escape_string($notes)."', '".$mysqli->real_escape_string($date)."', 'pending')";
+                // fallback: escaped simple query
+                $sql = "INSERT INTO payments (amount, method, notes, `date`, status) VALUES ('".$mysqli->real_escape_string((string)$amount_f)."', '".$mysqli->real_escape_string($method_s)."', '".$mysqli->real_escape_string($notes_s)."', '".$mysqli->real_escape_string($date_s)."', '".$mysqli->real_escape_string($status_s)."')";
                 if ($mysqli->query($sql)) $success = 'Payment added.';
                 else $errors[] = 'Insert failed: '.$mysqli->error;
             }

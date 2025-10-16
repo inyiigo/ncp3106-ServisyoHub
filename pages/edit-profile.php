@@ -21,7 +21,7 @@ foreach ($attempts as $creds) {
     list($h, $u, $p, $n) = $creds;
 
     // disable mysqli exceptions for the attempt and catch any thrown exceptions
-    mysqli_report(MYSQLI_REPORT_OFF);
+    if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
     try {
         // suppress PHP warnings from mysqli::__construct when the target refuses connection
         $tmp = @new mysqli($h, $u, $p, $n);
@@ -39,7 +39,7 @@ foreach ($attempts as $creds) {
         $lastConnError = $ex->getMessage();
     } finally {
         // restore usual reporting to avoid surprising behavior in other code
-        mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
+        if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
     }
 
     if ($dbAvailable) break;
