@@ -1,3 +1,45 @@
+<?php
+session_start();
+include '../config/db_connect.php';
+
+// Initialize variables
+$error = "";
+$mobile = "";
+
+// If the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $mobile = trim($_POST['mobile']);
+    $password = trim($_POST['password']);
+
+    // Prepare statement to prevent SQL injection
+    $stmt = $conn->prepare("SELECT id, password FROM users WHERE mobile = ?");
+    $stmt->bind_param("s", $mobile);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check if mobile exists
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+
+        // Verify password
+        if (password_verify($password, $user['password'])) {
+            // Save session variables
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['mobile'] = $mobile;
+
+            // Redirect to home-services.php
+            header("Location: ./home-services.php");
+            exit;
+        } else {
+            $error = "Incorrect password. Please try again.";
+        }
+    } else {
+        $error = "No account found with this mobile number.";
+    }
+
+    $stmt->close();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,19 +53,25 @@
 		<h2>Login</h2>
 		<p class="hint">Enter your mobile number and password to sign in.</p>
 
-		<form action="./login-password.php" method="POST" novalidate>
+        <?php if (!empty($error)): ?>
+            <p style="color:red; text-align:center;"><?php echo htmlspecialchars($error); ?></p>
+        <?php endif; ?>
+
+		<form action="" method="POST" novalidate>
 			<div class="field">
 				<label for="mobile">Mobile number</label>
 				<input
 					type="tel"
 					id="mobile"
 					name="mobile"
+					value="<?php echo htmlspecialchars($mobile); ?>"
 					placeholder="e.g. 0917 123 4567"
 					inputmode="tel"
 					pattern="[0-9\s+()-]{7,}"
 					required
 				/>
 			</div>
+
 			<div class="field">
 				<label for="password">Password</label>
 				<input
@@ -34,11 +82,13 @@
 					required
 				/>
 			</div>
+
 			<div class="actions">
 				<button type="submit" class="btn">Login</button>
 				<a href="./user-choice.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
 			</div>
 		</form>
+
 		<p style="text-align:center; margin-top:1em;">
 			Don't have an account?
 			<a href="./signup.php">Sign Up</a>
@@ -46,4 +96,3 @@
 	</main>
 </body>
 </html>
-
