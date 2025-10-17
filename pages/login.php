@@ -11,33 +11,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mobile = trim($_POST['mobile']);
     $password = trim($_POST['password']);
 
-    // Prepare statement to prevent SQL injection
-    $stmt = $conn->prepare("SELECT id, password FROM users WHERE mobile = ?");
-    $stmt->bind_param("s", $mobile);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check if mobile exists
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-
-        // Verify password
-        if (password_verify($password, $user['password'])) {
-            // Save session variables
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['mobile'] = $mobile;
-
-            // Redirect to home-services.php
-            header("Location: ./home-services.php");
-            exit;
-        } else {
-            $error = "Incorrect password. Please try again.";
-        }
-    } else {
-        $error = "No account found with this mobile number.";
-    }
-
-    $stmt->close();
+    $query = "SELECT * FROM users where mobile = '$mobile'";
+	$res = mysqli_query($conn, $query);
+	while($row = mysqli_fetch_assoc($res)){
+		$db_password = $row['password'];
+		if($password == $db_password){
+			$_SESSION['user_id'] = $row['id'];
+			$_SESSION['mobile'] = $row['mobile'];
+			header("Location: home-services.php");
+			exit();
+		} else {
+			$error = "Incorrect password. Please try again.";
+		}
+	}
 }
 ?>
 <!DOCTYPE html>
