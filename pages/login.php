@@ -1,7 +1,7 @@
 <?php
 session_start();
 include '../config/db_connect.php';
-
+include '../config/check_session2.php';
 // Initialize variables
 $error = "";
 $mobile = "";
@@ -13,6 +13,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $query = "SELECT * FROM users where mobile = '$mobile'";
 	$res = mysqli_query($conn, $query);
+	if(mysqli_num_rows($res) == 0){
+		?>
+		<script>alert('Mobile number not found. Please sign up first.');
+		window.location.href = './signup.php';
+		</script>
+		<?php
+		exit();
+	}
 	while($row = mysqli_fetch_assoc($res)){
 		$db_password = $row['password'];
 		if($password == $db_password){
@@ -21,7 +29,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 			header("Location: home-services.php");
 			exit();
 		} else {
-			$error = "Incorrect password. Please try again.";
+			?>
+			<script>alert('Incorrect password. Please try again.');
+			window.location.href = './login.php';
+			</script>
+			<?php
 		}
 	}
 }

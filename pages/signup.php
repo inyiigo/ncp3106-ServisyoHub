@@ -39,15 +39,7 @@ $mobile = isset($_SESSION['signup_mobile']) ? $_SESSION['signup_mobile'] : '';
 	</main>
 </body>
 </html>
-<?php
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-	// ...process registration (e.g., save to database)...
-	// After successful registration, redirect to login page
-	header('Location: login.php');
-	exit();
-}
-?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	<main class="form-card narrow">
 		<h2>Sign Up</h2>
 		<p class="hint">Create your account below.</p>
-		<form action="signup.php" method="POST" novalidate>
+		<form action="../config/signup_act.php" method="POST" novalidate>
 			<div class="field">
 				<label for="mobile">Mobile number</label>
 				<input
