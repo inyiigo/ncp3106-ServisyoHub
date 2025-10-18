@@ -42,13 +42,13 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 				<div>
 					<p class="prof-name"><?php echo htmlspecialchars($display); ?></p>
 					<?php if ($mobile): ?><p class="prof-meta"><?php echo htmlspecialchars($mobile); ?></p><?php endif; ?>
-					<a class="prof-edit" href="#">Edit Profile</a>
+					<a class="prof-edit" href="./edit-profile.php">Edit Profile</a>
 				</div>
 			</section>
 
 			<!-- Menu list -->
 			<nav class="prof-menu" aria-label="Profile options">
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./manage-payment.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7H3V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2Zm0 0v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7m18 0l-9 6-9-6"/></svg>
 					<span>Manage Payment</span>
 				</a>

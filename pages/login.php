@@ -1,3 +1,31 @@
+<?php
+session_start();
+include '../config/db_connect.php';
+
+// Initialize variables
+$error = "";
+$mobile = "";
+
+// If the form is submitted
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $mobile = trim($_POST['mobile']);
+    $password = trim($_POST['password']);
+
+    $query = "SELECT * FROM users where mobile = '$mobile'";
+	$res = mysqli_query($conn, $query);
+	while($row = mysqli_fetch_assoc($res)){
+		$db_password = $row['password'];
+		if($password == $db_password){
+			$_SESSION['user_id'] = $row['id'];
+			$_SESSION['mobile'] = $row['mobile'];
+			header("Location: home-services.php");
+			exit();
+		} else {
+			$error = "Incorrect password. Please try again.";
+		}
+	}
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,19 +39,25 @@
 		<h2>Login</h2>
 		<p class="hint">Enter your mobile number and password to sign in.</p>
 
-		<form action="./login-password.php" method="POST" novalidate>
+        <?php if (!empty($error)): ?>
+            <p style="color:red; text-align:center;"><?php echo htmlspecialchars($error); ?></p>
+        <?php endif; ?>
+
+		<form action="" method="POST" novalidate>
 			<div class="field">
 				<label for="mobile">Mobile number</label>
 				<input
 					type="tel"
 					id="mobile"
 					name="mobile"
+					value="<?php echo htmlspecialchars($mobile); ?>"
 					placeholder="e.g. 0917 123 4567"
 					inputmode="tel"
 					pattern="[0-9\s+()-]{7,}"
 					required
 				/>
 			</div>
+
 			<div class="field">
 				<label for="password">Password</label>
 				<input
@@ -34,11 +68,13 @@
 					required
 				/>
 			</div>
+
 			<div class="actions">
 				<button type="submit" class="btn">Login</button>
 				<a href="./user-choice.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
 			</div>
 		</form>
+
 		<p style="text-align:center; margin-top:1em;">
 			Don't have an account?
 			<a href="./signup.php">Sign Up</a>
@@ -46,4 +82,3 @@
 	</main>
 </body>
 </html>
-

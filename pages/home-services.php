@@ -1,3 +1,26 @@
+<?php
+// Start output buffering (prevents "headers already sent" warnings)
+ob_start();
+
+// Start session safely before any output
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Capture mobile from POST if present and keep in session for future requests
+if (!empty($_POST['mobile'])) {
+    $_SESSION['mobile'] = trim($_POST['mobile']);
+}
+
+// Determine display name
+$display = $_SESSION['display_name'] ?? $_SESSION['mobile'] ?? 'there';
+
+// Create avatar initial
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+
+// End buffering (send output)
+ob_end_flush();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,21 +31,10 @@
 	<script defer src="../assets/js/script.js"></script>
 </head>
 <body class="theme-profile-bg">
-	<?php
-		session_start();
-		// Capture mobile from POST if present and keep in session for future requests
-		if (!empty($_POST['mobile'])) {
-			$_SESSION['mobile'] = trim($_POST['mobile']);
-		}
-		$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : '';
-		if (!$display) {
-			$display = isset($_SESSION['mobile']) ? $_SESSION['mobile'] : '';
-		}
-		if (!$display) { $display = 'there'; }
-		$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
-	?>
 	<div class="dash-topbar center">
-		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
+		<div class="dash-brand">
+			<img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" />
+		</div>
 	</div>
 
 	<div class="dash-overlay"></div>
@@ -33,8 +45,9 @@
 				<p class="hero-tagline">Where skilled hands meet local demand.</p>
 			</section>
 
-			<!-- Category sections (original card style) -->
+			<!-- Category sections -->
 			<div class="home-sections" id="available-services">
+				<!-- Home Service -->
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Home Service</span></div>
 					<div class="dash-svc-grid">
@@ -68,6 +81,8 @@
 						</a>
 					</div>
 				</div>
+
+				<!-- Personal Care -->
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Personal Care</span></div>
 					<div class="dash-svc-grid">
@@ -77,12 +92,16 @@
 						<a class="dash-svc-card glass-card" href="./services/wax.php"><div class="info"><div class="title">Wax</div><div class="sub">Body waxing</div></div><div class="pic svc-wax"></div></a>
 					</div>
 				</div>
+
+				<!-- Automotive Service -->
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Automotive Service</span></div>
 					<div class="dash-svc-grid">
 						<a class="dash-svc-card glass-card" href="./services/car-spa.php"><div class="info"><div class="title">Car Spa</div><div class="sub">Wash, wax, detail</div></div><div class="pic svc-car-spa"></div></a>
 					</div>
 				</div>
+
+				<!-- Pet Service -->
 				<div class="dash-cat">
 					<div class="dash-cat-title"><span>Pet Service</span></div>
 					<div class="dash-svc-grid">
@@ -90,8 +109,6 @@
 					</div>
 				</div>
 			</div>
-
-			<!-- Removed full duplicate list for a cleaner page -->
 		</main>
 
 		<aside class="dash-aside">
@@ -130,4 +147,3 @@
 	</nav>
 </body>
 </html>
-
