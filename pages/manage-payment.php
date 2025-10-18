@@ -165,7 +165,6 @@ if ($dbAvailable) {
 	text-decoration: none;
 	font-weight: 700;
 	border: 1px solid var(--line);
-	animation: floatUp 3.5s ease-in-out infinite;
 	transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease, color 200ms ease;
 	box-shadow: 0 6px 18px rgba(2,6,23,0.06);
 }

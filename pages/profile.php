@@ -73,7 +73,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>About Us</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./terms-and-conditions.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16H6zM8 8h8M8 12h8M8 16h5"/></svg>
 					<span>Terms and Conditions</span>
 				</a>
