@@ -21,26 +21,30 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<div class="dash-topbar center">
 		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
-	<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
+	<div class="dash-shell">
+		<main class="dash-content">
+			<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
 
-		<!-- Browse CTA card placed above empty state -->
-		<section class="dash-cards" aria-label="Browse services">
-			<div class="dash-card blue">
-				<div>
-					<div class="dash-pill">Need to browse services?</div>
-					<h3>Find a Provider</h3>
-					<p>Explore verified services around you.</p>
+			<!-- Browse CTA card placed above empty state -->
+			<section class="dash-cards" aria-label="Browse services">
+				<div class="dash-card blue">
+					<div>
+						<div class="dash-pill">Need to browse services?</div>
+						<h3>Find a Provider</h3>
+						<p>Explore verified services around you.</p>
+					</div>
+					<a href="./home-services.php" class="dash-pill">Browse</a>
 				</div>
-				<a href="./home-services.php" class="dash-pill">Browse</a>
-			</div>
-		</section>
+			</section>
 
-		<div class="empty-wrap">
-		<div class="empty-card">
-			<p class="empty-title">No bookings yet</p>
-			<p class="empty-text">When you book a service, it will appear here so you can track its progress.</p>
+			<div class="empty-wrap">
+				<div class="empty-card">
+					<p class="empty-title">No bookings yet</p>
+					<p class="empty-text">When you book a service, it will appear here so you can track its progress.</p>
+				</div>
 			</div>
-		</div>
+		</main>
+	</div>
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
