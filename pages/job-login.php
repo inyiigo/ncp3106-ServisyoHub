@@ -77,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 		<p style="text-align:center; margin-top:1em;">
 			Don't have an account?
-			<a href="./signup.php">Sign Up</a>
+			<a href="./registration.php">Sign Up</a>
 		</p>
 	</main>
 </body>
