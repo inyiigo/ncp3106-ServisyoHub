@@ -17,7 +17,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 </head>
 <body class="theme-profile-bg">
   <div class="dash-topbar center">
-    <div class="dash-brand">Servisyo Hub</div>
+    <div class="dash-brand"><img src="../../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
   </div>
   <div class="dash-overlay"></div>
   <div class="dash-shell">
@@ -33,7 +33,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
       <nav class="dash-nav">
         <a href="../home-services.php">Home</a>
         <a href="../my-services.php">My Services</a>
-        <a href="../profile.php">Profile</a>
+        <a href="../clients-profile.php">Profile</a>
       </nav>
     </aside>
   </div>
@@ -47,7 +47,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
       <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
       <span>My Services</span>
     </a>
-    <a href="../profile.php" aria-label="Profile">
+    <a href="../clients-profile.php" aria-label="Profile">
       <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
       <span>Profile</span>
     </a>

@@ -51,7 +51,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                         <h3>Update Your Profile</h3>
                         <p>Stand out with a complete profile.</p>
                     </div>
-                    <a href="./profile.php" class="dash-pill">Update</a>
+                    <a href="./jobs-profile.php" class="dash-pill">Update</a>
                 </div>
             </section>
         </main>
@@ -71,7 +71,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                     </svg>
                     My Jobs <span class="dash-badge">0</span>
                 </a>
-                <a href="./profile.php">
+                <a href="./jobs-profile.php">
                     <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
                     </svg>
@@ -95,7 +95,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
             </svg>
             <span>My Jobs</span>
         </a>
-        <a href="./profile.php" aria-label="Profile">
+        <a href="./jobs-profile.php" aria-label="Profile">
             <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
             </svg>

@@ -382,15 +382,15 @@ function isDirty(){
 	return false;
 }
 
-// Cancel: navigate back to profile.php. Prompt only if there are unsaved changes.
+// Cancel: navigate back to clients-profile.php. Prompt only if there are unsaved changes.
 if (cancelBtn) {
 	cancelBtn.addEventListener('click', function(){
 		if (!isDirty()) {
-			window.location.href = 'profile.php';
+			window.location.href = 'clients-profile.php';
 			return;
 		}
 		if (confirm('Discard changes? Any unsaved edits will be lost. Proceed back to profile?')) {
-			window.location.href = 'profile.php';
+			window.location.href = 'clients-profile.php';
 		}
 	});
 }
