@@ -4,15 +4,21 @@ require_once('../config/db.php');
 
 // Get mobile from previous form
 $mobile = isset($_POST['mobile']) ? trim($_POST['mobile']) : '';
-// Normalize phone: strip non-digits so formats match registration
-$mobile = preg_replace('/\D+/', '', $mobile);
+// Normalize phone: strip non-digits; handle +63 -> 0; prepare both variants
+$normalized = preg_replace('/\D+/', '', $mobile);
+if (strpos($normalized, '63') === 0 && strlen($normalized) === 12) {
+    $local = '0' . substr($normalized, 2);
+} else {
+    $local = $normalized;
+}
+$intl = (strlen($local) === 11 && $local[0] === '0') ? ('63' . substr($local, 1)) : $normalized;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['password'])) {
     $password = trim($_POST['password']);
 
-    // Check if mobile exists in database
-    $stmt = $pdo->prepare("SELECT id, password_hash FROM users WHERE phone = ?");
-    $stmt->execute([$mobile]);
+    // Check if mobile exists in database (try both normalized variants, prefer latest)
+    $stmt = $pdo->prepare("SELECT id, phone, password_hash FROM users WHERE phone IN (?, ?) ORDER BY id DESC LIMIT 1");
+    $stmt->execute([$local, $intl]);
     $user = $stmt->fetch();
 
     if ($user) {
@@ -20,9 +26,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['password'])) {
         if (password_verify($password, $user['password_hash'])) {
             // Login success — set session and redirect
             $_SESSION['user_id'] = $user['id'];
-            $_SESSION['mobile'] = $mobile;
+            $_SESSION['mobile'] = $user['phone'];
 
-            header("Location: ./home-services.php");
+            header("Location: ./home-jobs.php");
             exit;
         } else {
             $error = "Incorrect password. Please try again.";

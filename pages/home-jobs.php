@@ -21,13 +21,23 @@ try {
             throw new RuntimeException('Invalid email address.');
         }
 
-        // Normalize phone: remove any non-digits so formats like "0917 123 4567" and "09171234567" match
+        // Normalize phone to a consistent local format: digits-only, convert +63xxxxxxxxxx to 0xxxxxxxxxx
         $phone = preg_replace('/\D+/', '', $phone);
+        if (strpos($phone, '63') === 0 && strlen($phone) === 12) { // e.g., 63917xxxxxxx
+            $phone = '0' . substr($phone, 2); // 0917xxxxxxx
+        }
 
         $stmt = $pdo->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
         $stmt->execute([$email]);
         if ($stmt->fetch()) {
             throw new RuntimeException('An account with this email already exists.');
+        }
+
+        // Also prevent duplicate phone numbers for login consistency
+        $stmt = $pdo->prepare('SELECT id FROM users WHERE phone = ? LIMIT 1');
+        $stmt->execute([$phone]);
+        if ($stmt->fetch()) {
+            throw new RuntimeException('An account with this mobile number already exists.');
         }
 
         $hash = password_hash($password, PASSWORD_DEFAULT);
