@@ -1,5 +1,16 @@
 <?php
 session_start();
+// Handle logout action before any output
+if (isset($_GET['logout'])) {
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
+    header('Location: ./job-login.php');
+    exit;
+}
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'Guest');
 $mobile = isset($_SESSION['mobile']) ? $_SESSION['mobile'] : '';
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
@@ -72,7 +83,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                     <span>About Us</span>
                 </a>
                 <div class="prof-sep"></div>
-                <a class="prof-item" href="#">
+                <a class="prof-item" href="./jobs-profile.php?logout=1">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/></svg>
                     <span>Log out</span>
                 </a>
