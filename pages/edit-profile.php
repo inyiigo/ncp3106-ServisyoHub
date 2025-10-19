@@ -1,6 +1,4 @@
 <?php
-session_start();
-
 // Minimal robust DB connection: try config then fallback (exception-safe)
 $configPath = __DIR__ . '/../includes/config.php';
 $mysqli = null;
