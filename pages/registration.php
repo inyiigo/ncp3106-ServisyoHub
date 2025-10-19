@@ -28,7 +28,7 @@
 		<h2>Register to apply for a job</h2>
 		<p class="hint">Fill in your details and upload required files for your application.</p>
 
-		<form action="./home-jobs.php" method="POST" enctype="multipart/form-data" novalidate>
+		<form action="./home-jobs.php" method="POST" enctype="multipart/form-data">
 			<div class="grid">
 				<div class="field col-6">
 					<label for="first_name">First Name</label>
@@ -45,6 +45,10 @@
 				<div class="field col-6">
 					<label for="email">Email Address</label>
 					<input type="email" id="email" name="email" placeholder="you@example.com" required />
+				</div>
+				<div class="field col-6">
+					<label for="password">Password</label>
+					<input type="password" id="password" name="password" placeholder="Enter a strong password" required />
 				</div>
 				<div class="field col-6">
 					<label for="gender">Gender</label>
@@ -66,7 +70,7 @@
 				
 				<div class="field col-12">
 					<label for="application_files">Application Files</label>
-					<input type="file" id="application_files" name="application_files[]" multiple />
+					<input type="file" id="application_files" name="application_files[]" multiple required />
 					<small class="hint">Upload supporting documents (e.g., certificates, IDs). You can select multiple files.</small>
 				</div>
 			</div>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../config/db_connect.php';
+require_once '../config/db.php';
 
 // Initialize variables
 $error = "";
@@ -11,19 +11,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mobile = trim($_POST['mobile']);
     $password = trim($_POST['password']);
 
-    $query = "SELECT * FROM users where mobile = '$mobile'";
-	$res = mysqli_query($conn, $query);
-	while($row = mysqli_fetch_assoc($res)){
-		$db_password = $row['password'];
-		if($password == $db_password){
-			$_SESSION['user_id'] = $row['id'];
-			$_SESSION['mobile'] = $row['mobile'];
-			header("Location: home-services.php");
-			exit();
-		} else {
-			$error = "Incorrect password. Please try again.";
-		}
-	}
+    // Normalize phone: strip non-digits, map +63########### to 0##########, and query both variants
+    $normalized = preg_replace('/\D+/', '', $mobile);
+    if (strpos($normalized, '63') === 0 && strlen($normalized) === 12) {
+        $local = '0' . substr($normalized, 2); // 63917xxxxxxx -> 0917xxxxxxx
+    } else {
+        $local = $normalized;
+    }
+    $intl = (strlen($local) === 11 && $local[0] === '0') ? ('63' . substr($local, 1)) : $normalized;
+
+    try {
+        $stmt = $pdo->prepare('SELECT id, phone, password_hash FROM users WHERE phone IN (?, ?) ORDER BY id DESC LIMIT 1');
+        $stmt->execute([$local, $intl]);
+        $user = $stmt->fetch();
+
+        if ($user && password_verify($password, $user['password_hash'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['mobile'] = $user['phone'];
+            header('Location: ./home-jobs.php');
+            exit();
+        } else {
+            $error = $user ? 'Incorrect password. Please try again.' : 'No account found for this mobile number.';
+        }
+    } catch (Throwable $e) {
+        $error = 'Login error. Please try again.';
+    }
 }
 ?>
 <!DOCTYPE html>
