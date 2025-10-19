@@ -58,7 +58,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>Service History</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./location.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
 					<span>Location</span>
 				</a>
@@ -68,17 +68,17 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>Favorite Pros</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./about-us.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6m0-4V4m0 6h.01M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z"/></svg>
 					<span>About Us</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./terms-and-conditions.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16H6zM8 8h8M8 12h8M8 16h5"/></svg>
 					<span>Terms and Conditions</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./user-choice.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/></svg>
 					<span>Log out</span>
 				</a>

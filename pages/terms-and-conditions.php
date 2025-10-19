@@ -153,7 +153,7 @@
 
 	<!-- add bottom back button -->
 	<div class="bottom-box" role="navigation" aria-label="Page actions">
-		<a href="profile.php" class="back-box" title="Back to profile">← Back to profile</a>
+		<a href="./clients-profile.php" class="back-box" title="Back to profile">← Back to profile</a>
 	</div>
 
 </body>
