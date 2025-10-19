@@ -12,23 +12,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	<title>Client Profile • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-	<style>
-		/* Page-specific styling to match the mockup */
-		.profile-bg { background: radial-gradient(900px 450px at 50% -10%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%), linear-gradient(180deg, #0ea5e9 0%, #06b6d4 55%, #22d3ee 100%); min-height: calc(100vh - 64px); padding: 18px; }
-		.prof-container { width: 100%; max-width: 420px; margin: 0 auto; display: grid; gap: 14px; padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
-		.prof-hero { display: grid; grid-template-columns: 56px 1fr; gap: 12px; align-items: center; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.6); backdrop-filter: blur(4px); color: #0f172a; border-radius: 16px; padding: 12px; box-shadow: 0 8px 20px rgba(2,6,23,.15); }
-		.prof-avatar { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #0f172a; background: #e0f2fe; border: 2px solid rgba(255,255,255,.8); }
-		.prof-name { margin: 0; font-weight: 800; font-size: 1.02rem; }
-		.prof-meta { margin: 2px 0 0; color: #0f172a; opacity: .9; font-size: .92rem; }
-		.prof-edit { display: inline-block; margin-top: 2px; color: #0f172a; opacity: .9; font-weight: 700; text-decoration: none; font-size: .9rem; }
-
-		.prof-menu { background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.6); border-radius: 16px; box-shadow: 0 8px 20px rgba(2,6,23,.15); backdrop-filter: blur(4px); padding: 10px; }
-		.prof-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; color: #0f172a; text-decoration: none; font-weight: 700; }
-		.prof-item:hover { background: rgba(255,255,255,.5); }
-		.prof-ico { width: 20px; height: 20px; color: #0f172a; opacity: .9; }
-		.prof-sep { height: 1px; background: rgba(255,255,255,.6); margin: 4px 0; border-radius: 999px; }
-	</style>
-	</head>
+</head>
 <body class="theme-profile-bg">
 	<div class="dash-topbar center">
 		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>

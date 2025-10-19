@@ -39,7 +39,7 @@ if (!$mobile) {
 
       <div class="actions">
         <button type="submit" class="btn">Verify</button>
-        <a href="./signup.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
+        <a href="./signup.php" class="btn secondary">Back</a>
       </div>
     </form>
   </main>
