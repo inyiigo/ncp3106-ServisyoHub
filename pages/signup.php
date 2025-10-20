@@ -33,7 +33,7 @@ $mobile = isset($_SESSION['signup_mobile']) ? $_SESSION['signup_mobile'] : '';
 
 			<div class="actions">
 				<button type="submit" class="btn">Continue</button>
-				<a href="./user-choice.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
+				<a href="./user-choice.php" class="btn secondary">Back</a>
 			</div>
 		</form>
 	</main>
@@ -77,7 +77,7 @@ $mobile = isset($_SESSION['signup_mobile']) ? $_SESSION['signup_mobile'] : '';
 			</div>
 			<div class="actions">
 				<button type="submit" class="btn">Sign Up</button>
-				<a href="login.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back to Login</a>
+				<a href="login.php" class="btn secondary">Back to Login</a>
 			</div>
 		</form>
 	</main>

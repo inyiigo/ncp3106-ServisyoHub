@@ -215,61 +215,6 @@ function avatar_url($path){
 <title>Edit Profile • Servisyo Hub</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="../assets/css/styles.css">
-<style>
-/* minimal overrides that use palette and keyframes from assets/css/styles.css */
-.animate-fade { animation: fadeInUp 700ms ease both; }
-.form-card { margin:24px auto; padding:20px; border-radius:12px; max-width:720px; }
-/* ensure action buttons sit inline and don't wrap on normal sizes */
-.actions {
-	display:flex;
-	flex-wrap:wrap;       /* allow wrapping on very small screens */
-	gap:10px;
-	align-items:center;
-	justify-content:flex-start;
-	margin-top:14px;
-}
-
-/* primary save button uses theme palette */
-.save {
-	background: var(--pal-4);
-	color: #fff;
-	border: none;
-	padding:10px 14px;
-	border-radius:8px;
-	cursor:pointer;
-	font-weight:700;
-	display:inline-flex;
-	align-items:center;
-	white-space:nowrap;
-}
-
-/* discard / cancel buttons: visible on light card using theme tokens */
-.discard {
-	background: transparent;
-	border: 1px solid var(--line);
-	color: var(--text);
-	padding:10px 14px;
-	border-radius:8px;
-	cursor:pointer;
-	display:inline-flex;
-	align-items:center;
-	text-decoration: none;
-	white-space:nowrap;
-}
-
-/* keep avatar sizing */
-.avatar-preview { width:72px; height:72px; border-radius:50%; overflow:hidden; display:grid; place-items:center; background:#fff; }
-.avatar-preview img { width:100%; height:100%; object-fit:cover; display:block; }
-/* notices */
-.notice.success { background: #ecfdf5; border:1px solid #a7f3d0; color:#065f46; }
-.notice.error { background: #fff0f0; border:1px solid #fecaca; color:#7f1d1d; }
-small.hint { color: #475569; display:block; margin-top:6px; }
-/* tiny responsive adjustment: stack buttons on very small screens */
-@media (max-width:420px) {
-	.actions { flex-direction:column; align-items:stretch; }
-	.actions .save, .actions .discard { width:100%; justify-content:center; }
-}
-</style>
 </head>
 <body class="reg-body theme-profile-bg">
 	<main class="form-card glass-card animate-fade">

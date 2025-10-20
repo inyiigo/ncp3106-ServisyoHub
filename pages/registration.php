@@ -5,23 +5,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 	<title>Register • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
-	<style>
-		.reg-body { display: grid; place-items: center; min-height: 100vh; background: #f8fafc; }
-		.form-card { width: 100%; max-width: 720px; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 6px 24px rgba(0,0,0,.08); }
-		.form-card h2 { margin: 0 0 8px; font-size: 1.4rem; }
-		.form-card p { margin: 0 0 16px; color: #475569; }
-		.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
-		.col-6 { grid-column: span 6; }
-		.col-12 { grid-column: span 12; }
-		@media (max-width: 640px) { .col-6 { grid-column: span 12; } }
-		.field { display: grid; gap: 6px; margin: 8px 0; }
-		.field label { font-weight: 600; font-size: .95rem; }
-		.field input, .field select, .field textarea { padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-		.actions { margin-top: 16px; display: flex; gap: 12px; align-items: center; }
-		.btn { appearance: none; border: none; background: #111827; color: #fff; padding: 12px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-		.btn.secondary { background: #e5e7eb; color: #111827; }
-		.hint { font-size: .9rem; color: #64748b; }
-	</style>
 </head>
 <body class="reg-body theme-profile-bg">
 	<main class="form-card">
@@ -77,7 +60,7 @@
 
 			<div class="actions">
 				<button type="submit" class="btn">Submit Application</button>
-				<a href="./user-choice.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
+				<a href="./user-choice.php" class="btn secondary">Back</a>
 			</div>
 		</form>
 	</main>
