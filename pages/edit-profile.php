@@ -233,44 +233,44 @@ function avatar_url($path){
 				<div class="avatar-preview">
 					<img id="avatarImg" src="<?php echo e(avatar_url($user['avatar'])); ?>" alt="avatar">
 				</div>
-				<div style="flex:1;">
-					<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-						<strong style="font-size:1.05rem;"><?php echo e($user['first_name'].' '.$user['last_name']); ?></strong>
-						<small style="color:#64748b;"><?php echo e($user['email']); ?></small>
+				<div class="flex-1">
+					<div class="row">
+						<strong class="name-strong"><?php echo e($user['first_name'].' '.$user['last_name']); ?></strong>
+						<small class="small-muted"><?php echo e($user['email']); ?></small>
 					</div>
-					<label class="hint" style="margin-top:8px;">Change profile picture
+					<label class="hint margin-top-8">Change profile picture
 						<input type="file" name="avatar" id="avatar" accept="image/png,image/jpeg,image/webp" <?php echo $disabledAttr; ?>>
 					</label>
 					<small class="hint">PNG, JPG, WEBP &lt; 3MB.</small>
 				</div>
 			</div>
 
-			<div class="grid" style="display:grid; grid-template-columns: repeat(12,1fr); gap:12px;">
-				<div class="field" style="grid-column:span 6;">
+			<div class="grid grid-12">
+				<div class="field col-6">
 					<label for="username">Username</label>
 					<input id="username" name="username" type="text" value="<?php echo e($user['username']); ?>" required <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 6;">
+				<div class="field col-6">
 					<label for="email">Email</label>
 					<input id="email" name="email" type="email" value="<?php echo e($user['email']); ?>" required <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 6;">
+				<div class="field col-6">
 					<label for="first_name">First name</label>
 					<input id="first_name" name="first_name" type="text" value="<?php echo e($user['first_name']); ?>" required <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 6;">
+				<div class="field col-6">
 					<label for="last_name">Last name</label>
 					<input id="last_name" name="last_name" type="text" value="<?php echo e($user['last_name']); ?>" <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 6;">
+				<div class="field col-6">
 					<label for="phone">Phone</label>
 					<input id="phone" name="phone" type="text" value="<?php echo e($user['phone']); ?>" <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 6;">
+				<div class="field col-6">
 					<label for="password">New password (leave blank to keep current)</label>
 					<input id="password" name="password" type="password" autocomplete="new-password" <?php echo $disabledAttr; ?>>
 				</div>
-				<div class="field" style="grid-column:span 12;">
+				<div class="field col-12">
 					<label for="address">Address</label>
 					<textarea id="address" name="address" <?php echo $disabledAttr; ?>><?php echo e($user['address']); ?></textarea>
 				</div>

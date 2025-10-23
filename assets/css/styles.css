@@ -366,3 +366,17 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .width-260 { width: 260px; }
 .padding-left-18 { padding-left: 18px; }
 
+/* Small layout utilities */
+.flex-1 { flex: 1; }
+.row { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+.grid-12 { display:grid; grid-template-columns: repeat(12,1fr); gap:12px; }
+
+/* Misc utilities */
+.text-center { text-align: center; }
+.text-error { color: red; }
+.inline-form { display: inline; }
+.actions-col { width: 170px; }
+.margin-top-8 { margin-top: 8px; }
+.small-muted { color: #64748b; }
+.name-strong { font-size: 1.05rem; }
+

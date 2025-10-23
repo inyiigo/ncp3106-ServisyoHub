@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['password'])) {
     </p>
 
     <?php if (!empty($error)): ?>
-      <p style="color: red; text-align: center;"><?php echo htmlspecialchars($error); ?></p>
+  <p class="text-error text-center"><?php echo htmlspecialchars($error); ?></p>
     <?php endif; ?>
 
     <form action="" method="POST" novalidate>
@@ -75,7 +75,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['password'])) {
 
       <div class="actions">
         <button type="submit" class="btn">Sign in</button>
-        <a href="./login.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
+  <a href="./login.php" class="btn secondary">Back</a>
       </div>
     </form>
   </main>

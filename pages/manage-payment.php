@@ -187,7 +187,7 @@ if ($dbAvailable) {
 							<th>Method</th>
 							<th>Notes</th>
 							<th>Status</th>
-							<th style="width:170px">Actions</th>
+							<th class="actions-col">Actions</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -205,12 +205,12 @@ if ($dbAvailable) {
 								</td>
 								<td>
 									<?php if ($dbAvailable): ?>
-										<form method="post" style="display:inline">
+										<form method="post" class="inline-form">
 											<input type="hidden" name="action" value="toggle">
 											<input type="hidden" name="id" value="<?php echo e($p['id']); ?>">
 											<button class="btn-sm btn-ghost" type="submit"><?php echo $p['status']==='paid' ? 'Mark Pending' : 'Mark Paid'; ?></button>
 										</form>
-										<form method="post" style="display:inline" onsubmit="return confirm('Delete this payment?');">
+										<form method="post" class="inline-form" onsubmit="return confirm('Delete this payment?');">
 											<input type="hidden" name="action" value="delete">
 											<input type="hidden" name="id" value="<?php echo e($p['id']); ?>">
 											<button class="btn-sm btn-danger" type="submit">Delete</button>

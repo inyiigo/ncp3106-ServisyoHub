@@ -40,7 +40,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		<p class="hint">Enter your mobile number and password to sign in.</p>
 
         <?php if (!empty($error)): ?>
-            <p style="color:red; text-align:center;"><?php echo htmlspecialchars($error); ?></p>
+			<p class="text-error text-center"><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
 
 		<form action="" method="POST" novalidate>
@@ -71,11 +71,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 			<div class="actions">
 				<button type="submit" class="btn">Login</button>
-				<a href="./user-choice.php" class="btn secondary" style="text-decoration:none; display:inline-block;">Back</a>
+				<a href="./user-choice.php" class="btn secondary">Back</a>
 			</div>
 		</form>
 
-		<p style="text-align:center; margin-top:1em;">
+		<p class="text-center" style="margin-top:1em;">
 			Don't have an account?
 			<a href="./signup.php">Sign Up</a>
 		</p>
