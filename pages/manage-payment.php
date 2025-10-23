@@ -124,64 +124,6 @@ if ($dbAvailable) {
 <title>Manage Payments • ServisyoHub</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="../assets/css/styles.css">
-<style>
-/* small page overrides */
-.page-wrap { max-width:980px; margin:24px auto; padding:18px; }
-.header-row { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
-.col { display:flex; gap:8px; align-items:center; }
-.table { width:100%; border-collapse:collapse; margin-top:12px; }
-.table th, .table td { padding:10px 12px; border-bottom:1px solid var(--line); background:transparent; }
-.status-paid { color: #065f46; font-weight:700; }
-.status-pending { color: #b45309; font-weight:700; }
-.form-inline { display:flex; gap:8px; align-items:center; }
-.input-sm { padding:8px 10px; border-radius:8px; border:1px solid var(--line); }
-.btn-sm { padding:8px 10px; border-radius:8px; border:none; cursor:pointer; }
-.btn-danger { background:#ef4444; color:#fff; border:none; }
-.btn-ghost { background:transparent; border:1px solid var(--line); color:var(--text); }
-.note { color:var(--muted); font-size:0.95rem; margin-top:6px; }
-/* bottom boxed action - make container invisible so only the back-box is visible */
-.bottom-box {
-	position: fixed;
-	right: 20px;
-	bottom: 20px;
-	z-index: 999;
-	/* remove visual box behind the button */
-	background: transparent;
-	border: none;
-	padding: 0;
-	border-radius: 0;
-	box-shadow: none;
-}
-
-/* keep the back-box styling (visible button) */
-.back-box {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 8px 12px;
-	border-radius: 10px;
-	background: var(--card);
-	color: var(--text);
-	text-decoration: none;
-	font-weight: 700;
-	border: 1px solid var(--line);
-	transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease, color 200ms ease;
-	box-shadow: 0 6px 18px rgba(2,6,23,0.06);
-}
-.back-box:hover {
-	transform: translateY(-4px) scale(1.02);
-	box-shadow: 0 12px 28px rgba(2,6,23,0.12);
-	background: var(--pal-4);
-	color: #fff;
-	border-color: color-mix(in srgb, var(--pal-4) 60%, #0000);
-}
-
-/* responsive tweaks */
-@media (max-width:520px) {
-	.bottom-box { left: 12px; right: 12px; bottom: 14px; display:flex; justify-content:center; }
-	.back-box { width:100%; justify-content:center; }
-}
-</style>
 </head>
 <body class="theme-profile-bg">
 
@@ -195,7 +137,7 @@ if ($dbAvailable) {
 	<div class="page-wrap">
 		<div class="header-row">
 			<div>
-				<h2 style="margin:0">Manage Payments</h2>
+				<h2 class="no-margin">Manage Payments</h2>
 				<div class="note">Add, view and update payment records. Uses site styles.</div>
 			</div>
 			<div class="col">
@@ -206,33 +148,33 @@ if ($dbAvailable) {
 			</div>
 		</div>
 
-		<?php if ($success): ?><div class="form-card glass-card" style="margin-bottom:12px;"><strong><?php echo e($success); ?></strong></div><?php endif; ?>
+		<?php if ($success): ?><div class="form-card glass-card margin-bottom-12"><strong><?php echo e($success); ?></strong></div><?php endif; ?>
 		<?php if (!empty($errors)): ?>
-			<div class="form-card glass-card" style="margin-bottom:12px;">
-				<ul style="margin:0;padding-left:18px;">
+			<div class="form-card glass-card margin-bottom-12">
+				<ul class="no-margin padding-left-18">
 					<?php foreach ($errors as $err) echo '<li>'.e($err).'</li>'; ?>
 				</ul>
 			</div>
 		<?php endif; ?>
 
 		<div class="form-card glass-card">
-			<h3 style="margin-top:0">Add Payment</h3>
+			<h3 class="no-margin margin-bottom-8">Add Payment</h3>
 			<?php if (!$dbAvailable): ?>
 				<div class="note">Cannot add payments while the database is unavailable.</div>
 			<?php else: ?>
 			<form method="post" class="form-inline">
 				<input type="hidden" name="action" value="add">
-				<input class="input-sm" name="amount" placeholder="Amount" required inputmode="decimal" style="width:110px">
-				<input class="input-sm" name="method" placeholder="Method (e.g. Card, Cash)" style="width:160px">
+				<input class="input-sm width-110" name="amount" placeholder="Amount" required inputmode="decimal">
+				<input class="input-sm width-160" name="method" placeholder="Method (e.g. Card, Cash)">
 				<input class="input-sm" type="date" name="date" value="<?php echo date('Y-m-d'); ?>">
-				<input class="input-sm" name="notes" placeholder="Notes" style="width:260px">
+				<input class="input-sm width-260" name="notes" placeholder="Notes">
 				<button class="btn-sm save" type="submit">Add</button>
 			</form>
 			<?php endif; ?>
 		</div>
 
-		<div class="form-card glass-card" style="margin-top:14px;">
-			<h3 style="margin-top:0">Payments</h3>
+		<div class="form-card glass-card margin-top-14">
+			<h3 class="no-margin margin-bottom-8">Payments</h3>
 			<?php if (empty($payments)): ?>
 				<div class="note">No payments found.</div>
 			<?php else: ?>

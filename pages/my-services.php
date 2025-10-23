@@ -10,13 +10,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Services • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-	<style>
-		.empty-wrap { display:grid; place-items:center; min-height: 0; padding: 24px; }
-		.empty-card { max-width: 720px; width: 100%; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow: var(--shadow); padding: 28px 22px; text-align:center; }
-		.empty-title { margin: 0 0 8px; font-size: clamp(18px,2.4vw,22px); font-weight: 800; }
-		.empty-text { margin: 0; color: var(--muted); }
-	</style>
-	</head>
+</head>
 	<body class="theme-profile-bg">
 	<div class="dash-topbar center">
 		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>

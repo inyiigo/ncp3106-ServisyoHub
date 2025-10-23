@@ -5,87 +5,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Terms &amp; Conditions • ServisyoHub</title>
 <link rel="stylesheet" href="../assets/css/styles.css">
-<style>
-/* small page-scoped tweaks */
-/* center the card in the remaining viewport below the topbar */
-.container {
-	max-width: 920px;
-	margin: 0 auto;
-	padding: 18px;
-	display: grid;
-	place-items: center;               /* horizontally & vertically center */
-	min-height: calc(100vh - 64px);    /* leave space for topbar */
-	box-sizing: border-box;
-
-	/* Fade-in animation */
-	opacity: 0;
-	animation: fadeIn 0.8s ease-in-out forwards;
-}
-
-/* center the heading inside the card */
-.header { margin-bottom: 18px; display:flex; align-items:center; gap:12px; justify-content:center; }
-.header h1 { margin:0; text-align:center; width:100%; }
-/* keep card sizing */
-.terms-card { padding: 22px; border-radius:12px; width:100%; max-width:900px; }
-.section { margin-bottom: 18px; }
-.section h3 { margin:0 0 8px; font-size:1.05rem; }
-.section p { margin:0 0 8px; color:var(--muted); line-height:1.45; }
-.small { font-size:0.92rem; color:var(--muted); }
-
-/* --- added bottom back button styles (same look/behavior as manage-payment) --- */
-@keyframes floatUp {
-	0%   { transform: translateY(0); }
-	50%  { transform: translateY(-6px); }
-	100% { transform: translateY(0); }
-}
-.bottom-box {
-	position: fixed;
-	right: 20px;
-	bottom: 20px;
-	z-index: 999;
-	background: transparent;
-	border: none;
-	padding: 0;
-	border-radius: 0;
-	box-shadow: none;
-
-	/* Fade-in animation for button */
-	opacity: 0;
-	animation: fadeIn 1s ease-in-out 0.3s forwards;
-}
-.back-box {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 8px 12px;
-	border-radius: 10px;
-	background: var(--card);
-	color: var(--text);
-	text-decoration: none;
-	font-weight: 700;
-	border: 1px solid var(--line);
-	transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease, color 200ms ease;
-	box-shadow: 0 6px 18px rgba(2,6,23,0.06);
-}
-.back-box:hover {
-	transform: translateY(-4px) scale(1.02);
-	box-shadow: 0 12px 28px rgba(2,6,23,0.12);
-	background: var(--pal-4);
-	color: #fff;
-	border-color: color-mix(in srgb, var(--pal-4) 60%, #0000);
-}
-
-/* Fade-in keyframes */
-@keyframes fadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width:520px) {
-	.bottom-box { left: 12px; right: 12px; bottom: 14px; display:flex; justify-content:center; }
-	.back-box { width:100%; justify-content:center; }
-}
-</style>
 </head>
 <body class="theme-profile-bg">
 	<div class="dash-topbar center">
@@ -97,7 +16,7 @@
 	<main class="container">
 		<article class="form-card glass-card terms-card" role="main" aria-labelledby="terms-title">
 			<header class="header">
-				<h1 id="terms-title" style="margin:0;">Terms &amp; Conditions</h1>
+				<h1 id="terms-title" class="no-margin">Terms &amp; Conditions</h1>
 			</header>
 
 			<section class="section" aria-labelledby="intro">
@@ -145,7 +64,7 @@
 				<p class="small">If you have questions about these Terms, contact us at <a href="mailto:support@servisyohub.example">support@servisyohub.example</a>.</p>
 			</section>
 
-			<footer class="small" style="margin-top:12px;">
+			<footer class="small margin-top-12">
 				<p>Effective date: <?php echo date('Y-m-d'); ?></p>
 			</footer>
 		</article>
