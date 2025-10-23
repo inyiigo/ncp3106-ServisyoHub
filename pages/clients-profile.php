@@ -58,12 +58,12 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>Location</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./favorite-pros.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/></svg>
 					<span>Favorite Pros</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="./about-us.php">
+				<a class="prof-item" href="./clients-about-us.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6m0-4V4m0 6h.01M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z"/></svg>
 					<span>About Us</span>
 				</a>

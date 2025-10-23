@@ -48,22 +48,22 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                     <span>My Jobs</span>
                 </a>
                 <div class="prof-sep"></div>
-                <a class="prof-item" href="#">
+                <a class="prof-item" href="./job-applications.php">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v8m-4-4h8"/></svg>
                     <span>Job Applications</span>
                 </a>
                 <div class="prof-sep"></div>
-                <a class="prof-item" href="#">
+                <a class="prof-item" href="./payouts.php">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16v10H4zM7 10h10M7 14h6"/></svg>
                     <span>Payouts</span>
                 </a>
                 <div class="prof-sep"></div>
-                <a class="prof-item" href="#">
+                <a class="prof-item" href="./documents.php">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16H6zM8 8h8M8 12h8M8 16h5"/></svg>
                     <span>Documents</span>
                 </a>
                 <div class="prof-sep"></div>
-                <a class="prof-item" href="#">
+                <a class="prof-item" href="./jobs-about-us.php">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6m0-4V4m0 6h.01M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z"/></svg>
                     <span>About Us</span>
                 </a>

@@ -171,7 +171,7 @@
 	} else {
 		document.getElementById("userLocation").textContent =
 			"❌ Your browser does not support geolocation.";
-	}
+	}	
 	</script>
 </body>
 </html>
