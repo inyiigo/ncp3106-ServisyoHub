@@ -1,5 +1,19 @@
 <?php
 session_start();
+// Ensure greeting uses first name after login
+if (empty($_SESSION['display_name']) && !empty($_SESSION['user_id'])) {
+    try {
+        require_once __DIR__ . '/../config/db.php';
+        $stmtName = $pdo->prepare('SELECT first_name FROM users WHERE id = ? LIMIT 1');
+        $stmtName->execute([$_SESSION['user_id']]);
+        $row = $stmtName->fetch();
+        if ($row && !empty($row['first_name'])) {
+            $_SESSION['display_name'] = $row['first_name'];
+        }
+    } catch (Throwable $e) {
+        // Silently ignore name fetch errors; fallback will be used below
+    }
+}
 
 try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {

@@ -1,5 +1,16 @@
 <?php
 session_start();
+$__logout = isset($_GET['logout']);
+if ($__logout) {
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+    }
+    session_destroy();
+    header('Location: ./login.php');
+    exit;
+}
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'Guest');
 $mobile = isset($_SESSION['mobile']) ? $_SESSION['mobile'] : '';
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
@@ -42,27 +53,27 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>Service History</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./location.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
 					<span>Location</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./favorite-pros.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/></svg>
 					<span>Favorite Pros</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./clients-about-us.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6m0-4V4m0 6h.01M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z"/></svg>
 					<span>About Us</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./terms-and-conditions.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16H6zM8 8h8M8 12h8M8 16h5"/></svg>
 					<span>Terms and Conditions</span>
 				</a>
 				<div class="prof-sep"></div>
-				<a class="prof-item" href="#">
+				<a class="prof-item" href="./clients-profile.php?logout=1">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/></svg>
 					<span>Log out</span>
 				</a>
