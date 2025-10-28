@@ -10,8 +10,25 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Services • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
+	<style>
+		/* Match bottom nav behavior from home-services.php and center at bottom */
+		.dash-bottom-nav {
+			position: fixed;
+			left: 50%;
+			bottom: 16px;
+			z-index: 1000;
+			width: max-content;
+			transform: translateX(-50%) scale(0.92);
+			transform-origin: bottom center;
+			transition: transform 180ms ease, box-shadow 180ms ease;
+		}
+		.dash-bottom-nav:hover {
+			transform: translateX(-50%) scale(1);
+			box-shadow: 0 12px 28px rgba(2,6,23,.12);
+		}
+	</style>
 </head>
-	<body class="theme-profile-bg">
+<body class="theme-profile-bg">
 	<div class="dash-topbar center">
 		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>

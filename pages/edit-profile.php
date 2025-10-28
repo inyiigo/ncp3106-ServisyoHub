@@ -1,4 +1,5 @@
 <?php
+session_start();
 // Minimal robust DB connection: try config then fallback (exception-safe)
 $configPath = __DIR__ . '/../includes/config.php';
 $mysqli = null;
@@ -200,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 } // end POST
 
 // prepare disabled attribute for form controls when not logged in or DB unavailable
-$disabledAttr = ($not_logged_in || !$dbAvailable) ? 'disabled' : '';
+$disabledAttr = '';
 
 // small helper to get avatar URL or placeholder
 function avatar_url($path){
@@ -211,10 +212,10 @@ function avatar_url($path){
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Edit Profile • Servisyo Hub</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="../assets/css/styles.css">
+	<meta charset="utf-8">
+	<title>Edit Profile • Servisyo Hub</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/styles.css">
 </head>
 <body class="reg-body theme-profile-bg">
 	<main class="form-card glass-card animate-fade">
@@ -282,8 +283,7 @@ function avatar_url($path){
 			</div>
 		</form>
 	</main>
- 
-<script>
+	<script>
 // capture initial values for Cancel behavior
 var form = document.getElementById('editForm');
 var cancelBtn = document.getElementById('cancelBtn');
@@ -337,7 +337,7 @@ if (cancelBtn) {
 		}
 	});
 }
-</script>
+	</script>
 </body>
 </html>
 

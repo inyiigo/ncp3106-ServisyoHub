@@ -23,6 +23,23 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	<title>Client Profile • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
+	<style>
+		/* Centered floating bottom navigation, matching home-services behavior */
+		.dash-bottom-nav {
+			position: fixed;
+			left: 50%;
+			bottom: 16px;
+			z-index: 1000;
+			width: max-content;
+			transform: translateX(-50%) scale(0.92);
+			transform-origin: bottom center;
+			transition: transform 180ms ease, box-shadow 180ms ease;
+		}
+		.dash-bottom-nav:hover {
+			transform: translateX(-50%) scale(1);
+			box-shadow: 0 12px 28px rgba(2,6,23,.12);
+		}
+	</style>
 </head>
 <body class="theme-profile-bg">
 	<div class="dash-topbar center">
