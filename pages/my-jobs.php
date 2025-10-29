@@ -144,6 +144,30 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 /* Blue bottom border on topbar */
 .dash-topbar { border-bottom: 3px solid #0078a6; }
 
+/* Background logo - transparent and behind UI */
+.bg-logo {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 25%;
+	max-width: 350px;
+	opacity: 0.15;
+	z-index: 0;
+	pointer-events: none;
+}
+.bg-logo img {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* Ensure main content is above background */
+.page-wrap {
+	position: relative;
+	z-index: 1;
+}
+
 /* centered floating bottom navigation (match home-services.php) */
 .dash-bottom-nav {
 	position: fixed;
@@ -154,6 +178,8 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 	transform: translateX(-50%) scale(0.92);
 	transform-origin: bottom center;
 	transition: transform 180ms ease, box-shadow 180ms ease;
+	border: 3px solid #0078a6;
+	background: transparent;
 }
 .dash-bottom-nav:hover {
 	transform: translateX(-50%) scale(1);
@@ -182,6 +208,11 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 </style>
 </head>
 <body class="theme-profile-bg">
+	<!-- Background Logo -->
+	<div class="bg-logo">
+		<img src="../assets/images/job_logo.png" alt="" />
+	</div>
+
 	<div class="dash-topbar center">
 		<div class="dash-brand">
 			<img src="../assets/images/bluefont.png" alt="ServisyoHub" class="dash-brand-logo" onerror="this.style.display='none'">
