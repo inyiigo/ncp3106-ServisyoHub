@@ -134,10 +134,127 @@ ob_end_flush();
 			display: block;
 		}
 
+		/* Remove Post button from bottom nav, add floating circular + button */
+		.floating-post-btn {
+			position: fixed;
+			right: 20px;
+			bottom: 24px;
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			background: #fff;
+			color: #0078a6;
+			border: 3px solid #0078a6;
+			box-shadow: 0 6px 20px rgba(0,120,166,.3);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 2rem;
+			font-weight: 300;
+			line-height: 1;
+			cursor: pointer;
+			transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease;
+			z-index: 998;
+			text-decoration: none;
+		}
+		.floating-post-btn:hover {
+			transform: translateY(-4px) scale(1.05);
+			box-shadow: 0 10px 28px rgba(0,120,166,.4);
+			background: #f0f9ff;
+		}
+		.floating-post-btn:active {
+			transform: translateY(-2px) scale(1.02);
+		}
+		/* Tooltip above the + button: plain blue text, no box */
+		.floating-post-btn::after {
+			content: 'Post';
+			position: absolute;
+			bottom: calc(100% + 8px);
+			left: 50%;
+			transform: translateX(-50%) translateY(4px);
+			background: transparent;
+			color: #0078a6;
+			padding: 0;
+			border-radius: 0;
+			box-shadow: none;
+			font-weight: 800;
+			font-size: 0.75rem;
+			white-space: nowrap;
+			opacity: 0;
+			pointer-events: none;
+			transition: opacity .16s ease, transform .16s ease;
+			z-index: 1001;
+		}
+		.floating-post-btn::before {
+			content: none;
+			position: absolute;
+			bottom: calc(100% + 2px);
+			left: 50%;
+			transform: translateX(-50%);
+			border-width: 6px;
+			border-style: solid;
+			border-color: #0f172a transparent transparent transparent;
+			opacity: 0;
+			transition: opacity .16s ease;
+			z-index: 1001;
+		}
+		.floating-post-btn:hover::after,
+		.floating-post-btn:focus-visible::after {
+			opacity: 1;
+			transform: translateX(-50%) translateY(0);
+		}
+		.floating-post-btn:hover::before,
+		.floating-post-btn:focus-visible::before {
+			opacity: 1;
+		}
+
+		@media (max-width:520px) {
+			.floating-post-btn {
+				right: 16px;
+				bottom: 20px;
+			}
+		}
+
 		/* Ensure main content is above background */
 		.dash-shell {
 			position: relative;
 			z-index: 1;
+		}
+
+		/* Floating Post modal (iframe) */
+		.post-modal {
+			position: fixed; inset: 0;
+			background: rgba(15,23,42,.55);
+			backdrop-filter: blur(2px);
+			display: none;
+			align-items: center;
+			justify-content: center;
+			z-index: 2000;
+		}
+		.post-modal.show { display: flex; }
+		.post-modal .modal-card {
+			width: min(820px, 96vw);
+			height: min(90vh, 720px);
+			border-radius: 16px;
+			background: #ffffff;
+			position: relative;
+			box-shadow: 0 18px 48px rgba(2,6,23,.28);
+			border: 3px solid #0078a6;
+			overflow: hidden;
+		}
+		.post-modal .modal-close {
+			position: absolute; top: 8px; right: 8px;
+			width: 36px; height: 36px; border-radius: 999px;
+			border: 2px solid #0078a6; background: #fff; color: #0078a6;
+			font-weight: 900; line-height: 1;
+			display: grid; place-items: center; cursor: pointer;
+			box-shadow: 0 8px 22px rgba(2,6,23,.18);
+		}
+		.post-modal .modal-card iframe {
+			position: absolute; inset: 0;
+			width: 100%; height: 100%;
+			border: 0;
+			background: transparent;
 		}
 	</style>
 </head>
@@ -224,6 +341,12 @@ ob_end_flush();
 
 		<aside class="dash-aside">
 			<nav class="dash-nav">
+				<a href="./clients-post.php" aria-label="Post">
+					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 5v14m-7-7h14"/>
+					</svg>
+					<span>Post</span>
+				</a>
 				<a href="./home-services.php" class="active" aria-label="Home">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
 					<span>Home</span>
@@ -240,7 +363,18 @@ ob_end_flush();
 		</aside>
 	</div>
 
-	<!-- Floating bottom navigation -->
+	<!-- Floating circular + button -->
+	<a href="./clients-post.php" class="floating-post-btn" aria-label="Post" title="Post">+</a>
+
+	<!-- Post modal -->
+	<div class="post-modal" id="postModal" role="dialog" aria-modal="true" aria-labelledby="postModalTitle">
+		<div class="modal-card">
+			<button type="button" class="modal-close" aria-label="Close">×</button>
+			<iframe id="postFrame" src="" title="Post a Job" loading="lazy"></iframe>
+		</div>
+	</div>
+
+	<!-- Floating bottom navigation (Post button removed) -->
 	<nav class="dash-bottom-nav">
 		<a href="./home-services.php" class="active" aria-label="Home">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
@@ -255,5 +389,47 @@ ob_end_flush();
 			<span>Profile</span>
 		</a>
 	</nav>
+
+	<script>
+	// Open Post modal (loads post.php in an iframe) and close handlers
+	(function(){
+		const modal = document.getElementById('postModal');
+		const closeBtn = modal.querySelector('.modal-close');
+		const frame = document.getElementById('postFrame');
+
+		function openModal(url) {
+			frame.src = url || './post.php';
+			modal.classList.add('show');
+		}
+		function closeModal() {
+			modal.classList.remove('show');
+			frame.src = 'about:blank';
+		}
+
+		// Expose close for same-origin iframe direct call
+		window.__servisyohubClosePostModal = closeModal;
+
+		document.addEventListener('click', function(e){
+			const a = e.target.closest('a[href$="post.php"]');
+			if (!a) return;
+			e.preventDefault();
+			openModal(a.getAttribute('href'));
+		});
+
+		closeBtn.addEventListener('click', closeModal);
+		modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+		document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.classList.contains('show')) closeModal(); });
+
+		// Accept both string and object postMessage payloads from iframe
+		window.addEventListener('message', function(e){
+			try {
+				const d = e.data;
+				if (d === 'close-post-modal' || (d && typeof d === 'object' && (d.action === 'close-post-modal' || d.type === 'close-post-modal'))) {
+					closeModal();
+				}
+			} catch (_) {}
+		});
+	})();
+	</script>
 </body>
 </html>
