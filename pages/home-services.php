@@ -18,6 +18,52 @@ $display = $_SESSION['display_name'] ?? $_SESSION['mobile'] ?? 'there';
 // Create avatar initial
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
+// Safe DB connect to fetch recent posts
+$configPath = __DIR__ . '/../includes/config.php';
+$mysqli = null;
+$dbAvailable = false;
+$lastConnError = '';
+if (file_exists($configPath)) { require_once $configPath; }
+$attempts = [];
+if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
+$attempts[] = ['localhost', 'root', '', 'servisyohub'];
+foreach ($attempts as $creds) {
+	list($h,$u,$p,$n) = $creds;
+	if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
+	try {
+		$conn = @mysqli_connect($h,$u,$p,$n);
+		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
+		else { $lastConnError = mysqli_connect_error() ?: 'Connection failed'; if ($conn) { @mysqli_close($conn); } }
+	} catch (Throwable $ex) {
+		$lastConnError = $ex->getMessage();
+	} finally {
+		if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
+	}
+}
+function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
+function time_ago($dt){
+	$t = is_numeric($dt) ? (int)$dt : strtotime((string)$dt);
+	if (!$t) return '';
+	$d = time() - $t;
+	if ($d < 60) return $d.'s ago';
+	if ($d < 3600) return floor($d/60).'m ago';
+	if ($d < 86400) return floor($d/3600).'h ago';
+	if ($d < 604800) return floor($d/86400).'d ago';
+	return date('M j, Y', $t);
+}
+$jobs = [];
+if ($dbAvailable) {
+	$sql = "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, posted_at
+	        FROM jobs
+	        WHERE COALESCE(status,'open') IN ('open','pending')
+	        ORDER BY posted_at DESC, id DESC
+	        LIMIT 10";
+	if ($res = @mysqli_query($mysqli, $sql)) {
+		while ($row = mysqli_fetch_assoc($res)) $jobs[] = $row;
+		@mysqli_free_result($res);
+	}
+}
+
 // End buffering (send output)
 ob_end_flush();
 ?>
@@ -256,6 +302,25 @@ ob_end_flush();
 			border: 0;
 			background: transparent;
 		}
+
+		/* Recent Posts feed */
+		.jobs-feed { margin-top: 18px; }
+		.jobs-feed .feed-title { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; font-weight:800; }
+		.jobs-feed .feed-grid { display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
+		@media (max-width: 920px){ .jobs-feed .feed-grid { grid-template-columns: 1fr; } }
+		.feed-card {
+			background: #0078a6 !important; color:#fff;
+			border-radius: 14px; padding: 14px 16px;
+			box-shadow: 0 8px 20px rgba(0,120,166,.24);
+			border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+		}
+		.feed-card .fc-top { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
+		.feed-card .fc-title { font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+		.feed-card .fc-time { color: rgba(255,255,255,.85); font-size:.85rem; white-space:nowrap; }
+		.feed-card .fc-cat { color:#fff; font-size:.9rem; opacity:.95; margin-bottom:6px; }
+		.feed-card .fc-meta { display:flex; flex-wrap:wrap; gap:10px 14px; color: rgba(255,255,255,.9); font-size:.9rem; }
+		.feed-card .fc-meta .item { display:inline-flex; align-items:center; gap:6px; }
+		.feed-empty, .feed-note { text-align:center; color: rgba(15,23,42,.7); }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -276,6 +341,42 @@ ob_end_flush();
 			<!-- Hero banner -->
 			<section class="home-hero">
 				<p class="hero-tagline">Where skilled hands meet local demand.</p>
+			</section>
+
+			<!-- Recent Posts feed (before services) -->
+			<section class="jobs-feed" aria-label="Recent posts">
+				<div class="feed-title">
+					<span>Recent Posts</span>
+				</div>
+
+				<?php if (!$dbAvailable): ?>
+					<p class="feed-note">Posts are unavailable right now. <?php echo e($lastConnError); ?></p>
+				<?php elseif (empty($jobs)): ?>
+					<p class="feed-empty">No recent posts yet. Be the first to post using the + button.</p>
+				<?php else: ?>
+					<div class="feed-grid">
+						<?php foreach ($jobs as $j): ?>
+							<article class="feed-card">
+								<div class="fc-top">
+									<div class="fc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></div>
+									<div class="fc-time"><?php echo e(time_ago($j['posted_at'])); ?></div>
+								</div>
+								<div class="fc-cat"><?php echo e($j['category']); ?></div>
+								<div class="fc-meta">
+									<?php if (!empty($j['location'])): ?>
+										<span class="item" title="<?php echo e($j['location']); ?>">📍 <?php echo e($j['location']); ?></span>
+									<?php endif; ?>
+									<?php if (!empty($j['budget'])): ?>
+										<span class="item">💰 <?php echo e($j['budget']); ?></span>
+									<?php endif; ?>
+									<?php if (!empty($j['date_needed'])): ?>
+										<span class="item">📅 <?php echo e($j['date_needed']); ?></span>
+									<?php endif; ?>
+								</div>
+							</article>
+						<?php endforeach; ?>
+					</div>
+				<?php endif; ?>
 			</section>
 
 			<!-- Category sections -->
