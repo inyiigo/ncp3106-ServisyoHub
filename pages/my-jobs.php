@@ -15,7 +15,7 @@ $attempts[] = ['localhost', 'root', '', 'servisyohub'];
 
 foreach ($attempts as $creds) {
 	list($h,$u,$p,$n) = $creds;
-	mysqli_report(MYSQLI_REPORT_OFF);
+	if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
 	try {
 		$conn = @mysqli_connect($h,$u,$p,$n);
 		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
@@ -23,7 +23,7 @@ foreach ($attempts as $creds) {
 	} catch (Throwable $ex) {
 		$lastConnError = $ex->getMessage();
 	} finally {
-		mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
+		if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
 	}
 }
 
@@ -40,7 +40,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 	$job_id = isset($_POST['job_id']) ? intval($_POST['job_id']) : 0;
 
 	if ($job_id > 0 && in_array($action, ['done','cancel'], true)) {
-		// Only update jobs owned by this user
 		$status = $action === 'done' ? 'completed' : 'cancelled';
 		$stmt = mysqli_prepare($mysqli, "UPDATE jobs SET status = ? WHERE id = ? AND user_id = ?");
 		if ($stmt) {
@@ -87,38 +86,133 @@ if (!$not_logged_in && $dbAvailable) {
 <style>
 /* page tweaks using site tokens */
 .page-wrap { max-width: 980px; margin: 24px auto; padding: 18px; }
-.header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.header-row h2 { margin:0; }
-.note { color: var(--muted); }
 
-/* job cards */
+.header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
+
+.header-row h2 { margin:0; color: #0f172a; }
+.note { color: #64748b; }
+
+/* job cards with blue background like home-jobs.php */
 .grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
 
-.job-card { display:grid; grid-template-columns: auto 1fr; gap:14px; align-items:center; padding:14px; border-radius:14px; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.6); box-shadow: 0 8px 20px rgba(2,6,23,.15); backdrop-filter: blur(4px); }
+.job-card {
+	display:grid; grid-template-columns: auto 1fr; gap:14px; align-items:center;
+	padding: 20px 22px; border-radius: 16px;
+	background: #0078a6; color: #fff;
+	border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+	box-shadow: 0 8px 24px rgba(0,120,166,.24);
+	transition: transform .15s ease, box-shadow .15s ease;
+}
+.job-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,120,166,.32); }
+
 .job-badge { padding:6px 10px; border-radius:999px; font-weight:800; font-size:.82rem; width:max-content; }
-.badge-pending { background: #fef3c7; color:#92400e; }
-.badge-inprogress { background: #dbeafe; color:#1e40af; }
-.badge-completed { background: #dcfce7; color:#166534; }
-.badge-cancelled { background: #fee2e2; color:#991b1b; }
+.badge-pending { background: rgba(254,243,199,.95); color:#92400e; }
+.badge-inprogress { background: rgba(219,234,254,.95); color:#1e40af; }
+.badge-completed { background: rgba(220,252,231,.95); color:#166534; }
+.badge-cancelled { background: rgba(254,226,226,.95); color:#991b1b; }
 
-.job-title { font-weight: 800; }
-.job-sub { color: var(--muted); font-size: .92rem; }
-.job-meta { color: var(--muted); font-size: .9rem; }
+.job-title { font-weight: 800; color: #fff; font-size: 1.1rem; }
+.job-sub { color: rgba(255,255,255,.85); font-size: .92rem; }
+.job-meta { color: rgba(255,255,255,.75); font-size: .9rem; }
 
-.job-actions { display:flex; gap:8px; margin-top:8px; }
-.btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--text); padding:8px 10px; border-radius:10px; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; }
-.btn-danger { background:#ef4444; color:#fff; padding:8px 10px; border-radius:10px; border:none; cursor:pointer; }
-.btn-primary { background: var(--pal-4); color:#fff; padding:8px 10px; border-radius:10px; border:none; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; }
+.job-actions { display:flex; gap:8px; margin-top:8px; flex-wrap: wrap; }
+.btn-ghost {
+	background: #fff; border: 1px solid rgba(255,255,255,.3); color: #0078a6;
+	padding:8px 12px; border-radius:12px; cursor:pointer; text-decoration:none;
+	display:inline-flex; align-items:center; font-weight:700;
+	transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn-ghost:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(255,255,255,.2); }
 
-/* bottom back button */
-.bottom-box { position: fixed; right: 20px; bottom: 20px; z-index: 999; background: transparent; border: none; padding: 0; box-shadow: none; }
-.back-box { display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:10px; background: var(--card); color: var(--text); text-decoration:none; font-weight:700; border:1px solid var(--line); transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease, color 200ms ease; box-shadow: 0 6px 18px rgba(2,6,23,0.06); }
-.back-box:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 28px rgba(2,6,23,0.12); background: var(--pal-4); color:#fff; border-color: color-mix(in srgb, var(--pal-4) 60%, #0000); }
-@media (max-width:520px){ .bottom-box{ left:12px; right:12px; bottom:14px; display:flex; justify-content:center; } .back-box{ width:100%; justify-content:center; } }
+.btn-danger {
+	background:#ef4444; color:#fff; padding:8px 12px; border-radius:12px; border:none;
+	cursor:pointer; font-weight:700; transition: filter .12s ease, transform .12s ease;
+}
+.btn-danger:hover { filter: brightness(1.05); transform: translateY(-1px); }
+
+.btn-primary {
+	background: #fff; color: #0078a6; padding:8px 12px; border-radius:12px;
+	border:none; cursor:pointer; text-decoration:none; display:inline-flex;
+	align-items:center; font-weight:700; transition: transform .12s ease, box-shadow .12s ease;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(255,255,255,.2); }
+
+/* page override: white background */
+body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
+
+/* Blue bottom border on topbar */
+.dash-topbar { border-bottom: 3px solid #0078a6; }
+
+/* Background logo - transparent and behind UI */
+.bg-logo {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 25%;
+	max-width: 350px;
+	opacity: 0.15;
+	z-index: 0;
+	pointer-events: none;
+}
+.bg-logo img {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+/* Ensure main content is above background */
+.page-wrap {
+	position: relative;
+	z-index: 1;
+}
+
+/* centered floating bottom navigation (match home-services.php) */
+.dash-bottom-nav {
+	position: fixed;
+	left: 50%;
+	bottom: 16px;
+	z-index: 1000;
+	width: max-content;
+	transform: translateX(-50%) scale(0.92);
+	transform-origin: bottom center;
+	transition: transform 180ms ease, box-shadow 180ms ease;
+	border: 3px solid #0078a6;
+	background: transparent;
+}
+.dash-bottom-nav:hover {
+	transform: translateX(-50%) scale(1);
+	box-shadow: 0 12px 28px rgba(2,6,23,.12);
+}
+
+/* Entrance animation */
+@media (prefers-reduced-motion: no-preference) {
+	.grid { animation: fadeUp .4s ease both .15s; }
+	@keyframes fadeUp { from { opacity:.0; transform: translateY(6px);} to { opacity:1; transform:none; } }
+}
+
+/* Make notification boxes blue with white text */
+.form-card.glass-card {
+	background: #0078a6;
+	color: #fff;
+	border-radius: 16px;
+	padding: 16px 20px;
+	box-shadow: 0 8px 24px rgba(0,120,166,.24);
+	border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+}
+.form-card.glass-card strong { color: #fff; }
+.form-card.glass-card ul { color: #fff; }
+/* Make note text white inside job cards */
+.job-card .note { color: #fff !important; }
 </style>
 </head>
 <body class="theme-profile-bg">
+	<!-- Background Logo -->
+	<div class="bg-logo">
+		<img src="../assets/images/job_logo.png" alt="" />
+	</div>
+
 	<div class="dash-topbar center">
 		<div class="dash-brand">
 			<img src="../assets/images/bluefont.png" alt="ServisyoHub" class="dash-brand-logo" onerror="this.style.display='none'">
@@ -150,13 +244,13 @@ if (!$not_logged_in && $dbAvailable) {
 
 		<div class="grid">
 			<?php if ($not_logged_in || !$dbAvailable): ?>
-				<div class="form-card glass-card" style="grid-column:1/-1;">
+				<div class="job-card" style="grid-column:1/-1; display:block;">
 					<p class="note">No jobs to display.</p>
 				</div>
 			<?php else: ?>
 				<?php if (empty($jobs)): ?>
-					<div class="form-card glass-card" style="grid-column:1/-1;">
-						<p class="note">You don’t have any jobs yet.</p>
+					<div class="job-card" style="grid-column:1/-1; display:block;">
+						<p class="note">You don't have any jobs yet.</p>
 					</div>
 				<?php else: ?>
 					<?php foreach ($jobs as $j): ?>
@@ -204,7 +298,7 @@ if (!$not_logged_in && $dbAvailable) {
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
 			<span>Home</span>
 		</a>
-		<a href="./my-jobs.php" class="active" aria-label="My Services">
+		<a href="./my-jobs.php" class="active" aria-label="My Jobs">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
 			<span>My Jobs</span>
 		</a>
