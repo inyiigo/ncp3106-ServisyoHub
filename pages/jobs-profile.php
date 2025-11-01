@@ -215,10 +215,6 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
             <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
             <span>Home</span>
         </a>
-        <a href="./jobs-post.php" aria-label="Post">
-            <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v8m-4-4h8"/></svg>
-            <span>Post</span>
-        </a>
         <a href="./my-jobs.php" aria-label="My Jobs">
             <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
             <span>My Jobs</span>

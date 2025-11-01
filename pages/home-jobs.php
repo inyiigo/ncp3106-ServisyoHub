@@ -160,6 +160,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
         .jobs-input {
             appearance: none; border: none; outline: none; background: transparent;
             font: inherit; color: var(--text, #0f172a); padding: 6px 0;
+            width: 100%;
         }
         .jobs-row:focus-within { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--jobs-blue) 35%, #0000); border-radius: 12px; }
 
@@ -212,6 +213,97 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
         /* page override: white background */
         body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
+
+        /* Greeting section with avatar */
+        .jobs-greeting {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0 auto 24px;
+            max-width: 960px;
+            padding: 0 12px;
+        }
+        .jobs-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #e0f2fe;
+            color: #0078a6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,120,166,.15);
+        }
+        .jobs-greeting-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .jobs-greeting-label {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .jobs-greeting-name {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        /* Question section */
+        .jobs-question {
+            max-width: 960px;
+            margin: 0 auto 20px;
+            padding: 0 12px;
+        }
+        .jobs-question-text {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        /* Simple search bar (without filters) */
+        .jobs-search-simple {
+            max-width: 960px;
+            margin: 0 auto 24px;
+            padding: 0 12px;
+        }
+
+        /* Search suggestions */
+        .search-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .suggestion-pill {
+            appearance: none;
+            border: 2px solid #0078a6;
+            background: #fff;
+            color: #0f172a;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .suggestion-pill:hover {
+            background: #f0f9ff;
+            border-color: #0078a6;
+            transform: translateY(-1px);
+        }
+        .suggestion-pill:active {
+            transform: translateY(0);
+        }
 
         /* Blue bottom border on topbar */
         .dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
@@ -303,39 +395,39 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
     <div class="dash-shell">
         <main class="dash-content">
-            <h1 class="dash-greet">Hi <?php echo htmlspecialchars($display); ?>!</h1>
-            <p class="dash-muted">Welcome to your job application dashboard.</p>
+            <!-- Greeting with avatar (left) and text (right) -->
+            <div class="jobs-greeting">
+                <div class="jobs-avatar"><?php echo htmlspecialchars($avatar); ?></div>
+                <div class="jobs-greeting-text">
+                    <p class="jobs-greeting-label">Good morning!</p>
+                    <h1 class="jobs-greeting-name"><?php echo htmlspecialchars($display); ?></h1>
+                </div>
+            </div>
 
-            <!-- Search bar -->
-            <section class="jobs-search is-sticky" aria-label="Search jobs">
+            <!-- Question section -->
+            <div class="jobs-question">
+                <h2 class="jobs-question-text">What do you want to do today?</h2>
+            </div>
+
+            <!-- Main search bar (without filters) -->
+            <section class="jobs-search-simple" aria-label="Quick search">
                 <div class="jobs-box">
                     <div class="jobs-row">
                         <svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
                         <div class="jobs-input-wrap">
-                            <input class="jobs-input" type="search" name="q" placeholder="Search for a Job" aria-label="Search for a Job" autocomplete="off" />
-                            <button type="button" class="jobs-clear" aria-label="Clear search">×</button>
+                            <input class="jobs-input" type="search" name="main-search" placeholder="Search for a Job" aria-label="Search for a Job" autocomplete="off" />
                         </div>
-                        <svg class="jobs-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" role="img" aria-label="Filters"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
-                    </div>
-                    <div class="jobs-strip">
-                        <div class="jobs-filters">
-                            <select class="jobs-pill" aria-label="Category">
-                                <option>Category</option>
-                                <option>Home Service</option>
-                                <option>Personal Care</option>
-                                <option>Electrical</option>
-                            </select>
-                            <select class="jobs-pill" aria-label="Date Posted">
-                                <option>Date Posted</option>
-                                <option>Last 24 hours</option>
-                                <option>Last 7 days</option>
-                                <option>Last 30 days</option>
-                            </select>
-                        </div>
+                        <svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                     </div>
                 </div>
-                <!-- suggestions (auto-shown on focus/type) -->
-                <ul class="jobs-suggest" role="listbox" id="jobsSuggest" hidden></ul>
+                
+                <!-- Search suggestions -->
+                <div class="search-suggestions">
+                    <button type="button" class="suggestion-pill">Buy and deliver item</button>
+                    <button type="button" class="suggestion-pill">Booth Staff for pop-up</button>
+                    <button type="button" class="suggestion-pill">Help me with moving</button>
+                    <button type="button" class="suggestion-pill">Helper for an event</button>
+                </div>
             </section>
 
             
@@ -426,12 +518,6 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                     </svg>
                     My Jobs <span class="dash-badge">0</span>
                 </a>
-                <a href="./jobs-post.php">
-                    <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 8v8m-4-4h8"/>
-                    </svg>
-                    Post
-                </a>
                 <a href="./jobs-profile.php">
                     <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
@@ -450,12 +536,6 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
             </svg>
             <span>Home</span>
         </a>
-        <a href="./jobs-post.php" aria-label="Post">
-            <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 8v8m-4-4h8"/>
-            </svg>
-            <span>Post</span>
-        </a>
         <a href="./my-jobs.php" aria-label="My Jobs">
             <svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 7h16M4 12h10M4 17h7"/>
@@ -473,91 +553,16 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
     <script>
     // Posting moved to jobs-post.php
 
+    // Search suggestions functionality
     (function(){
-        const q = document.querySelector('.jobs-input');
-        const clearBtn = document.querySelector('.jobs-clear');
-        const list = document.getElementById('jobsSuggest');
-        const container = document.querySelector('.jobs-search');
-        const suggestions = [
-            'Part-time cleaner in Quezon City',
-            'Aircon technician (split-type)',
-            'Upholstery deep cleaning',
-            'Electrical wiring check-up',
-            'Plumbing and handyman help',
-            'Pest control general service'
-        ];
+        const searchInput = document.querySelector('.jobs-search-simple .jobs-input');
+        const suggestionPills = document.querySelectorAll('.suggestion-pill');
 
-        let active = -1; // active index for keyboard nav
-
-        function render(items){
-            list.innerHTML = items.map((t,i)=>(
-                '<li role="option" data-val="'+t.replace(/"/g,'&quot;')+'" aria-selected="'+(i===active)+'">' +
-                    '<svg class="s-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>' +
-                    '<span>'+t+'</span>' +
-                '</li>'
-            )).join('');
-        }
-        function openSuggest(){
-            const v = (q.value || '').trim().toLowerCase();
-            const filtered = v ? suggestions.filter(s=>s.toLowerCase().includes(v)) : suggestions.slice(0,5);
-            active = -1;
-            render(filtered);
-            list.hidden = filtered.length === 0;
-        }
-        function closeSuggest(){ list.hidden = true; active = -1; }
-
-        q.addEventListener('input', () => {
-            clearBtn.style.display = q.value ? 'inline-flex' : 'none';
-            openSuggest();
-        });
-        q.addEventListener('focus', openSuggest);
-        q.addEventListener('blur', () => setTimeout(closeSuggest, 100)); // allow click on item
-
-        clearBtn.addEventListener('click', () => {
-            q.value = '';
-            clearBtn.style.display = 'none';
-            q.focus();
-            openSuggest();
-        });
-
-        list.addEventListener('mousedown', (e) => {
-            const li = e.target.closest('li[role="option"]');
-            if (!li) return;
-            q.value = li.dataset.val || '';
-            clearBtn.style.display = q.value ? 'inline-flex' : 'none';
-            closeSuggest();
-        });
-
-        q.addEventListener('keydown', (e) => {
-            if (list.hidden) return;
-            const items = Array.from(list.querySelectorAll('li[role="option"]'));
-            if (!items.length) return;
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                active = (active + 1) % items.length;
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                active = (active - 1 + items.length) % items.length;
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                if (active >= 0) {
-                    q.value = items[active].dataset.val || '';
-                    clearBtn.style.display = q.value ? 'inline-flex' : 'none';
-                }
-                closeSuggest();
-                return;
-            } else if (e.key === 'Escape') {
-                closeSuggest();
-                return;
-            } else {
-                return;
-            }
-            items.forEach((el,i)=>el.setAttribute('aria-selected', String(i===active)));
-        });
-
-        // click outside closes
-        document.addEventListener('click', (e)=>{
-            if (!container.contains(e.target)) closeSuggest();
+        suggestionPills.forEach(pill => {
+            pill.addEventListener('click', function() {
+                searchInput.value = this.textContent;
+                searchInput.focus();
+            });
         });
     })();
     </script>

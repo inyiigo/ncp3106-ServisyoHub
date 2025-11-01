@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-/* Safe DB connection (tries includes/config.php then localhost fallback) */
-$configPath = __DIR__ . '/../includes/config.php';
+/* Safe DB connection */
+$configPath = __DIR__ . '/../config/config.php';
 $mysqli = null;
 $dbAvailable = false;
 $lastConnError = '';
@@ -33,32 +33,30 @@ $success = '';
 $not_logged_in = empty($_SESSION['user_id']);
 $user_id = $not_logged_in ? 0 : intval($_SESSION['user_id']);
 
-/* Handle submit: store in jobs table (category as "Parent • Service") */
+/* Handle submit: store in jobs table */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
-	$parent = trim($_POST['parent_category'] ?? '');
-	$service = trim($_POST['service_type'] ?? '');
+	$category = trim($_POST['category'] ?? '');
 	$title = trim($_POST['title'] ?? '');
 	$description = trim($_POST['description'] ?? '');
 	$location = trim($_POST['location'] ?? '');
 	$budget = trim($_POST['budget'] ?? '');
 	$date_needed = trim($_POST['date_needed'] ?? '');
 
-	if ($parent === '') $errors[] = 'Please select a category.';
-	if ($service === '') $errors[] = 'Please select a service.';
+	if ($category === '') $errors[] = 'Please select a service category.';
 	if ($title === '') $errors[] = 'Title is required.';
 	if ($description === '') $errors[] = 'Description is required.';
 	if ($location === '') $errors[] = 'Location is required.';
 
 	if (empty($errors)) {
-		$category = $parent . ' • ' . $service;
 		$sql = "INSERT INTO jobs (user_id, title, category, description, location, budget, date_needed, status, posted_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW())";
 		if ($stmt = mysqli_prepare($mysqli, $sql)) {
 			mysqli_stmt_bind_param($stmt, 'issssss', $user_id, $title, $category, $description, $location, $budget, $date_needed);
 			if (mysqli_stmt_execute($stmt)) {
-				$success = 'Your service post has been published successfully!';
-				unset($_POST); // clear form
+				$success = 'Your service request has been posted successfully!';
+				// Clear form
+				$_POST = [];
 			} else {
-				$errors[] = 'Unable to publish service post.';
+				$errors[] = 'Unable to publish service request.';
 			}
 			mysqli_stmt_close($stmt);
 		} else {
@@ -66,184 +64,380 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 		}
 	}
 }
+
+$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : 'there';
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Post a Service • ServisyoHub</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Post Service Request • Servisyo Hub</title>
 <link rel="stylesheet" href="../assets/css/styles.css">
 <style>
-/* layout */
-.page-wrap { max-width: 880px; margin: 24px auto 90px; padding: 18px; position: relative; z-index:1; }
+/* Page theme: white background */
+body { 
+	background: #f8fafc !important; 
+	margin: 0; 
+	font-family: system-ui, -apple-system, sans-serif; 
+}
 
-/* glass card theme */
-.form-card.glass-card, .opt-card.glass-card {
-	background: #0078a6 !important; color: #fff;
-	border-radius: 16px; padding: 18px 20px;
+/* Topbar */
+.dash-topbar { 
+	background: #fff;
+	padding: 20px 24px;
+	border-bottom: 3px solid #0078a6;
+}
+
+.dash-brand {
+	font-size: 1.5rem;
+	font-weight: 800;
+	color: #0078a6;
+	text-align: center;
+}
+
+/* Main container */
+.post-container {
+	max-width: 800px;
+	margin: 0 auto;
+	padding: 40px 20px 120px;
+}
+
+/* Main container */
+.post-container {
+	max-width: 800px;
+	margin: 40px auto 120px;
+	padding: 0 20px;
+	position: relative;
+	z-index: 1;
+}
+
+/* Page title */
+.page-title {
+	text-align: center;
+	margin-bottom: 32px;
+}
+
+.page-title h1 {
+	font-size: 2rem;
+	font-weight: 800;
+	color: #0f172a;
+	margin: 0 0 8px;
+}
+
+.page-title p {
+	color: #64748b;
+	font-size: 1rem;
+	margin: 0;
+}
+
+/* Form card */
+.form-card {
+	background: #0078a6;
+	color: #fff;
+	border-radius: 16px;
+	padding: 32px;
 	box-shadow: 0 8px 24px rgba(0,120,166,.24);
-	border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
 }
-.form-card.glass-card h3, .opt-card.glass-card h3 { color:#fff; margin:0 0 10px; }
-.note { color: rgba(255,255,255,.85); }
 
-/* pickers */
-.grid { display:grid; gap:10px; }
-.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-@media (max-width:820px){ .grid.cols-4 { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width:640px){ .grid.cols-3, .grid.cols-4 { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width:420px){ .grid.cols-3, .grid.cols-4 { grid-template-columns: 1fr; } }
-
-.opt { display:flex; align-items:center; justify-content:center; text-align:center; gap:8px; padding:12px; border-radius:12px;
-	background: rgba(255,255,255,.12); color:#fff; border:2px solid rgba(255,255,255,.5); cursor:pointer;
-	font-weight:800; transition: transform .15s ease, box-shadow .15s ease, background .15s ease; }
-.opt:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.2); background:#0078a6; }
-.opt[aria-selected="true"] { background:#fff; color:#0078a6; border-color:#fff; }
-
-.opt-head { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 10px; }
-.opt-back { background:#fff; color:#0078a6; border:none; padding:6px 10px; border-radius:10px; font-weight:800; cursor:pointer; display:none; }
-.opt-back.show { display:inline-flex; }
-
-/* form fields */
-.form-group { margin-bottom: 14px; }
-.form-group label { display:block; margin-bottom:6px; font-weight:800; color:#fff; }
-.form-group input, .form-group textarea {
-	width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.35);
-	background: rgba(255,255,255,.1); color:#fff; font:inherit;
+.form-card h2 {
+	margin: 0 0 24px;
+	font-size: 1.5rem;
+	font-weight: 800;
+	color: #fff;
 }
-.form-group textarea { resize: vertical; min-height: 120px; }
-.form-group input::placeholder, .form-group textarea::placeholder { color: rgba(255,255,255,.7); }
-.form-group input:focus, .form-group textarea:focus { outline:2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.15); }
 
+/* Form elements */
+.form-group {
+	margin-bottom: 20px;
+}
+
+.form-group label {
+	display: block;
+	margin-bottom: 8px;
+	font-weight: 700;
+	color: #fff;
+	font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+	width: 100%;
+	padding: 12px 16px;
+	border-radius: 10px;
+	border: 2px solid rgba(255,255,255,.3);
+	background: rgba(255,255,255,.15);
+	color: #fff;
+	font: inherit;
+	font-size: 1rem;
+	transition: all 0.15s ease;
+	box-sizing: border-box;
+}
+
+.form-group select {
+	cursor: pointer;
+	appearance: none;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 16px center;
+	padding-right: 48px;
+}
+
+.form-group textarea {
+	resize: vertical;
+	min-height: 120px;
+	font-family: inherit;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+	color: rgba(255,255,255,.65);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+	outline: none;
+	border-color: rgba(255,255,255,.6);
+	background: rgba(255,255,255,.2);
+}
+
+/* Submit button */
 .btn-submit {
-	background:#fff; color:#0078a6; padding:12px 18px; border:none; border-radius:10px; font-weight:800; cursor:pointer;
-	transition: transform .15s ease, box-shadow .15s ease;
+	background: #fff;
+	color: #0078a6;
+	padding: 14px 32px;
+	border: none;
+	border-radius: 12px;
+	font-weight: 800;
+	font-size: 1.1rem;
+	cursor: pointer;
+	transition: transform 0.15s ease, box-shadow 0.15s ease;
+	width: 100%;
+	margin-top: 8px;
 }
-.btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255,255,255,.3); }
 
-/* topbar + bg */
-body.theme-profile-bg { background:#ffffff !important; background-attachment: initial !important; }
-.dash-topbar { border-bottom:3px solid #0078a6; position:relative; z-index:1; }
-.bg-logo { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:25%; max-width:350px; opacity:.15; z-index:0; pointer-events:none; }
-.bg-logo img { width:100%; height:auto; display:block; }
+.btn-submit:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 18px rgba(255,255,255,.3);
+}
+
+.btn-submit:active {
+	transform: translateY(0);
+}
+
+.btn-submit:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Alerts */
+.alert {
+	padding: 16px 20px;
+	border-radius: 12px;
+	margin-bottom: 24px;
+	font-weight: 600;
+	text-align: center;
+}
+
+.alert-success {
+	background: rgba(34, 197, 94, 0.2);
+	border: 2px solid rgba(34, 197, 94, 0.5);
+	color: #fff;
+}
+
+.alert-error {
+	background: rgba(239, 68, 68, 0.2);
+	border: 2px solid rgba(239, 68, 68, 0.5);
+	color: #fff;
+}
+
+.alert ul {
+	margin: 8px 0 0;
+	padding-left: 24px;
+	text-align: left;
+}
+
+/* Bottom navigation */
+.dash-bottom-nav {
+	position: fixed;
+	left: 50%;
+	right: auto;
+	bottom: 16px;
+	z-index: 1000;
+	width: max-content;
+	transform: translateX(-50%) scale(0.92);
+	transform-origin: bottom center;
+	transition: transform 180ms ease, box-shadow 180ms ease;
+	border: 3px solid #0078a6;
+	background: #fff;
+	border-radius: 18px;
+	box-shadow: 0 18px 46px rgba(2,6,23,.16);
+	padding: 10px 12px;
+	display: flex;
+	gap: 6px;
+}
+
+.dash-bottom-nav:hover {
+	transform: translateX(-50%) scale(1);
+	box-shadow: 0 12px 28px rgba(2,6,23,.12);
+}
+
+.dash-bottom-nav a {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 16px;
+	border-radius: 12px;
+	color: #0f172a;
+	text-decoration: none;
+	font-weight: 800;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dash-bottom-nav a.active {
+	background: #0078a6;
+	color: #fff;
+}
+
+.dash-bottom-nav a:hover:not(.active) {
+	background: #f0f9ff;
+}
+
+.dash-bottom-nav .dash-icon {
+	width: 20px;
+	height: 20px;
+}
 </style>
 </head>
-<body class="theme-profile-bg">
-	<!-- Background Logo -->
-	<div class="bg-logo"><img src="../assets/images/job_logo.png" alt=""></div>
-
-	<div class="dash-topbar center">
-		<div class="dash-brand">
-			<img src="../assets/images/bluefont.png" alt="ServisyoHub" class="dash-brand-logo" onerror="this.style.display='none'">
-		</div>
+<body>
+	<!-- Topbar -->
+	<div class="dash-topbar">
+		<div class="dash-brand">Servisyo Hub</div>
 	</div>
 
-	<div class="page-wrap">
-		<div class="opt-card glass-card" id="stepPick">
-			<div class="opt-head">
-				<h3>Post a Service</h3>
-				<button type="button" id="btnBack" class="opt-back">← Back</button>
-			</div>
-			<p class="note" id="pickNote">Choose a category to start.</p>
-
-			<!-- Step 1: Parent categories -->
-			<div class="grid cols-3" id="cats">
-				<button class="opt" data-parent="Home Service">Home Service</button>
-				<button class="opt" data-parent="Personal Care">Personal Care</button>
-				<button class="opt" data-parent="Events">Events</button>
-			</div>
-
-			<!-- Step 2: Services (hidden by default) -->
-			<div class="grid cols-4" id="services" style="display:none;"></div>
+	<!-- Main Content -->
+	<div class="post-container">
+		<div class="page-title">
+			<h1>Post a Service Request</h1>
+			<p>Tell us what service you need and we'll connect you with providers</p>
 		</div>
 
-		<!-- Posting form -->
-		<div class="form-card glass-card" style="margin-top:12px;">
-			<h3>Details</h3>
-			<div class="note">
-				<?php
-				if ($not_logged_in) echo 'You are not logged in. Sign in to post a service.';
-				elseif (!$dbAvailable) echo 'Database unavailable: ' . e($lastConnError);
-				else echo 'Tell us more about the service you need.';
-				?>
+		<?php if ($success): ?>
+			<div class="alert alert-success">
+				✓ <?php echo e($success); ?>
 			</div>
+		<?php endif; ?>
 
-			<?php if ($success): ?>
-				<div class="form-card glass-card" style="margin:12px 0 0;"><strong><?php echo e($success); ?></strong></div>
-			<?php endif; ?>
-			<?php if (!empty($errors)): ?>
-				<div class="form-card glass-card" style="margin:12px 0 0;">
-					<ul style="margin:0;padding-left:18px;"><?php foreach ($errors as $err) echo '<li>'.e($err).'</li>'; ?></ul>
-				</div>
-			<?php endif; ?>
+		<?php if (!empty($errors)): ?>
+			<div class="alert alert-error">
+				<strong>Please fix the following errors:</strong>
+				<ul>
+					<?php foreach ($errors as $err): ?>
+						<li><?php echo e($err); ?></li>
+					<?php endforeach; ?>
+				</ul>
+			</div>
+		<?php endif; ?>
 
-			<?php if ($not_logged_in || !$dbAvailable): ?>
-				<p class="note" style="margin-top:10px;">Cannot submit at this time.</p>
+		<div class="form-card">
+			<?php if ($not_logged_in): ?>
+				<h2>Login Required</h2>
+				<p style="text-align: center; margin: 0;">You need to be logged in to post a service request.</p>
+			<?php elseif (!$dbAvailable): ?>
+				<h2>Service Unavailable</h2>
+				<p style="text-align: center; margin: 0;">Database connection error. Please try again later.</p>
 			<?php else: ?>
-			<form method="post" id="postForm" style="margin-top:12px;">
-				<input type="hidden" name="parent_category" id="parent_category" value="<?php echo e($_POST['parent_category'] ?? ''); ?>">
-				<input type="hidden" name="service_type" id="service_type" value="<?php echo e($_POST['service_type'] ?? ''); ?>">
+				<h2>Service Request Details</h2>
+				<form method="POST" action="">
+					<div class="form-group">
+						<label for="category">Service Category *</label>
+						<select name="category" id="category" required>
+							<option value="">-- Select a service --</option>
+							<option value="Cleaning" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Cleaning') ? 'selected' : ''; ?>>House Cleaning</option>
+							<option value="Plumbing" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Plumbing') ? 'selected' : ''; ?>>Plumbing Services</option>
+							<option value="Electrical" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Electrical') ? 'selected' : ''; ?>>Electrical Repair</option>
+							<option value="Aircon" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Aircon') ? 'selected' : ''; ?>>Aircon Cleaning</option>
+							<option value="Painting" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Painting') ? 'selected' : ''; ?>>Painting</option>
+							<option value="Gardening" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Gardening') ? 'selected' : ''; ?>>Gardening</option>
+							<option value="Pest Control" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Pest Control') ? 'selected' : ''; ?>>Pest Control</option>
+							<option value="Appliance Repair" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Appliance Repair') ? 'selected' : ''; ?>>Appliance Repair</option>
+							<option value="Car Spa" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Car Spa') ? 'selected' : ''; ?>>Car Spa</option>
+							<option value="Beauty Services" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Beauty Services') ? 'selected' : ''; ?>>Beauty Services</option>
+							<option value="Massage" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Massage') ? 'selected' : ''; ?>>Massage</option>
+							<option value="Pet Care" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Pet Care') ? 'selected' : ''; ?>>Pet Care</option>
+						</select>
+					</div>
 
-				<div class="form-group">
-					<label for="title">Title *</label>
-					<input type="text" id="title" name="title" placeholder="e.g., Need general home cleaning" value="<?php echo e($_POST['title'] ?? ''); ?>" required>
-				</div>
+					<div class="form-group">
+						<label for="title">Title *</label>
+						<input type="text" name="title" id="title" placeholder="e.g., Need house cleaning service" value="<?php echo e($_POST['title'] ?? ''); ?>" required>
+					</div>
 
-				<div class="form-group">
-					<label for="description">Description *</label>
-					<textarea id="description" name="description" placeholder="Describe what you need..." required><?php echo e($_POST['description'] ?? ''); ?></textarea>
-				</div>
+					<div class="form-group">
+						<label for="description">Description *</label>
+						<textarea name="description" id="description" placeholder="Describe what you need in detail..." required><?php echo e($_POST['description'] ?? ''); ?></textarea>
+					</div>
 
-				<div class="form-group">
-					<label for="location">Location *</label>
-					<input type="text" id="location" name="location" placeholder="e.g., Brgy. 442 Zone 44, Manila" value="<?php echo e($_POST['location'] ?? ''); ?>" required>
-				</div>
+					<div class="form-group">
+						<label for="location">Location *</label>
+						<input type="text" name="location" id="location" placeholder="e.g., Brgy. 442 Zone 44, Manila" value="<?php echo e($_POST['location'] ?? ''); ?>" required>
+					</div>
 
-				<div class="form-group">
-					<label for="budget">Budget (Optional)</label>
-					<input type="text" id="budget" name="budget" placeholder="e.g., ₱800 - ₱1200" value="<?php echo e($_POST['budget'] ?? ''); ?>">
-				</div>
+					<div class="form-group">
+						<label for="budget">Budget (Optional)</label>
+						<input type="text" name="budget" id="budget" placeholder="e.g., ₱500 - ₱1000" value="<?php echo e($_POST['budget'] ?? ''); ?>">
+					</div>
 
-				<div class="form-group">
-					<label for="date_needed">Date Needed (Optional)</label>
-					<input type="date" id="date_needed" name="date_needed" value="<?php echo e($_POST['date_needed'] ?? ''); ?>">
-				</div>
+					<div class="form-group">
+						<label for="date_needed">Date Needed (Optional)</label>
+						<input type="date" name="date_needed" id="date_needed" value="<?php echo e($_POST['date_needed'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>">
+					</div>
 
-				<button type="submit" class="btn-submit">Publish Service Post</button>
-			</form>
+					<button type="submit" class="btn-submit">Post Service Request</button>
+				</form>
 			<?php endif; ?>
 		</div>
 	</div>
 
-<script>
-(function(){
-	const cats = document.getElementById('cats');
-	const srvs = document.getElementById('services');
-	const back = document.getElementById('btnBack');
-	const pickNote = document.getElementById('pickNote');
-	const parentInp = document.getElementById('parent_category');
-	const serviceInp = document.getElementById('service_type');
+	<!-- Floating bottom navigation -->
+	<nav class="dash-bottom-nav">
+		<a href="./home-services.php" aria-label="Home">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
+			<span>Home</span>
+		</a>
+		<a href="./clients-post.php" class="active" aria-label="Post">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
+			<span>Post</span>
+		</a>
+		<a href="./my-services.php" aria-label="My Services">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+			<span>My Services</span>
+		</a>
+		<a href="./clients-profile.php" aria-label="Profile">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+			<span>Profile</span>
+		</a>
+	</nav>
 
-	// service map aligned with home-services.php tiles
-	const MAP = {
-		'Home Service': ['Cleaning','Aircon','Upholstery','Electrical & Appliance','Plumbing & Handyman','Pest Control','Ironing'],
-		'Personal Care': ['Beauty','Massage','Spa','Medi-Spa'],
-		'Events': ['Birthday','Wedding','Corporate','Anniversary']
-	};
+	<script>
+	// Search suggestions functionality
+	(function(){
+		const searchInput = document.getElementById('searchInput');
+		const suggestionPills = document.querySelectorAll('.suggestion-pill');
 
-	function clearSelected(container){ container.querySelectorAll('.opt[aria-selected="true"]').forEach(el=>el.removeAttribute('aria-selected')); }
-
-	function renderServices(parent){
-		const list = MAP[parent] || [];
-		srvs.innerHTML = list.map(s => '<button class="opt" data-s="'+s.replace(/"/g,'&quot;')+'">'+s+'</button>').join('');
-	}
-
-	// restore from POST (after server validation)
-	const initialParent = parentInp.value;
-	const initialService = serviceInp.value;
-	if (initialParent) {
+		suggestionPills.forEach(pill => {
+			pill.addEventListener('click', function() {
+				searchInput.value = this.textContent;
+				searchInput.focus();
+			});
+		});
+	})();
+	</script>
+</body>
+</html>
 		clearSelected(cats);
 		cats.querySelectorAll('.opt').forEach(o => { if (o.dataset.parent === initialParent) o.setAttribute('aria-selected','true'); });
 		renderServices(initialParent);
@@ -287,5 +481,70 @@ body.theme-profile-bg { background:#ffffff !important; background-attachment: in
 	});
 })();
 </script>
+
+<!-- Floating bottom navigation -->
+<nav class="dash-bottom-nav">
+	<a href="./home-services.php" aria-label="Home">
+		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
+		<span>Home</span>
+	</a>
+	<a href="./clients-post.php" class="active" aria-label="Post">
+		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
+		<span>Post</span>
+	</a>
+	<a href="./my-services.php" aria-label="My Services">
+		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+		<span>My Services</span>
+	</a>
+	<a href="./clients-profile.php" aria-label="Profile">
+		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+		<span>Profile</span>
+	</a>
+</nav>
+
+<style>
+/* Bottom navigation styling */
+.dash-bottom-nav {
+	position: fixed;
+	left: 50%;
+	right: auto;
+	bottom: 16px;
+	z-index: 1000;
+	width: max-content;
+	transform: translateX(-50%) scale(0.92);
+	transform-origin: bottom center;
+	transition: transform 180ms ease, box-shadow 180ms ease;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+	border-radius: 18px;
+	box-shadow: 0 18px 46px rgba(2,6,23,.16);
+	padding: 10px 12px;
+	display: flex;
+	gap: 6px;
+}
+.dash-bottom-nav:hover {
+	transform: translateX(-50%) scale(1);
+	box-shadow: 0 12px 28px rgba(2,6,23,.12);
+}
+.dash-bottom-nav a {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	border-radius: 12px;
+	color: #0f172a;
+	text-decoration: none;
+	font-weight: 800;
+	transition: background 0.15s ease, color 0.15s ease;
+}
+.dash-bottom-nav a.active, .dash-bottom-nav a:hover {
+	background: #0ea5e9;
+	color: #fff;
+}
+.dash-bottom-nav .dash-icon {
+	width: 18px;
+	height: 18px;
+}
+</style>
 </body>
 </html>
