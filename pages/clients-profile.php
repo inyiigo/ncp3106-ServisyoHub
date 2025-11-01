@@ -216,9 +216,11 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" aria-label="Home">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Home</span>
+		<a href="./home-services.php" aria-label="Browse">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+			</svg>
+			<span>Browse</span>
 		</a>
 		<a href="./clients-post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>

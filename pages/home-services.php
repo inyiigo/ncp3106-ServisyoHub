@@ -132,32 +132,14 @@ ob_end_flush();
 		/* Center hero text */
 		.home-hero { text-align: center; }
 
-		/* Center category titles and grids */
-		.home-sections .dash-cat { text-align: center; }
-		.dash-cat-title { display: flex; justify-content: center; }
-		.dash-svc-grid { justify-content: center; }
-
-		/* Make service cards blue */
-		.dash-svc-card {
-			background: #0078a6 !important;
-			color: #fff;
-			border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
-			box-shadow: 0 8px 24px rgba(0,120,166,.24);
-			backdrop-filter: none;
-		}
-		.dash-svc-card:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 12px 32px rgba(0,120,166,.32);
-		}
-		.dash-svc-card .info .title {
-			color: #fff;
-		}
-		.dash-svc-card .info .sub {
-			color: rgba(255,255,255,.85);
-		}
-
-		/* page override: white background */
-		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
+		/* REMOVE unused category grid styles */
+		/* .home-sections .dash-cat { text-align: center; }
+		   .dash-cat-title { display: flex; justify-content: center; }
+		   .dash-svc-grid { justify-content: center; }
+		   .dash-svc-card { background: #0078a6 !important; color:#fff; border: 2px solid color-mix(in srgb, #0078a6 80%, #0000); box-shadow: 0 8px 24px rgba(0,120,166,.24); backdrop-filter: none; }
+		   .dash-svc-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,120,166,.32); }
+		   .dash-svc-card .info .title { color:#fff; }
+		   .dash-svc-card .info .sub { color: rgba(255,255,255,.85); } */
 
 		/* Blue bottom border on topbar */
 		.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
@@ -179,112 +161,99 @@ ob_end_flush();
 			height: auto;
 			display: block;
 		}
+		.svc-cats {
+			max-width: 1100px; margin: 10px auto 8px; padding: 0 16px;
+			display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+		}
+		.svc-cats::-webkit-scrollbar { display: none; }
+		.svc-cat {
+			appearance: none; border: 2px solid #e2e8f0; background: #fff; color: #0f172a;
+			border-radius: 999px; padding: 8px 16px; font-weight: 800; font-size: .9rem; white-space: nowrap;
+			cursor: pointer; transition: all .15s ease;
+		}
+		.svc-cat:hover { background: #f1f5f9; }
+		.svc-cat.active { background:#0078a6; color:#fff; border-color:#0078a6; }
 
-		/* Remove Post button from bottom nav, add floating circular + button */
-		.floating-post-btn {
-			position: fixed;
-			right: 20px;
-			bottom: 24px;
-			width: 56px;
-			height: 56px;
-			border-radius: 50%;
-			background: #fff;
-			color: #0078a6;
-			border: 3px solid #0078a6;
-			box-shadow: 0 6px 20px rgba(0,120,166,.3);
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 2rem;
-			font-weight: 300;
-			line-height: 1;
-			cursor: pointer;
-			transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease;
-			z-index: 998;
-			text-decoration: none;
+		/* Results/notify toolbar */
+		.results-bar {
+			max-width: 1100px; margin: 0 auto 10px; padding: 0 16px;
+			display:flex; align-items:center; justify-content: space-between; gap:10px;
 		}
-		.floating-post-btn:hover {
-			transform: translateY(-4px) scale(1.05);
-			box-shadow: 0 10px 28px rgba(0,120,166,.4);
-			background: #f0f9ff;
+		.results-left { display:flex; align-items:center; gap:8px; color:#64748b; font-weight:700; }
+		.results-left .ico { width:18px; height:18px; color:#64748b; }
+		.results-right { display:flex; align-items:center; gap:8px; }
+		.notify-btn {
+			display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:10px;
+			border:2px solid #e2e8f0; background:#fff; color:#0f172a; font-weight:800; cursor:pointer;
+			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 		}
-		.floating-post-btn:active {
-			transform: translateY(-2px) scale(1.02);
+		.notify-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
+		.toggle-btn {
+			display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px;
+			border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer; transition: background .15s ease;
 		}
-		/* Tooltip above the + button: plain blue text, no box */
-		.floating-post-btn::after {
-			content: 'Post';
-			position: absolute;
-			bottom: calc(100% + 8px);
-			left: 50%;
-			transform: translateX(-50%) translateY(4px);
-			background: transparent;
-			color: #0078a6;
-			padding: 0;
-			border-radius: 0;
-			box-shadow: none;
-			font-weight: 800;
-			font-size: 0.75rem;
-			white-space: nowrap;
-			opacity: 0;
-			pointer-events: none;
-			transition: opacity .16s ease, transform .16s ease;
-			z-index: 1001;
-		}
-		.floating-post-btn::before {
-			content: none;
-			position: absolute;
-			bottom: calc(100% + 2px);
-			left: 50%;
-			transform: translateX(-50%);
-			border-width: 6px;
-			border-style: solid;
-			border-color: #0f172a transparent transparent transparent;
-			opacity: 0;
-			transition: opacity .16s ease;
-			z-index: 1001;
-		}
-		.floating-post-btn:hover::after,
-		.floating-post-btn:focus-visible::after {
-			opacity: 1;
-			transform: translateX(-50%) translateY(0);
-		}
-		.floating-post-btn:hover::before,
-		.floating-post-btn:focus-visible::before {
-			opacity: 1;
-		}
+		.toggle-btn:hover { background:#f8fafc; }
+		.toggle-btn svg { width:18px; height:18px; }
 
-		@media (max-width:520px) {
-			.floating-post-btn {
-				right: 16px;
-				bottom: 20px;
-			}
+		/* White list-style cards */
+		.svc-list {
+			max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px;
 		}
+		.svc-card {
+			display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start;
+			background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px;
+			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+		}
+		.svc-card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color:#0078a6; }
+		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; }
+		.svc-meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:#64748b; font-size:.9rem; }
+		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+		.svc-meta .item svg { width:14px; height:14px; }
+		.svc-posted { margin-top:8px; display:flex; align-items:center; gap:8px; color:#94a3b8; font-size:.85rem; }
+		.svc-av {
+			width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#0f172a;
+			display:grid; place-items:center; font-weight:800; font-size:.75rem;
+		}
+		.svc-price { display:grid; align-content:center; gap:4px; text-align:right; }
+		.svc-price .amt { font-weight:800; color:#0078a6; }
+		.svc-price .note { color:#94a3b8; font-size:.8rem; }
 
-		/* Ensure main content is above background */
-		.dash-shell {
-			position: relative;
-			z-index: 1;
+		/* Service search bar under hero */
+		.svc-search { max-width: 1100px; margin: 8px auto 16px; padding: 0 16px; }
+		.svc-search-box {
+			display: flex; align-items: center; gap: 12px;
+			background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+			padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06);
+			transition: box-shadow .15s ease, border-color .15s ease;
+		}
+		.svc-search-box:focus-within { border-color: #0078a6; box-shadow: 0 8px 20px rgba(0,120,166,.12); }
+		.svc-search-icon { width: 20px; height: 20px; color: #64748b; flex-shrink: 0; }
+		.svc-search-input {
+			appearance: none; border: 0; outline: 0; background: transparent;
+			font: inherit; color: #0f172a; flex: 1; font-size: .95rem;
+		}
+		.svc-search-input::placeholder { color: #94a3b8; }
+
+		/* REMOVE: over-broad white background that hides bg-logo */
+		/* html, body, .dash-shell, .dash-content {
+			background: #ffffff !important;
+			background-attachment: initial !important;
+		} */
+
+		/* Keep page white without painting inner containers */
+		body.theme-profile-bg {
+			background: #ffffff !important;
+			background-attachment: initial !important;
 		}
 
-		/* Recent Posts feed */
-		.jobs-feed { margin-top: 18px; }
-		.jobs-feed .feed-title { display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:10px; font-weight:800; }
-		.jobs-feed .feed-grid { display:grid; gap:12px; grid-template-columns: 1fr 1fr; }
-		@media (max-width: 920px){ .jobs-feed .feed-grid { grid-template-columns: 1fr; } }
-		.feed-card {
-			background: #0078a6 !important; color:#fff;
-			border-radius: 14px; padding: 14px 16px;
-			box-shadow: 0 8px 20px rgba(0,120,166,.24);
-			border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+		/* Ensure content sits above bg-logo and overlay is off */
+		.dash-shell { position: relative; z-index: 1; }
+		.dash-overlay { display: none !important; }
+
+		@media (max-width:640px){
+			.svc-card { grid-template-columns: 1fr; }
+			.svc-price { text-align:left; }
 		}
-		.feed-card .fc-top { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:6px; }
-		.feed-card .fc-title { font-weight:800; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-		.feed-card .fc-time { color: rgba(255,255,255,.85); font-size:.85rem; white-space:nowrap; }
-		.feed-card .fc-cat { color:#fff; font-size:.9rem; opacity:.95; margin-bottom:6px; }
-		.feed-card .fc-meta { display:flex; flex-wrap:wrap; gap:10px 14px; color: rgba(255,255,255,.9); font-size:.9rem; }
-		.feed-card .fc-meta .item { display:inline-flex; align-items:center; gap:6px; }
-		.feed-empty, .feed-note { text-align:center; color: rgba(15,23,42,.7); }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -305,6 +274,85 @@ ob_end_flush();
 			<!-- Hero banner -->
 			<section class="home-hero">
 				<p class="hero-tagline">Where skilled hands meet local demand.</p>
+			</section>
+
+			<!-- NEW: search bar below hero -->
+			<section class="svc-search" aria-label="Search services">
+				<div class="svc-search-box">
+					<svg class="svc-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+					</svg>
+					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search services (e.g., cleaning, plumbing)" aria-label="Search services">
+				</div>
+			</section>
+
+			<!-- NEW: Category tabs + results bar + white list -->
+			<nav class="svc-cats" aria-label="Categories">
+				<button type="button" class="svc-cat active">All</button>
+				<button type="button" class="svc-cat">Errands</button>
+				<button type="button" class="svc-cat">Part-time</button>
+				<button type="button" class="svc-cat">Explore</button>
+				<button type="button" class="svc-cat">Household</button>
+				<button type="button" class="svc-cat">Creative</button>
+				<button type="button" class="svc-cat">Tech</button>
+			</nav>
+
+			<div class="results-bar">
+				<div class="results-left">
+					<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+					<span><?php echo (int)count($jobs); ?> results</span>
+				</div>
+				<div class="results-right">
+					<button type="button" class="notify-btn">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+						Notify me
+					</button>
+					<button type="button" class="toggle-btn" aria-label="Toggle view">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+					</button>
+				</div>
+			</div>
+
+			<section class="svc-list" aria-label="Nearby posts">
+				<?php if (!$dbAvailable): ?>
+					<div class="form-card glass-card" style="background:#fff;color:#0f172a;border-color:#e2e8f0">
+						No posts available right now. <?php echo e($lastConnError); ?>
+					</div>
+				<?php elseif (empty($jobs)): ?>
+					<div class="form-card glass-card" style="background:#fff;color:#0f172a;border-color:#e2e8f0">
+						No posts yet. Be the first to post using the + button.
+					</div>
+				<?php else: ?>
+					<?php foreach ($jobs as $j): ?>
+						<article class="svc-card">
+							<div>
+								<h3 class="svc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></h3>
+								<div class="svc-meta">
+									<?php if (!empty($j['location'])): ?>
+										<span class="item" title="<?php echo e($j['location']); ?>">
+											<svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/><circle cx="12" cy="12" r="2"/></svg>
+											<?php echo e($j['location']); ?>
+										</span>
+									<?php endif; ?>
+									<?php if (!empty($j['date_needed'])): ?>
+										<span class="item">
+											<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+											On <?php echo e($j['date_needed']); ?>
+										</span>
+									<?php endif; ?>
+								</div>
+								<div class="svc-posted">
+									<span class="svc-av"><?php echo htmlspecialchars($avatar); ?></span>
+									<span>Posted <?php echo e(time_ago($j['posted_at'])); ?></span>
+								</div>
+							</div>
+							<div class="svc-price">
+								<span class="amt"><?php echo !empty($j['budget']) ? '₱'.e($j['budget']) : 'Negotiable'; ?></span>
+								<?php if (empty($j['budget'])): ?><span class="note">Negotiable</span><?php endif; ?>
+							</div>
+						</article>
+					<?php endforeach; ?>
+				<?php endif; ?>
 			</section>
 
 			<!-- Recent Posts feed (before services) -->
@@ -343,78 +391,15 @@ ob_end_flush();
 				<?php endif; ?>
 			</section>
 
-			<!-- Category sections -->
-			<div class="home-sections" id="available-services">
-				<!-- Home Service -->
-				<div class="dash-cat">
-					<div class="dash-cat-title"><span>Home Service</span></div>
-					<div class="dash-svc-grid">
-						<a class="dash-svc-card glass-card" href="./services/cleaning.php">
-							<div class="info"><div class="title">Cleaning</div><div class="sub">Home and office cleaning</div></div>
-							<div class="pic svc-cleaning"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/aircon.php">
-							<div class="info"><div class="title">Aircon</div><div class="sub">Cleaning & maintenance</div></div>
-							<div class="pic svc-aircon"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/upholstery.php">
-							<div class="info"><div class="title">Upholstery</div><div class="sub">Deep clean sofas & more</div></div>
-							<div class="pic svc-upholstery"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/electrical-appliance.php">
-							<div class="info"><div class="title">Electrical & Appliance</div><div class="sub">Wiring & appliance fix</div></div>
-							<div class="pic svc-electrical-appliance"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/plumbing-handyman.php">
-							<div class="info"><div class="title">Plumbing & Handyman</div><div class="sub">Repairs & installations</div></div>
-							<div class="pic svc-plumbing-handyman"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/pest-control.php">
-							<div class="info"><div class="title">Pest Control</div><div class="sub">Termites, roaches, more</div></div>
-							<div class="pic svc-pest-control"></div>
-						</a>
-						<a class="dash-svc-card glass-card" href="./services/ironing.php">
-							<div class="info"><div class="title">Ironing</div><div class="sub">Clothes ironing service</div></div>
-							<div class="pic svc-ironing"></div>
-						</a>
-					</div>
-				</div>
-
-				<!-- Personal Care -->
-				<div class="dash-cat">
-					<div class="dash-cat-title"><span>Personal Care</span></div>
-					<div class="dash-svc-grid">
-						<a class="dash-svc-card glass-card" href="./services/beauty.php"><div class="info"><div class="title">Beauty</div><div class="sub">Skin & nails</div></div><div class="pic svc-beauty"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/massage.php"><div class="info"><div class="title">Massage</div><div class="sub">Relaxation & therapy</div></div><div class="pic svc-massage"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/spa.php"><div class="info"><div class="title">Spa</div><div class="sub">Pampering & wellness</div></div><div class="pic svc-spa"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/medispa.php"><div class="info"><div class="title">Medi-Spa</div><div class="sub">Advanced skin treatments</div></div><div class="pic svc-medispa"></div></a>
-					</div>
-				</div>
-
-				<!-- Events -->
-				<div class="dash-cat">
-					<div class="dash-cat-title"><span>Events</span></div>
-					<div class="dash-svc-grid">
-						<a class="dash-svc-card glass-card" href="./services/birthday.php"><div class="info"><div class="title">Birthday</div><div class="sub">Party planning & more</div></div><div class="pic svc-birthday"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/wedding.php"><div class="info"><div class="title">Wedding</div><div class="sub">Ceremony & reception</div></div><div class="pic svc-wedding"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/corporate.php"><div class="info"><div class="title">Corporate</div><div class="sub">Events & functions</div></div><div class="pic svc-corporate"></div></a>
-						<a class="dash-svc-card glass-card" href="./services/anniversary.php"><div class="info"><div class="title">Anniversary</div><div class="sub">Celebration planning</div></div><div class="pic svc-anniversary"></div></a>
-					</div>
-				</div>
-			</div>
 		</main>
 
 		<aside class="dash-aside">
-			<nav class="dash-nav">
-				<a href="./clients-post.php" aria-label="Post">
+			<nav class="dash-nav" aria-label="Main navigation">
+				<a href="./home-services.php" class="active" aria-label="Browse">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M12 5v14m-7-7h14"/>
+						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 					</svg>
-					<span>Post</span>
-				</a>
-				<a href="./home-services.php" class="active" aria-label="Home">
-					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-					<span>Home</span>
+					<span>Browse</span>
 				</a>
 				<a href="./my-services.php" aria-label="My Services">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
@@ -428,14 +413,13 @@ ob_end_flush();
 		</aside>
 	</div>
 
-	<!-- Floating circular + button -->
-	<a href="./clients-post.php" class="floating-post-btn" aria-label="Post" title="Post">+</a>
-
 	<!-- Floating bottom navigation (Post button removed) -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" class="active" aria-label="Home">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Home</span>
+		<a href="./home-services.php" class="active" aria-label="Browse">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+			</svg>
+			<span>Browse</span>
 		</a>
 		<a href="./clients-post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
