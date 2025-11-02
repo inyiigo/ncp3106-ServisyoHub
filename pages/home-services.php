@@ -271,11 +271,6 @@ ob_end_flush();
 	<div class="dash-overlay"></div>
 	<div class="dash-shell">
 		<main class="dash-content">
-			<!-- Hero banner -->
-			<section class="home-hero">
-				<p class="hero-tagline">Where skilled hands meet local demand.</p>
-			</section>
-
 			<!-- NEW: search bar below hero -->
 			<section class="svc-search" aria-label="Search services">
 				<div class="svc-search-box">
