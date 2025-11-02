@@ -142,14 +142,14 @@
       <div class="choice-buttons">
         <div class="choice-item">
           <a href="./login.php" class="choice-btn">
-            <span class="btn-title">A Service</span>
-            <span class="btn-desc">Find a client and book services</span>
+            <span class="btn-title">Service and Job</span>
+            <span class="btn-desc">Book services or apply for a job</span>
           </a>
         </div>
         <div class="choice-item">
-          <a href="./job-login.php" class="choice-btn alt">
-            <span class="btn-title">A Job</span>
-            <span class="btn-desc">Find a job to apply</span>
+          <a href="./admin.php" class="choice-btn alt">
+            <span class="btn-title">Admin</span>
+            <span class="btn-desc">Open the Admin Dashboard</span>
           </a>
         </div>
       </div>
