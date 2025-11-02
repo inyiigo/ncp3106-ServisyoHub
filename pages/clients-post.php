@@ -1053,6 +1053,41 @@ body {
 	border: 2px solid #0f172a;
 }
 
+/* Booking fee info bottom sheet */
+.info-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 3200;
+	display: none;
+	align-items: flex-end;
+	justify-content: center;
+}
+.info-overlay.active { display: flex; }
+.info-modal {
+	background: #fff;
+	border-radius: 24px 24px 0 0;
+	width: 100%;
+	max-width: 500px;
+	padding: 24px;
+	animation: slideUp 0.25s ease;
+}
+.info-modal h3 {
+	margin: 0 0 16px 0;
+	font-size: 1.25rem;
+	font-weight: 800;
+	color: #0f172a;
+}
+.info-row { display: flex; justify-content: space-between; align-items: baseline; margin: 12px 0; }
+.info-subtitle { color: #0f172a; font-weight: 700; }
+.info-note { color: #64748b; font-size: 0.95rem; line-height: 1.6; margin: 12px 0 16px 0; }
+.info-close-btn { width: 100%; background: #0f172a; color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.info-close-btn:hover { background: #1e293b; }
+.info-close-x { background: none; border: none; padding: 6px; cursor: pointer; color: #64748b; }
+
 .warning-message {
 	display: flex;
 	align-items: flex-start;
@@ -1784,7 +1819,7 @@ body {
 				<!-- Step 4: Budget -->
 				<div class="modal-step" data-step="4">
 					<p class="step-title" id="step4Title">Step 1 of 4</p>
-					<h2 class="step-heading">Generate guest budget</h2>
+					<h2 class="step-heading" id="step4Heading">Generate guest budget</h2>
 					
 					<!-- Sub-step 1: Payment Type & Estimated Hours -->
 					<div class="sub-step" id="subStep4_1">
@@ -1837,28 +1872,204 @@ body {
 								<span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 500;">Hour(s)</span>
 							</div>
 							
-							<div style="background: #fef3c7; padding: 12px 16px; border-radius: 12px; margin-bottom: 100px;">
+							<div style="background: #fef3c7; padding: 12px 16px; border-radius: 12px; margin-bottom: 16px;">
 								<p style="margin: 0; color: #92400e; font-size: 0.9rem; line-height: 1.5;">
 									<span style="font-size: 1rem;">✨</span> Our estimate, based on the title and description, suggests this quest will take approximately <strong>3 hours</strong>.
 								</p>
 							</div>
-							
-							<button type="button" class="modal-button next-button" id="generateBudgetBtn" style="background: #f87171; position: fixed; bottom: 80px; left: 20px; right: 20px; width: auto; max-width: calc(500px - 40px); margin: 0 auto;">Generate guest budget</button>
+                            
+							<div class="button-group">
+								<button type="button" class="modal-button next-button" id="generateBudgetBtn" style="background: #f87171;">Generate guest budget</button>
+							</div>
 						</div>
 					</div>
 					
-					<!-- Sub-step 2: Budget Input (will be added later) -->
+					<!-- Sub-step 2: Set a budget -->
 					<div class="sub-step" id="subStep4_2" style="display: none;">
-						<input 
-							type="text" 
-							name="budget" 
-							class="form-input" 
-							placeholder="₱ 0.00"
-							id="budgetInput"
-						/>
+
+						<label class="form-label">Hero’s fee</label>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">This is the amount you’ll pay for the Hero’s time and services.</p>
+
+						<div style="position: relative; margin-bottom: 16px;">
+							<span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 700;">PHP</span>
+							<input 
+								type="number" 
+								name="budget" 
+								class="form-input" 
+								placeholder="1134"
+								id="budgetHeroFeeInput"
+								min="80"
+								step="1"
+								style="padding-left: 64px;"
+							/>
+						</div>
+
+						<!-- Pricing insights -->
+						<div id="pricingInsights" style="background: #f8fafc; border: 2px solid #e5e7eb; border-radius: 16px; padding: 16px; margin: 16px 0;">
+							<p style="margin: 0 0 8px 0; color: #0f172a; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+								<span>📈</span>
+								<span>Pricing insights:</span>
+							</p>
+							<p id="insightMessage" style="margin: 6px 0 12px 0; color: #0f172a; font-weight: 600;">Hero fee is within the recommended range</p>
+							<div style="height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-bottom: 8px;">
+								<div id="insightBar" style="height: 100%; width: 60%; background: #10b981;"></div>
+							</div>
+							<div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: #64748b;">
+								<span>Minimum: PHP<span id="minFeeText">80</span></span>
+								<span>Recommended: PHP<span id="recommendedFeeText">0</span></span>
+							</div>
+							<button type="button" id="whyPriceToggle" class="generate-button" style="margin-top: 12px;">
+								<span>Why price within this range?</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+							</button>
+							<div id="whyPriceContent" style="display: none; margin-top: 8px; color: #64748b; font-size: 0.92rem;">
+								<ul style="margin: 0; padding-left: 18px; line-height: 1.6;">
+									<li>Based on your estimated hours and typical rates on Servisyo Hub.</li>
+									<li>Urgency and in-person jobs can justify slightly higher fees.</li>
+								</ul>
+							</div>
+						</div>
+
+						<label class="checkbox-label" style="margin-top: 12px;">
+							<input type="checkbox" class="checkbox-input" id="negotiableCheckbox" />
+							<span class="checkbox-text">Let Heroes know the fee is negotiable</span>
+						</label>
+						<p style="color: #78716c; font-size: 0.9rem; margin: 8px 0 20px 0;">Even without this, Heroes can still offer other amounts, but being flexible upfront may get you more responses.</p>
+
+						<!-- Totals -->
+						<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
+							<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
+							<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText">0.00</span></span>
+						</div>
+						<p id="approxHourlyText" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
+
+						<button type="button" id="priceBreakdownToggle" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
+							<span>Price breakdown</span>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+						</button>
+						<div id="priceBreakdownContent" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
+							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+								<span>Hero's fee</span>
+								<span>PHP<span id="breakdownHeroFee">0.00</span></span>
+							</div>
+							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
+									<button type="button" id="bookingFeeInfoBtn" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
+										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
+									</button>
+								</span>
+								<span>PHP<span id="breakdownBookingFee">0.00</span></span>
+							</div>
+						</div>
+
+							<!-- Persistent spacer to keep toggle visible above fixed buttons -->
+							<div aria-hidden="true" style="height: 100px;"></div>
+
 						<input type="hidden" name="category" value="General" id="categoryInput" />
-						<button type="button" class="modal-button back-button" id="backStep4Sub2">Back</button>
-						<button type="submit" class="modal-button next-button">Post Task</button>
+
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backStep4Sub2">Back</button>
+							<button type="button" class="modal-button next-button" id="submitBudgetBtn">Next</button>
+						</div>
+					</div>
+
+					<!-- Sub-step 3: Additional cost -->
+					<div class="sub-step" id="subStep4_3" style="display: none;">
+
+						<label class="form-label">Cost of purchases (optional)</label>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Will the Hero need to buy anything to complete the quest, like materials or items? Add an estimated cost below.</p>
+
+						<div style="position: relative; margin-bottom: 16px; max-width: 360px;">
+							<span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 700;">PHP</span>
+							<input 
+								type="number" 
+								name="additional_cost" 
+								class="form-input" 
+								placeholder="0"
+								id="additionalCostInput"
+								min="0"
+								step="1"
+								style="padding-left: 64px;"
+							/>
+						</div>
+
+						<!-- Totals (with additional cost) -->
+						<div style="margin: 24px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid #e5e7eb; padding-top: 16px;">
+							<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
+							<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText_ac">0.00</span></span>
+						</div>
+						<p id="approxHourlyText_ac" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
+
+						<button type="button" id="priceBreakdownToggle_ac" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent_ac" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
+							<span>Price breakdown</span>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+						</button>
+						<div id="priceBreakdownContent_ac" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
+							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+								<span>Hero's fee</span>
+								<span>PHP<span id="breakdownHeroFee_ac">0.00</span></span>
+							</div>
+							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
+									<button type="button" id="bookingFeeInfoBtn_ac" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
+										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
+									</button>
+								</span>
+								<span>PHP<span id="breakdownBookingFee_ac">0.00</span></span>
+							</div>
+							<div style="display: flex; justify-content: space-between;">
+								<span>Cost of purchases</span>
+								<span>PHP<span id="breakdownAdditionalCost_ac">0.00</span></span>
+							</div>
+						</div>
+
+						<!-- Persistent spacer to keep toggle visible above fixed buttons -->
+						<div aria-hidden="true" style="height: 100px;"></div>
+
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backStep4Sub3">Back</button>
+							<button type="button" class="modal-button next-button" id="nextStep4_3">Next</button>
+						</div>
+					</div>
+
+					<!-- Sub-step 4: Review budget -->
+					<div class="sub-step" id="subStep4_4" style="display: none;">
+						<p class="step-subtitle">Please review your budget details before posting.</p>
+
+						<!-- Totals (review) -->
+						<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
+							<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
+							<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText_rv">0.00</span></span>
+						</div>
+						<p id="approxHourlyText_rv" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
+
+						<button type="button" id="priceBreakdownToggle_rv" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent_rv" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
+							<span>Price breakdown</span>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+						</button>
+						<div id="priceBreakdownContent_rv" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
+							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+								<span>Hero's fee</span>
+								<span>PHP<span id="breakdownHeroFee_rv">0.00</span></span>
+							</div>
+							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
+									<button type="button" id="bookingFeeInfoBtn_rv" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
+										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
+									</button>
+								</span>
+								<span>PHP<span id="breakdownBookingFee_rv">0.00</span></span>
+							</div>
+							<div style="display: flex; justify-content: space-between;">
+								<span>Cost of purchases</span>
+								<span>PHP<span id="breakdownAdditionalCost_rv">0.00</span></span>
+							</div>
+						</div>
+
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backStep4Sub4">Back</button>
+							<button type="submit" class="modal-button next-button" id="postRequestBtn">Post request</button>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1919,6 +2130,38 @@ body {
 			</div>
 			
 			<div class="calendar-days" id="calendarDays"></div>
+		</div>
+	</div>
+
+	<!-- Booking Fee Info Bottom Sheet -->
+	<div class="info-overlay" id="bookingFeeInfoOverlay">
+		<div class="info-modal">
+			<div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+				<h3>Estimated booking fee</h3>
+				<button type="button" class="info-close-x" id="bookingFeeInfoCloseX" aria-label="Close">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
+			</div>
+
+			<div class="info-row">
+				<span class="info-subtitle">Processing fee <span style="font-weight: 400; color:#64748b;">(Non-refundable)</span></span>
+				<span>PHP<span id="infoProcessingFee">0.00</span></span>
+			</div>
+			<p class="info-note">This fee goes towards our payment provider, <a href="https://stripe.com/" target="_blank" rel="noopener" style="color:#0f172a; font-weight:700; text-decoration: underline;">Stripe</a>, to hold payments securely and process payments efficiently.</p>
+			<p class="info-note" style="margin-top:-6px;"><a href="#" style="color:#ef4444; font-weight:700; text-decoration: none;">Learn more about how payments are secured →</a></p>
+
+			<div class="info-row" style="margin-top: 18px;">
+				<span class="info-subtitle">Connection fee</span>
+				<span>PHP<span id="infoConnectionFee">0.00</span></span>
+			</div>
+			<p class="info-note">This fee covers the costs of keeping the platform running, support, and bringing more Heroes onto the platform.</p>
+
+			<p class="info-note" style="color:#78716c; font-size: 0.85rem;">Note: If the quest is cancelled after the Hero confirms availability, your booking fees will not be refunded.</p>
+
+			<button type="button" class="info-close-btn" id="bookingFeeInfoGotIt">Got it</button>
 		</div>
 	</div>
 
@@ -2054,7 +2297,38 @@ body {
 		}
 		
 		// Header back button
+		// Enhanced: when in Step 4, go back within sub-steps first
+		let currentSubStep4 = 1; // 1: generate, 2: budget, 3: additional cost
 		modalBack.addEventListener('click', function() {
+			if (currentStep === 4) {
+				if (currentSubStep4 === 4) {
+					// Back to Step 4 - Sub-step 3
+					document.getElementById('subStep4_4').style.display = 'none';
+					document.getElementById('subStep4_3').style.display = 'block';
+					document.getElementById('step4Title').textContent = 'Step 3 of 4';
+					document.getElementById('step4Heading').textContent = 'Additional cost';
+					currentSubStep4 = 3;
+					return;
+				}
+				if (currentSubStep4 === 3) {
+					// Back to Step 4 - Sub-step 2
+					document.getElementById('subStep4_3').style.display = 'none';
+					document.getElementById('subStep4_2').style.display = 'block';
+					document.getElementById('step4Title').textContent = 'Step 2 of 4';
+					document.getElementById('step4Heading').textContent = 'Set a budget';
+					currentSubStep4 = 2;
+					return;
+				}
+				if (currentSubStep4 === 2) {
+					// Back to Step 4 - Sub-step 1
+					document.getElementById('subStep4_2').style.display = 'none';
+					document.getElementById('subStep4_1').style.display = 'block';
+					document.getElementById('step4Title').textContent = 'Step 1 of 4';
+					document.getElementById('step4Heading').textContent = 'Generate guest budget';
+					currentSubStep4 = 1;
+					return;
+				}
+			}
 			if (currentStep > 1) {
 				goToStep(currentStep - 1);
 			}
@@ -2527,19 +2801,257 @@ body {
 			paymentTypeInput.value = 'per-hour';
 		});
 		
-		// Generate budget button
+		// Generate budget button -> compute and go to Budget sub-step 2
 		document.getElementById('generateBudgetBtn').addEventListener('click', function() {
-			const estimatedHours = document.getElementById('estimatedHoursInput').value;
-			
-			if (!estimatedHours || estimatedHours <= 0) {
+			const hoursVal = parseFloat(document.getElementById('estimatedHoursInput').value || '0');
+			const paymentType = (document.getElementById('paymentTypeInput')?.value || 'one-time');
+			if (!hoursVal || hoursVal <= 0) {
 				alert('Please enter estimated hours.');
 				return;
 			}
-			
-			// Move to sub-step 2 of budget (will be implemented)
-			// For now, just show success message
-			alert('Budget generation functionality will be added in the next step!');
+
+			// Heuristic pricing: base hourly; adjustables could be added later
+			const BASE_HOURLY = 378; // PHP per hour baseline
+			const MIN_FEE = 80;      // Minimum allowed fee
+			let recommended = Math.max(MIN_FEE, Math.round(hoursVal * BASE_HOURLY));
+			if (paymentType === 'one-time') {
+				// Keep same recommendation for now; future: category/complexity modifiers
+				recommended = Math.max(MIN_FEE, recommended);
+			}
+
+			// Prefill Sub-step 2 values
+			const budgetInput = document.getElementById('budgetHeroFeeInput');
+			budgetInput.value = recommended;
+			document.getElementById('recommendedFeeText').textContent = recommended.toString();
+			document.getElementById('minFeeText').textContent = MIN_FEE.toString();
+
+			// Compute totals and breakdown
+			const BOOKING_FEE_RATE = 0.1107; // ~11.07%
+			const bookingFee = Math.round((recommended * BOOKING_FEE_RATE) * 100) / 100;
+			// Split booking fee for info sheet
+			const processingFee = Math.round((bookingFee * 0.65) * 100) / 100;
+			const connectionFee = Math.round((bookingFee - processingFee) * 100) / 100;
+			const totalPay = Math.round((recommended + bookingFee) * 100) / 100;
+			document.getElementById('breakdownHeroFee').textContent = recommended.toFixed(2);
+			document.getElementById('breakdownBookingFee').textContent = bookingFee.toFixed(2);
+			document.getElementById('totalPayText').textContent = totalPay.toFixed(2);
+			document.getElementById('approxHourlyText').textContent = `(approx. PHP${(recommended / hoursVal).toFixed(2)}/hr)`;
+			// Update info modal values
+			document.getElementById('infoProcessingFee').textContent = processingFee.toFixed(2);
+			document.getElementById('infoConnectionFee').textContent = connectionFee.toFixed(2);
+
+			// Simple insight bar position within 0-2x recommended
+			const insightBar = document.getElementById('insightBar');
+			insightBar.style.width = '60%';
+			document.getElementById('insightMessage').textContent = 'Hero fee is within the recommended range';
+
+			// Show sub-step 2, update titles
+			document.getElementById('subStep4_1').style.display = 'none';
+			document.getElementById('subStep4_2').style.display = 'block';
+			document.getElementById('step4Title').textContent = 'Step 2 of 4';
+			document.getElementById('step4Heading').textContent = 'Set a budget';
+			currentSubStep4 = 2;
+			// Expand price breakdown by default so it's visible immediately
+			const defaultBreakdown = document.getElementById('priceBreakdownContent');
+			if (defaultBreakdown) defaultBreakdown.style.display = 'block';
+			try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
 		});
+
+		// Budget Sub-step 2 interactions
+		(function(){
+			const budgetInput = document.getElementById('budgetHeroFeeInput');
+			const recommendedText = document.getElementById('recommendedFeeText');
+			const minFeeText = document.getElementById('minFeeText');
+			const breakdownHero = document.getElementById('breakdownHeroFee');
+			const breakdownBooking = document.getElementById('breakdownBookingFee');
+			const totalPayText = document.getElementById('totalPayText');
+			const approxHourlyText = document.getElementById('approxHourlyText');
+			const whyToggle = document.getElementById('whyPriceToggle');
+			const whyContent = document.getElementById('whyPriceContent');
+			const breakdownToggle = document.getElementById('priceBreakdownToggle');
+			const breakdownContent = document.getElementById('priceBreakdownContent');
+			const insightMessage = document.getElementById('insightMessage');
+			const insightBar = document.getElementById('insightBar');
+			const hoursEl = document.getElementById('estimatedHoursInput');
+			const infoOverlay = document.getElementById('bookingFeeInfoOverlay');
+			const infoOpenBtn = document.getElementById('bookingFeeInfoBtn');
+			const infoCloseX = document.getElementById('bookingFeeInfoCloseX');
+			const infoGotIt = document.getElementById('bookingFeeInfoGotIt');
+
+			const BOOKING_FEE_RATE = 0.1107;
+			const MIN_FEE = 80;
+
+			function recalc() {
+				const heroFee = Math.max(MIN_FEE, parseFloat(budgetInput.value || '0'));
+				const hours = Math.max(1, parseFloat(hoursEl.value || '1'));
+				const recommended = parseFloat(recommendedText.textContent || '0') || heroFee;
+				const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
+				const processing = Math.round((booking * 0.65) * 100) / 100;
+				const connection = Math.round((booking - processing) * 100) / 100;
+				const total = Math.round((heroFee + booking) * 100) / 100;
+				breakdownHero.textContent = heroFee.toFixed(2);
+				breakdownBooking.textContent = booking.toFixed(2);
+				totalPayText.textContent = total.toFixed(2);
+				approxHourlyText.textContent = `(approx. PHP${(heroFee / hours).toFixed(2)}/hr)`;
+				// Update info modal numbers too
+				document.getElementById('infoProcessingFee').textContent = processing.toFixed(2);
+				document.getElementById('infoConnectionFee').textContent = connection.toFixed(2);
+				// insights
+				if (heroFee < MIN_FEE) {
+					insightMessage.textContent = 'Below minimum fee';
+					insightBar.style.width = '10%';
+					insightBar.style.background = '#f59e0b';
+				} else if (heroFee < recommended * 0.8) {
+					insightMessage.textContent = 'Below the recommended range';
+					insightBar.style.width = '40%';
+					insightBar.style.background = '#f59e0b';
+				} else if (heroFee <= recommended * 1.2) {
+					insightMessage.textContent = 'Hero fee is within the recommended range';
+					insightBar.style.width = '60%';
+					insightBar.style.background = '#10b981';
+				} else {
+					insightMessage.textContent = 'Above the recommended range';
+					insightBar.style.width = '85%';
+					insightBar.style.background = '#3b82f6';
+				}
+			}
+
+			budgetInput?.addEventListener('input', recalc);
+			whyToggle?.addEventListener('click', () => {
+				whyContent.style.display = whyContent.style.display === 'none' ? 'block' : 'none';
+			});
+			breakdownToggle?.addEventListener('click', () => {
+				const expanded = breakdownToggle.getAttribute('aria-expanded') === 'true';
+				breakdownToggle.setAttribute('aria-expanded', (!expanded).toString());
+				breakdownContent.style.display = expanded ? 'none' : 'block';
+			});
+			infoOpenBtn?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
+			infoCloseX?.addEventListener('click', () => { infoOverlay.classList.remove('active'); });
+			infoGotIt?.addEventListener('click', () => { infoOverlay.classList.remove('active'); });
+			infoOverlay?.addEventListener('click', (e) => { if (e.target === infoOverlay) infoOverlay.classList.remove('active'); });
+			document.getElementById('backStep4Sub2')?.addEventListener('click', () => {
+				document.getElementById('subStep4_2').style.display = 'none';
+				document.getElementById('subStep4_1').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 1 of 4';
+				document.getElementById('step4Heading').textContent = 'Generate guest budget';
+				currentSubStep4 = 1;
+			});
+
+			// Initial calc when entering sub-step 2 will be triggered from generator
+		})();
+
+		// Additional cost (Step 4 - Sub-step 3) interactions
+		(function(){
+			const addCostEl = document.getElementById('additionalCostInput');
+			const totalPayTextAC = document.getElementById('totalPayText_ac');
+			const approxHourlyTextAC = document.getElementById('approxHourlyText_ac');
+			const breakdownHeroAC = document.getElementById('breakdownHeroFee_ac');
+			const breakdownBookingAC = document.getElementById('breakdownBookingFee_ac');
+			const breakdownAddCostAC = document.getElementById('breakdownAdditionalCost_ac');
+			const breakdownToggleAC = document.getElementById('priceBreakdownToggle_ac');
+			const breakdownContentAC = document.getElementById('priceBreakdownContent_ac');
+			const infoOverlay = document.getElementById('bookingFeeInfoOverlay');
+			const infoOpenBtnAC = document.getElementById('bookingFeeInfoBtn_ac');
+
+			const BOOKING_FEE_RATE = 0.1107;
+			const MIN_FEE = 80;
+
+			function recalcAC() {
+				const heroFee = Math.max(MIN_FEE, parseFloat(document.getElementById('budgetHeroFeeInput')?.value || '0'));
+				const hours = Math.max(1, parseFloat(document.getElementById('estimatedHoursInput')?.value || '1'));
+				const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
+				const addCost = Math.max(0, parseFloat(addCostEl?.value || '0'));
+				const total = Math.round((heroFee + booking + addCost) * 100) / 100;
+				if (breakdownHeroAC) breakdownHeroAC.textContent = heroFee.toFixed(2);
+				if (breakdownBookingAC) breakdownBookingAC.textContent = booking.toFixed(2);
+				if (breakdownAddCostAC) breakdownAddCostAC.textContent = addCost.toFixed(2);
+				if (totalPayTextAC) totalPayTextAC.textContent = total.toFixed(2);
+				if (approxHourlyTextAC) approxHourlyTextAC.textContent = `(approx. PHP${(heroFee / hours).toFixed(2)}/hr)`;
+			}
+
+			breakdownToggleAC?.addEventListener('click', () => {
+				const expanded = breakdownToggleAC.getAttribute('aria-expanded') === 'true';
+				breakdownToggleAC.setAttribute('aria-expanded', (!expanded).toString());
+				breakdownContentAC.style.display = expanded ? 'none' : 'block';
+			});
+			infoOpenBtnAC?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
+			addCostEl?.addEventListener('input', recalcAC);
+
+			// Review (Sub-step 4) controls
+			const breakdownToggleRV = document.getElementById('priceBreakdownToggle_rv');
+			const breakdownContentRV = document.getElementById('priceBreakdownContent_rv');
+			const infoOpenBtnRV = document.getElementById('bookingFeeInfoBtn_rv');
+			const backStep4Sub4 = document.getElementById('backStep4Sub4');
+			const postRequestBtn = document.getElementById('postRequestBtn');
+
+			breakdownToggleRV?.addEventListener('click', () => {
+				const expanded = breakdownToggleRV.getAttribute('aria-expanded') === 'true';
+				breakdownToggleRV.setAttribute('aria-expanded', (!expanded).toString());
+				breakdownContentRV.style.display = expanded ? 'none' : 'block';
+			});
+			infoOpenBtnRV?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
+			backStep4Sub4?.addEventListener('click', () => {
+				document.getElementById('subStep4_4').style.display = 'none';
+				document.getElementById('subStep4_3').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Heading').textContent = 'Additional cost';
+				currentSubStep4 = 3;
+			});
+			postRequestBtn?.addEventListener('click', () => {
+				document.getElementById('postForm').submit();
+			});
+
+			// Move from Sub-step 2 to Sub-step 3
+			document.getElementById('submitBudgetBtn')?.addEventListener('click', () => {
+				document.getElementById('subStep4_2').style.display = 'none';
+				document.getElementById('subStep4_3').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Heading').textContent = 'Additional cost';
+				currentSubStep4 = 3;
+				recalcAC();
+				// Auto-expand breakdown on entering Sub-step 3 to match Sub-step 2 behavior
+				const bdAC = document.getElementById('priceBreakdownContent_ac');
+				if (bdAC) bdAC.style.display = 'block';
+				try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
+			});
+
+			// Back from Sub-step 3 to 2
+			document.getElementById('backStep4Sub3')?.addEventListener('click', () => {
+				document.getElementById('subStep4_3').style.display = 'none';
+				document.getElementById('subStep4_2').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 2 of 4';
+				document.getElementById('step4Heading').textContent = 'Set a budget';
+				currentSubStep4 = 2;
+			});
+
+			// Sub-step 3 -> 4 (Additional cost -> Review)
+			document.getElementById('nextStep4_3')?.addEventListener('click', () => {
+				document.getElementById('subStep4_3').style.display = 'none';
+				document.getElementById('subStep4_4').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 4 of 4';
+				document.getElementById('step4Heading').textContent = 'Review budget';
+				currentSubStep4 = 4;
+				// Recalculate review values
+				(function recalcRV(){
+					const BOOKING_FEE_RATE = 0.1107;
+					const MIN_FEE = 80;
+					const heroFee = Math.max(MIN_FEE, parseFloat(document.getElementById('budgetHeroFeeInput')?.value || '0'));
+					const addCost = Math.max(0, parseFloat(document.getElementById('additionalCostInput')?.value || '0'));
+					const hours = Math.max(1, parseFloat(document.getElementById('estimatedHoursInput')?.value || '1'));
+					const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
+					const total = Math.round((heroFee + booking + addCost) * 100) / 100;
+					const bh = document.getElementById('breakdownHeroFee_rv'); if (bh) bh.textContent = heroFee.toFixed(2);
+					const bb = document.getElementById('breakdownBookingFee_rv'); if (bb) bb.textContent = booking.toFixed(2);
+					const ba = document.getElementById('breakdownAdditionalCost_rv'); if (ba) ba.textContent = addCost.toFixed(2);
+					const tp = document.getElementById('totalPayText_rv'); if (tp) tp.textContent = total.toFixed(2);
+					const ah = document.getElementById('approxHourlyText_rv'); if (ah) ah.textContent = `(approx. PHP${(heroFee / hours).toFixed(2)}/hr)`;
+				})();
+				// Auto-expand breakdown on entering review
+				const bdRV = document.getElementById('priceBreakdownContent_rv');
+				if (bdRV) bdRV.style.display = 'block';
+				try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
+			});
+		})();
 		
 		// Time Picker functionality
 		const timePickerOverlay = document.getElementById('timePickerOverlay');
