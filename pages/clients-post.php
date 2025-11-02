@@ -381,6 +381,9 @@ body {
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	contain: layout style paint;
 }
 .post-modal.active {
 	opacity: 1;
@@ -500,7 +503,8 @@ body {
 .modal-content {
 	max-width: 600px;
 	margin: 0 auto;
-	padding: 0 20px 40px;
+	padding: 0 20px 180px;
+	contain: layout style;
 }
 .modal-step {
 	display: none;
@@ -623,6 +627,7 @@ body {
 /* Sub-steps */
 .sub-step {
 	animation: fadeIn 0.3s ease;
+	min-height: 200px;
 }
 @keyframes fadeIn {
 	from { opacity: 0; transform: translateY(10px); }
@@ -660,6 +665,50 @@ body {
 	width: 18px;
 	height: 18px;
 }
+
+/* Checkbox */
+.checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	cursor: pointer;
+	margin: 24px 0;
+	user-select: none;
+}
+.checkbox-input {
+	width: 24px;
+	height: 24px;
+	border: 2px solid #cbd5e1;
+	border-radius: 6px;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	background: #fff;
+	position: relative;
+	flex-shrink: 0;
+	transition: all 0.15s ease;
+}
+.checkbox-input:checked {
+	background: #0f172a;
+	border-color: #0f172a;
+}
+.checkbox-input:checked::after {
+	content: '';
+	position: absolute;
+	left: 7px;
+	top: 3px;
+	width: 6px;
+	height: 10px;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+.checkbox-text {
+	font-size: 0.95rem;
+	color: #475569;
+	line-height: 1.5;
+}
+
 .warning-message {
 	display: flex;
 	align-items: flex-start;
@@ -805,6 +854,38 @@ body {
 .back-button:hover {
 	background: #f8fafc;
 	border-color: #cbd5e1;
+}
+.button-group {
+	position: fixed !important;
+	left: 50% !important;
+	bottom: 80px !important;
+	width: calc(100% - 40px);
+	max-width: 560px;
+	transform: translateX(-50%) translateZ(0);
+	display: flex;
+	flex-direction: column-reverse;
+	gap: 12px;
+	z-index: 2100;
+	background: #fff;
+	padding-top: 12px;
+	will-change: transform;
+	backface-visibility: hidden;
+	contain: layout style paint;
+	pointer-events: auto;
+}
+.button-group .modal-button {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	transform: translateZ(0);
+}
+.button-group .modal-button.next-button {
+	position: static !important;
+	margin: 0;
+	background: #0f172a;
+	color: #fff;
+}
+.button-group .modal-button.next-button:hover {
+	background: #1e293b;
 }
 
 /* Bottom navigation */
@@ -1028,7 +1109,7 @@ body {
 			<div class="modal-content">
 				<!-- Step 1: Title -->
 				<div class="modal-step active" data-step="1">
-					<p class="step-title">Step 1 of 1</p>
+					<p class="step-title">Step 1 of 4</p>
 					<h2 class="step-heading">What do you need done today?</h2>
 					<p class="step-subtitle">Give your task a title</p>
 					<input 
@@ -1046,7 +1127,7 @@ body {
 
 				<!-- Step 2: Description -->
 				<div class="modal-step" data-step="2">
-					<p class="step-title">Step 1 of 4</p>
+					<p class="step-title" id="step2Title">Step 1 of 4</p>
 					
 					<!-- Sub-step 1: Describe your task -->
 					<div class="sub-step" id="subStep2_1">
@@ -1114,8 +1195,10 @@ body {
 							<p>Images with contact details or attempts to take conversations off-platform will be removed, leading to a ban or task removal.</p>
 						</div>
 						
-						<button type="button" class="modal-button back-button" id="backSubStep2_2">Back</button>
-						<button type="button" class="modal-button next-button" id="nextSubStep2_2">Next</button>
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_2">Back</button>
+							<button type="button" class="modal-button next-button" id="nextSubStep2_2">Next</button>
+						</div>
 					</div>
 					
 					<!-- Sub-step 3: Pre-screen helpers -->
@@ -1143,31 +1226,40 @@ body {
 							Add another question
 						</button>
 						
-						<button type="button" class="modal-button back-button" id="backSubStep2_3">Back</button>
-						<button type="button" class="modal-button next-button" id="nextSubStep2_3">Next</button>
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_3">Back</button>
+							<button type="button" class="modal-button next-button" id="nextSubStep2_3">Next</button>
+						</div>
 					</div>
 					
 					<!-- Sub-step 4: Requirements (optional) -->
 					<div class="sub-step" id="subStep2_4" style="display: none;">
-						<h2 class="step-heading">Requirements</h2>
-						<p class="step-subtitle">Add any specific requirements for this task (optional)</p>
+						<h2 class="step-heading">Requirements <span style="font-weight: 400; color: #94a3b8;">(optional)</span></h2>
+						<p class="step-subtitle">Are there any specific requirements for your task that the helper must meet?</p>
 						
-						<textarea 
+						<input 
+							type="text" 
 							name="requirements" 
-							class="form-input form-textarea" 
-							placeholder="e.g., Must have own tools, Valid ID required, etc."
+							class="form-input" 
+							placeholder="Do you have your own car?"
 							id="requirementsInput"
-							rows="6"
-						></textarea>
+						/>
 						
-						<button type="button" class="modal-button back-button" id="backSubStep2_4">Back</button>
-						<button type="button" class="modal-button next-button" id="nextStep2">Continue to Details</button>
+						<label class="checkbox-label">
+							<input type="checkbox" name="make_mandatory" id="makeMandatory" class="checkbox-input" />
+							<span class="checkbox-text">Make resumes/portfolios/socials mandatory with offers</span>
+						</label>
+						
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_4">Back</button>
+							<button type="button" class="modal-button next-button" id="nextStep2">Next</button>
+						</div>
 					</div>
 				</div>
 
 				<!-- Step 3: Details -->
-				<div class="modal-step" data-step="4">
-					<p class="step-title">Step 4 of 5</p>
+				<div class="modal-step" data-step="3">
+					<p class="step-title">Step 3 of 4</p>
 					<h2 class="step-heading">Task details</h2>
 					<p class="step-subtitle">Location and when you need it done</p>
 					<input 
@@ -1186,8 +1278,8 @@ body {
 						required
 						id="dateInput"
 					/>
-					<button type="button" class="modal-button back-button" id="backStep4">Back</button>
-					<button type="button" class="modal-button next-button" id="nextStep4">Continue</button>
+					<button type="button" class="modal-button back-button" id="backStep3">Back</button>
+					<button type="button" class="modal-button next-button" id="nextStep3">Continue</button>
 				</div>
 
 				<!-- Step 4: Budget -->
@@ -1371,6 +1463,10 @@ body {
 			// Show target sub-step
 			document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
 			currentSubStep = subStep;
+			
+			// Update step title
+			const stepTitle = document.getElementById('step2Title');
+			stepTitle.textContent = `Step ${subStep} of 4`;
 		}
 		
 		// Sub-step 2.1 -> 2.2 (Describe -> Add Image)
