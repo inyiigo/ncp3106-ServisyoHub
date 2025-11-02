@@ -2068,7 +2068,7 @@ body {
 
 						<div class="button-group">
 							<button type="button" class="modal-button back-button" id="backStep4Sub4">Back</button>
-							<button type="submit" class="modal-button next-button" id="postRequestBtn">Post request</button>
+							<button type="submit" class="modal-button next-button" id="postRequestBtn">Next</button>
 						</div>
 					</div>
 				</div>
