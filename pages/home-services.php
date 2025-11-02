@@ -188,12 +188,21 @@ ob_end_flush();
 			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
 		}
 		.notify-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
-		.toggle-btn {
+
+		/* Filter button: match hover with notify button */
+		.toggle-btn { /* supports <a> as button */
 			display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px;
-			border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer; transition: background .15s ease;
+			border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer;
+			text-decoration:none;
+			transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; /* updated */
 		}
-		.toggle-btn:hover { background:#f8fafc; }
-		.toggle-btn svg { width:18px; height:18px; }
+		.toggle-btn:hover {
+			background:#f8fafc;
+			transform: translateY(-1px); /* added */
+			box-shadow: 0 6px 16px rgba(0,0,0,.08); /* added */
+			border-color:#0078a6; /* added */
+		}
+		.toggle-btn svg, .toggle-btn img { width:18px; height:18px; } /* keep both for compatibility */
 
 		/* White list-style cards */
 		.svc-list {
@@ -302,9 +311,12 @@ ob_end_flush();
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
 						Notify me
 					</button>
-					<button type="button" class="toggle-btn" aria-label="Toggle view">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
-					</button>
+					<a href="./filter.php" class="toggle-btn" aria-label="Filter">
+						<!-- changed to inline filter (funnel) icon -->
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/>
+						</svg>
+					</a>
 				</div>
 			</div>
 
