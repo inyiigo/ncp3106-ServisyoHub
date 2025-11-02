@@ -250,11 +250,41 @@ session_start();
 						<div class="card">
 							<h4>Active Bookings</h4>
 							<table class="table compact" aria-label="Active bookings">
-								<thead><tr><th>Ref</th><th>Client</th><th>Service</th><th>When</th><th>Status</th></tr></thead>
+								<thead>
+									<tr>
+										<th>Ref</th>
+										<th>Client</th>
+										<th>Service</th>
+										<th>Created By</th> <!-- added -->
+										<th>When</th>
+										<th>Status</th>
+									</tr>
+								</thead>
 								<tbody>
-									<tr><td>BK-1042</td><td>A. Santos</td><td>Cleaning</td><td>Today 3:00 PM</td><td><span class="tag active">Active</span></td></tr>
-									<tr><td>BK-1041</td><td>J. Cruz</td><td>Plumbing</td><td>Tomorrow 9:30 AM</td><td><span class="tag pending">Pending</span></td></tr>
-									<tr><td>BK-1039</td><td>M. Reyes</td><td>Errands</td><td>Fri 8:00 AM</td><td><span class="tag pending">Pending</span></td></tr>
+									<tr>
+										<td>BK-1042</td>
+										<td>A. Santos</td>
+										<td>Cleaning</td>
+										<td>Admin</td> <!-- added -->
+										<td>Today 3:00 PM</td>
+										<td><span class="tag active">Active</span></td>
+									</tr>
+									<tr>
+										<td>BK-1041</td>
+										<td>J. Cruz</td>
+										<td>Plumbing</td>
+										<td>Admin</td> <!-- added -->
+										<td>Tomorrow 9:30 AM</td>
+										<td><span class="tag pending">Pending</span></td>
+									</tr>
+									<tr>
+										<td>BK-1039</td>
+										<td>M. Reyes</td>
+										<td>Errands</td>
+										<td>Client</td> <!-- added -->
+										<td>Fri 8:00 AM</td>
+										<td><span class="tag pending">Pending</span></td>
+									</tr>
 								</tbody>
 							</table>
 						</div>
