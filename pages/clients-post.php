@@ -1215,6 +1215,11 @@ body {
 .modal-button:hover {
 	background: #b0bccf;
 }
+.modal-button:disabled,
+.modal-button[disabled] {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
 .modal-button.next-button {
 	position: fixed;
 	bottom: 20px;
@@ -1316,6 +1321,45 @@ body {
 .dash-bottom-nav .dash-icon {
 	width: 20px;
 	height: 20px;
+}
+
+/* Summary layout tweaks */
+.summary-container {
+	max-width: 720px; /* a bit wider for readability */
+	margin: 0 auto;   /* center on the page */
+	padding: 0 20px 180px; /* keep consistent bottom space for fixed buttons */
+}
+@media (max-width: 640px) {
+	.summary-container { max-width: 100%; padding: 0 16px 160px; }
+}
+
+.link-button {
+	background: none;
+	border: none;
+	color: #0f172a;
+	font-weight: 700;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+/* Posted confirmation */
+.posted-center {
+	text-align: center;
+	padding-top: 12px;
+}
+.posted-illustration {
+	font-size: 56px;
+	line-height: 1;
+	margin: 12px 0 20px 0;
+}
+.posted-subhead { color:#0f172a; font-weight:700; margin: 18px 0; }
+.next-steps { list-style: none; padding: 0; margin: 0 0 32px 0; max-width: 640px; margin-left: auto; margin-right: auto; text-align: left; }
+.next-steps li { display:flex; align-items:flex-start; gap:12px; margin: 18px 0; }
+.step-badge { width:32px; height:32px; border-radius:50%; background:#0f172a; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
+.pro-tip { text-align:center; color:#64748b; }
+@media (max-width: 480px) {
+	.step-badge { width:28px; height:28px; font-size: 0.9rem; }
+	.next-steps li { gap:10px; }
 }
 </style>
 </head>
@@ -2032,43 +2076,174 @@ body {
 						</div>
 					</div>
 
-					<!-- Sub-step 4: Review budget -->
-					<div class="sub-step" id="subStep4_4" style="display: none;">
-						<p class="step-subtitle">Please review your budget details before posting.</p>
+						<!-- Sub-step 4: Review budget -->
+						<div class="sub-step" id="subStep4_4" style="display: none;">
+							<p class="step-subtitle">Please review your budget details before posting.</p>
 
-						<!-- Totals (review) -->
-						<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
-							<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
-							<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText_rv">0.00</span></span>
+							<!-- Totals (review) -->
+							<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
+								<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
+								<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText_rv">0.00</span></span>
+							</div>
+							<p id="approxHourlyText_rv" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
+
+							<button type="button" id="priceBreakdownToggle_rv" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent_rv" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
+								<span>Price breakdown</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
+							</button>
+							<div id="priceBreakdownContent_rv" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
+								<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+									<span>Hero's fee</span>
+									<span>PHP<span id="breakdownHeroFee_rv">0.00</span></span>
+								</div>
+								<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+									<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
+										<button type="button" id="bookingFeeInfoBtn_rv" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
+											<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
+										</button>
+									</span>
+									<span>PHP<span id="breakdownBookingFee_rv">0.00</span></span>
+								</div>
+								<div style="display: flex; justify-content: space-between;">
+									<span>Cost of purchases</span>
+									<span>PHP<span id="breakdownAdditionalCost_rv">0.00</span></span>
+								</div>
+							</div>
+
+							<div class="button-group">
+								<button type="button" class="modal-button back-button" id="backStep4Sub4">Back</button>
+								<button type="button" class="modal-button next-button" id="postRequestBtn">Next</button>
+							</div>
 						</div>
-						<p id="approxHourlyText_rv" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
 
-						<button type="button" id="priceBreakdownToggle_rv" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent_rv" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
-							<span>Price breakdown</span>
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
-						</button>
-						<div id="priceBreakdownContent_rv" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
-							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-								<span>Hero's fee</span>
-								<span>PHP<span id="breakdownHeroFee_rv">0.00</span></span>
+					<!-- Step 5: Summary -->
+					<div class="modal-step" data-step="5">
+						<div class="summary-container">
+							<h2 class="step-heading" id="step5Heading">Summary</h2>
+
+							<!-- Title and total -->
+							<h3 id="summaryTitleText" style="margin: 0 0 8px 0; color:#0f172a; font-size:1.3rem; font-weight:800;"></h3>
+							<p id="summaryTotalText" style="margin: 0 0 24px 0; color:#0f172a; font-weight:800;"></p>
+
+							<!-- Key details -->
+							<div style="display:grid; gap:16px; margin-bottom:20px;">
+								<div>
+									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Location</p>
+									<p id="summaryLocationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
+								</div>
+								<div>
+									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Completion Date</p>
+									<p id="summaryCompletionText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
+								</div>
+								<div>
+									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Duration</p>
+									<p id="summaryDurationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
+								</div>
 							</div>
-							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
-								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
-									<button type="button" id="bookingFeeInfoBtn_rv" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
-										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
-									</button>
-								</span>
-								<span>PHP<span id="breakdownBookingFee_rv">0.00</span></span>
+
+							<!-- Description -->
+							<div style="margin-bottom:20px;">
+								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Description</p>
+								<p id="summaryDescriptionText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
 							</div>
-							<div style="display: flex; justify-content: space-between;">
-								<span>Cost of purchases</span>
-								<span>PHP<span id="breakdownAdditionalCost_rv">0.00</span></span>
+
+							<!-- Skills/Requirements (optional) -->
+							<div id="summaryRequirementsBlock" style="margin-bottom:20px; display:none;">
+								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Skills and Experience Required</p>
+								<p id="summaryRequirementsText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
+							</div>
+
+							<!-- Heroes required -->
+							<div style="margin-bottom:20px;">
+								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Heroes Required</p>
+								<p id="summaryHeroesText" style="margin:0; color:#0f172a; font-weight:700;"></p>
+							</div>
+
+							<!-- Screening Questions -->
+							<div id="summaryQuestionsBlock" style="margin-bottom:20px; display:none;">
+								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Screening Questions</p>
+								<ol id="summaryQuestionsList" style="margin:0; padding-left:18px; color:#0f172a; line-height:1.6;"></ol>
+							</div>
+
+							<div class="button-group">
+								<button type="button" class="modal-button back-button" id="summaryEditBtn">Go back and edit</button>
+								<button type="submit" class="modal-button next-button" id="finalPostBtn" style="background:#f87171;">Post request</button>
 							</div>
 						</div>
+					</div>
 
-						<div class="button-group">
-							<button type="button" class="modal-button back-button" id="backStep4Sub4">Back</button>
-							<button type="submit" class="modal-button next-button" id="postRequestBtn">Next</button>
+					<!-- Step 6: Code of Conduct -->
+					<div class="modal-step" data-step="6">
+						<div class="summary-container">
+							<h2 class="step-heading">Code of Conduct</h2>
+							<p class="guidance-text" style="margin-bottom: 12px;">Before you post this quest,</p>
+							<p class="step-subtitle" style="margin-top: 0;">You agree to:</p>
+							<ul class="guidance-list" style="margin-bottom: 16px;">
+								<li>Price quest fairly</li>
+								<li>Remain contactable and keep communications within the Quest app</li>
+								<li>Pay the Hero when the quest is completed</li>
+							</ul>
+
+							<p class="step-subtitle">You confirm that this quest is not:</p>
+							<ul class="guidance-list" style="margin-bottom: 20px;">
+								<li>Advertising</li>
+								<li>Contain inaccurate/false information</li>
+								<li>Illegal and inappropriate acts</li>
+								<li>Financial loans</li>
+								<li>Sale of items</li>
+								<li>Listing of services</li>
+								<li>Academic deceit</li>
+								<li>Referral posts</li>
+							</ul>
+
+							<p class="guidance-text" style="font-weight:700; color:#0f172a;">Quests violating the above will be deleted, and your account may be banned. No refunds for paid features if guidelines are violated.</p>
+
+							<label class="checkbox-label" style="margin-top: 20px;">
+								<input type="checkbox" id="agreeCoc" class="checkbox-input" />
+								<span class="checkbox-text">I have read and agree to this code of conduct and Quest's <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">Terms of service</a>.</span>
+							</label>
+
+							<label class="checkbox-label" style="margin-top: 0;">
+								<input type="checkbox" id="agreeCancellation" class="checkbox-input" />
+								<span class="checkbox-text">I agree to being charged a <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">cancellation fee</a> if I cause the quest to be cancelled after confirming an offer.</span>
+							</label>
+
+							<div class="button-group">
+								<button type="button" class="modal-button next-button" id="agreeTermsBtn" disabled>I agree to the terms</button>
+							</div>
+
+							<p style="text-align:center; margin-top: 18px;">
+								<button type="button" class="link-button" id="editQuestLink">Edit my quest</button>
+							</p>
+						</div>
+					</div>
+
+					<!-- Step 7: Posted confirmation -->
+					<div class="modal-step" data-step="7">
+						<div class="summary-container posted-center">
+							<h2 class="step-heading" style="text-align:center;">Quest posted!</h2>
+							<div class="posted-illustration">🎉</div>
+							<p class="posted-subhead">Here's what's next:</p>
+							<ul class="next-steps">
+								<li>
+									<span class="step-badge">1</span>
+									<span>Heroes will make offers to your quest</span>
+								</li>
+								<li>
+									<span class="step-badge">2</span>
+									<span>Compare and accept offers from <strong>My quests</strong></span>
+								</li>
+								<li>
+									<span class="step-badge">3</span>
+									<span>Release the securely held payment to your Hero after quest completion & review them</span>
+								</li>
+							</ul>
+
+							<p class="pro-tip">✨ <strong>Pro tip</strong> ✨<br/>Upload a profile picture to stand out! 🪄</p>
+
+							<div class="button-group">
+								<a href="./my-jobs.php" class="modal-button next-button" style="display:block; text-align:center; background:#0f172a; color:#fff;">Go to my quest</a>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -2289,6 +2464,32 @@ body {
 			
 			// Show current step
 			document.querySelector(`.modal-step[data-step="${stepNumber}"]`).classList.add('active');
+			// If steps >=5 are nested under Step 4, keep Step 4 visible as a container
+			if (stepNumber >= 5) {
+				const step4 = document.querySelector('.modal-step[data-step="4"]');
+				if (step4) {
+					step4.classList.add('active');
+					// Hide all Step 4 sub-steps while on Summary
+					step4.querySelectorAll('.sub-step').forEach(s => s.style.display = 'none');
+				}
+				// Hide Step 4 header/title so only Summary is visible
+				const s4Title = document.getElementById('step4Title');
+				const s4Heading = document.getElementById('step4Heading');
+				if (s4Title) s4Title.style.display = 'none';
+				if (s4Heading) s4Heading.style.display = 'none';
+			} else {
+				// Restore Step 4 header/title when not on Summary
+				const s4Title = document.getElementById('step4Title');
+				const s4Heading = document.getElementById('step4Heading');
+				if (s4Title) s4Title.style.display = '';
+				if (s4Heading) s4Heading.style.display = '';
+			}
+
+			// Hide step-progress on final flows (steps >= 5)
+			try {
+				const progress = document.querySelector('.step-progress');
+				if (progress) progress.style.display = (stepNumber >= 5 ? 'none' : 'flex');
+			} catch(_){}
 			
 			// Update progress indicators
 			updateStepProgress(stepNumber);
@@ -2300,6 +2501,27 @@ body {
 		// Enhanced: when in Step 4, go back within sub-steps first
 		let currentSubStep4 = 1; // 1: generate, 2: budget, 3: additional cost
 		modalBack.addEventListener('click', function() {
+			if (currentStep === 7) {
+				// After posting, back goes to My quests
+				window.location.href = './my-jobs.php';
+				return;
+			}
+			if (currentStep === 6) {
+				goToStep(5);
+				return;
+			}
+			if (currentStep === 5) {
+				// Back from Summary to Budget - Additional cost
+				goToStep(4);
+				document.getElementById('subStep4_1').style.display = 'none';
+				document.getElementById('subStep4_2').style.display = 'none';
+				document.getElementById('subStep4_3').style.display = 'none';
+				document.getElementById('subStep4_4').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 4 of 4';
+				document.getElementById('step4Heading').textContent = 'Review budget';
+				currentSubStep4 = 4;
+				return;
+			}
 			if (currentStep === 4) {
 				if (currentSubStep4 === 4) {
 					// Back to Step 4 - Sub-step 3
@@ -2845,10 +3067,10 @@ body {
 			insightBar.style.width = '60%';
 			document.getElementById('insightMessage').textContent = 'Hero fee is within the recommended range';
 
-			// Show sub-step 2, update titles
+				// Show sub-step 2, update titles
 			document.getElementById('subStep4_1').style.display = 'none';
 			document.getElementById('subStep4_2').style.display = 'block';
-			document.getElementById('step4Title').textContent = 'Step 2 of 4';
+				document.getElementById('step4Title').textContent = 'Step 2 of 4';
 			document.getElementById('step4Heading').textContent = 'Set a budget';
 			currentSubStep4 = 2;
 			// Expand price breakdown by default so it's visible immediately
@@ -2977,28 +3199,24 @@ body {
 			infoOpenBtnAC?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
 			addCostEl?.addEventListener('input', recalcAC);
 
-			// Review (Sub-step 4) controls
-			const breakdownToggleRV = document.getElementById('priceBreakdownToggle_rv');
-			const breakdownContentRV = document.getElementById('priceBreakdownContent_rv');
-			const infoOpenBtnRV = document.getElementById('bookingFeeInfoBtn_rv');
-			const backStep4Sub4 = document.getElementById('backStep4Sub4');
-			const postRequestBtn = document.getElementById('postRequestBtn');
+			// (Review step removed)
 
-			breakdownToggleRV?.addEventListener('click', () => {
-				const expanded = breakdownToggleRV.getAttribute('aria-expanded') === 'true';
-				breakdownToggleRV.setAttribute('aria-expanded', (!expanded).toString());
-				breakdownContentRV.style.display = expanded ? 'none' : 'block';
-			});
-			infoOpenBtnRV?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
-			backStep4Sub4?.addEventListener('click', () => {
-				document.getElementById('subStep4_4').style.display = 'none';
+			// Summary step actions
+			document.getElementById('summaryEditBtn')?.addEventListener('click', () => {
+				// Return to Step 4 - Additional cost
+				goToStep(4);
+				document.getElementById('subStep4_1').style.display = 'none';
+				document.getElementById('subStep4_2').style.display = 'none';
 				document.getElementById('subStep4_3').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Title').textContent = 'Step 3 of 3';
 				document.getElementById('step4Heading').textContent = 'Additional cost';
 				currentSubStep4 = 3;
 			});
-			postRequestBtn?.addEventListener('click', () => {
-				document.getElementById('postForm').submit();
+
+			// Intercept final submit to show Code of Conduct step
+			document.getElementById('finalPostBtn')?.addEventListener('click', (e) => {
+				e.preventDefault();
+				goToStep(6);
 			});
 
 			// Move from Sub-step 2 to Sub-step 3
@@ -3024,6 +3242,66 @@ body {
 				currentSubStep4 = 2;
 			});
 
+			// From Review -> Summary (populate just before navigating)
+			function populateSummary() {
+				const title = (document.getElementById('titleInput')?.value || '').trim();
+				const desc = (document.getElementById('descriptionInput')?.value || '').trim();
+				const req = (document.getElementById('requirementsInput')?.value || '').trim();
+				const hours = Math.max(1, parseFloat(document.getElementById('estimatedHoursInput')?.value || '1'));
+				const MIN_FEE = 80, BOOKING_FEE_RATE = 0.1107;
+				const heroFee = Math.max(MIN_FEE, parseFloat(document.getElementById('budgetHeroFeeInput')?.value || '0'));
+				const addCost = Math.max(0, parseFloat(document.getElementById('additionalCostInput')?.value || '0'));
+				const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
+				const total = Math.round((heroFee + booking + addCost) * 100) / 100;
+
+				// Title and total
+				const titleEl = document.getElementById('summaryTitleText'); if (titleEl) titleEl.textContent = title || 'Untitled quest';
+				const totalEl = document.getElementById('summaryTotalText'); if (totalEl) totalEl.textContent = `PHP${total.toFixed(2)}`;
+
+				// Location
+				const onlineActive = document.getElementById('onlineBtn')?.classList.contains('active');
+				const locValue = onlineActive ? 'Online' : (document.getElementById('locationInput')?.value || '');
+				const locEl = document.getElementById('summaryLocationText'); if (locEl) locEl.textContent = locValue || '—';
+
+				// Completion Date + Time
+				const dateVal = document.getElementById('dateInput')?.value || '';
+				const timePref = document.getElementById('timePreferenceInput')?.value || 'no-preference';
+				const specificTime = document.getElementById('specificTimeInput')?.value || '';
+				const rangeStart = document.getElementById('timeRangeStartInput')?.value || '';
+				const rangeEnd = document.getElementById('timeRangeEndInput')?.value || '';
+				function formatDate(iso){ try{ const d = new Date(iso); const day = d.toLocaleString(undefined,{weekday:'short'}); const dd = String(d.getDate()).padStart(2,'0'); const mon = d.toLocaleString(undefined,{month:'short'}); return `On ${day}, ${dd} ${mon}`; } catch(_){ return iso; } }
+				let timeText = '(Anytime)';
+				if (timePref === 'specific-time' && specificTime) timeText = `(${specificTime})`;
+				if (timePref === 'time-range' && rangeStart && rangeEnd) timeText = `(${rangeStart} - ${rangeEnd})`;
+				const compEl = document.getElementById('summaryCompletionText'); if (compEl) compEl.textContent = `${formatDate(dateVal)} ${timeText}`.trim();
+
+				// Duration
+				const durEl = document.getElementById('summaryDurationText'); if (durEl) durEl.textContent = `${hours} Hour(s)`;
+
+				// Description
+				const descEl = document.getElementById('summaryDescriptionText'); if (descEl) descEl.textContent = desc || '—';
+
+				// Requirements (optional)
+				const reqBlock = document.getElementById('summaryRequirementsBlock');
+				const reqText = document.getElementById('summaryRequirementsText');
+				if (req && reqBlock && reqText) { reqBlock.style.display = 'block'; reqText.textContent = req; } else if (reqBlock) { reqBlock.style.display = 'none'; }
+
+				// Heroes required
+				const heroes = document.getElementById('helperCount')?.textContent || '1';
+				const heroesEl = document.getElementById('summaryHeroesText'); if (heroesEl) heroesEl.textContent = heroes;
+
+				// Screening questions
+				const qBlock = document.getElementById('summaryQuestionsBlock');
+				const qList = document.getElementById('summaryQuestionsList');
+				if (qList) qList.innerHTML = '';
+				const inputs = Array.from(document.querySelectorAll('#questionsList input[type="text"]'));
+				const questions = inputs.map(i => (i.value||'').trim()).filter(Boolean);
+				if (questions.length && qBlock && qList) {
+					qBlock.style.display = 'block';
+					questions.forEach(q => { const li = document.createElement('li'); li.textContent = q; qList.appendChild(li); });
+				} else if (qBlock) { qBlock.style.display = 'none'; }
+			}
+
 			// Sub-step 3 -> 4 (Additional cost -> Review)
 			document.getElementById('nextStep4_3')?.addEventListener('click', () => {
 				document.getElementById('subStep4_3').style.display = 'none';
@@ -3031,7 +3309,7 @@ body {
 				document.getElementById('step4Title').textContent = 'Step 4 of 4';
 				document.getElementById('step4Heading').textContent = 'Review budget';
 				currentSubStep4 = 4;
-				// Recalculate review values
+				// Calculate review values
 				(function recalcRV(){
 					const BOOKING_FEE_RATE = 0.1107;
 					const MIN_FEE = 80;
@@ -3046,12 +3324,78 @@ body {
 					const tp = document.getElementById('totalPayText_rv'); if (tp) tp.textContent = total.toFixed(2);
 					const ah = document.getElementById('approxHourlyText_rv'); if (ah) ah.textContent = `(approx. PHP${(heroFee / hours).toFixed(2)}/hr)`;
 				})();
-				// Auto-expand breakdown on entering review
 				const bdRV = document.getElementById('priceBreakdownContent_rv');
 				if (bdRV) bdRV.style.display = 'block';
 				try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
 			});
+
+			// Review actions
+			const breakdownToggleRV = document.getElementById('priceBreakdownToggle_rv');
+			const breakdownContentRV = document.getElementById('priceBreakdownContent_rv');
+			const infoOpenBtnRV = document.getElementById('bookingFeeInfoBtn_rv');
+			const backStep4Sub4 = document.getElementById('backStep4Sub4');
+			const postRequestBtn = document.getElementById('postRequestBtn');
+
+			breakdownToggleRV?.addEventListener('click', () => {
+				const expanded = breakdownToggleRV.getAttribute('aria-expanded') === 'true';
+				breakdownToggleRV.setAttribute('aria-expanded', (!expanded).toString());
+				breakdownContentRV.style.display = expanded ? 'none' : 'block';
+			});
+			infoOpenBtnRV?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
+			backStep4Sub4?.addEventListener('click', () => {
+				document.getElementById('subStep4_4').style.display = 'none';
+				document.getElementById('subStep4_3').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Heading').textContent = 'Additional cost';
+				currentSubStep4 = 3;
+			});
+			postRequestBtn?.addEventListener('click', () => {
+				populateSummary();
+				goToStep(5);
+			});
 		})();
+
+		// Code of Conduct interactions (Step 6)
+		(function(){
+			const coc = document.getElementById('agreeCoc');
+			const cancelFee = document.getElementById('agreeCancellation');
+			const agreeBtn = document.getElementById('agreeTermsBtn');
+			const editLink = document.getElementById('editQuestLink');
+			const form = document.getElementById('postForm');
+
+			function updateAgreeState(){
+				const ok = !!(coc?.checked && cancelFee?.checked);
+				if (agreeBtn){ agreeBtn.disabled = !ok; }
+			}
+
+			coc?.addEventListener('change', updateAgreeState);
+			cancelFee?.addEventListener('change', updateAgreeState);
+			agreeBtn?.addEventListener('click', function(e){
+				if (this.disabled) return;
+				// Show posted confirmation immediately
+				goToStep(7);
+				// Try to submit in the background so data still saves; ignore result
+				try {
+					if (form) {
+						const fd = new FormData(form);
+						fd.append('ajax', '1');
+						fetch(form.getAttribute('action') || window.location.href, { method: 'POST', body: fd, credentials: 'same-origin' }).catch(()=>{});
+					}
+				} catch(_) { /* ignore */ }
+			});
+			editLink?.addEventListener('click', function(){ goToStep(5); });
+		})();
+
+		// Auto-open Posted confirmation if the server insert succeeded
+		<?php if (!empty($success)) { ?>
+		(function(){
+			try {
+				document.getElementById('postModal').classList.add('active');
+				document.body.style.overflow = 'hidden';
+				goToStep(7);
+			} catch(_) {}
+		})();
+		<?php } ?>
 		
 		// Time Picker functionality
 		const timePickerOverlay = document.getElementById('timePickerOverlay');
@@ -3236,7 +3580,8 @@ body {
 			showSubStep(2, 4); // Go back to last sub-step of Step 2
 		});*/
 		
-		document.getElementById('backStep4').addEventListener('click', function() {
+		const backStep4Btn = document.getElementById('backStep4');
+		backStep4Btn?.addEventListener('click', function() {
 			goToStep(3);
 		});
 		
