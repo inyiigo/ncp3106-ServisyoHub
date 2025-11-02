@@ -67,6 +67,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : 'there';
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+
+/* Fetch recent searches from all users */
+$recentSearches = [];
+if ($dbAvailable) {
+	// Get the 4 most recent unique searches
+	$sql = "SELECT DISTINCT search_query FROM search_history 
+	        WHERE search_query IS NOT NULL AND search_query != '' 
+	        ORDER BY searched_at DESC LIMIT 4";
+	$result = mysqli_query($mysqli, $sql);
+	if ($result) {
+		while ($row = mysqli_fetch_assoc($result)) {
+			$recentSearches[] = $row['search_query'];
+		}
+		mysqli_free_result($result);
+	}
+}
+
+// Default suggestions if no recent searches found
+if (empty($recentSearches)) {
+	$recentSearches = [
+		'Buy and deliver item',
+		'Booth Staff for pop-up',
+		'Help me with moving',
+		'Helper for an event'
+	];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -78,187 +104,156 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 <style>
 /* Page theme: white background */
 body { 
-	background: #f8fafc !important; 
+	background: #ffffff !important; 
 	margin: 0; 
 	font-family: system-ui, -apple-system, sans-serif; 
 }
 
-/* Topbar */
-.dash-topbar { 
-	background: #fff;
-	padding: 20px 24px;
-	border-bottom: 3px solid #0078a6;
+/* Greeting section with avatar */
+.jobs-greeting {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	margin: 24px auto 24px;
+	max-width: 960px;
+	padding: 0 12px;
 }
-
-.dash-brand {
-	font-size: 1.5rem;
-	font-weight: 800;
+.jobs-avatar {
+	width: 56px;
+	height: 56px;
+	border-radius: 50%;
+	background: #e0f2fe;
 	color: #0078a6;
-	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 800;
+	font-size: 1.3rem;
+	flex-shrink: 0;
+	box-shadow: 0 4px 12px rgba(0,120,166,.15);
 }
-
-/* Main container */
-.post-container {
-	max-width: 800px;
-	margin: 0 auto;
-	padding: 40px 20px 120px;
+.jobs-greeting-text {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
 }
-
-/* Main container */
-.post-container {
-	max-width: 800px;
-	margin: 40px auto 120px;
-	padding: 0 20px;
-	position: relative;
-	z-index: 1;
+.jobs-greeting-label {
+	margin: 0;
+	font-size: 0.95rem;
+	color: #64748b;
+	font-weight: 500;
 }
-
-/* Page title */
-.page-title {
-	text-align: center;
-	margin-bottom: 32px;
-}
-
-.page-title h1 {
-	font-size: 2rem;
+.jobs-greeting-name {
+	margin: 0;
+	font-size: 1.4rem;
 	font-weight: 800;
 	color: #0f172a;
-	margin: 0 0 8px;
+	line-height: 1.2;
 }
 
-.page-title p {
-	color: #64748b;
-	font-size: 1rem;
+/* Question section */
+.jobs-question {
+	max-width: 960px;
+	margin: 0 auto 20px;
+	padding: 0 12px;
+}
+.jobs-question-text {
 	margin: 0;
+	font-size: 1.6rem;
+	font-weight: 800;
+	color: #0f172a;
+	line-height: 1.3;
 }
 
-/* Form card */
-.form-card {
-	background: #0078a6;
-	color: #fff;
+/* Search section */
+:root { --jobs-blue: #0078a6; }
+.jobs-search-simple {
+	max-width: 960px;
+	margin: 0 auto 24px;
+	padding: 0 12px;
+}
+.jobs-box {
+	border: 2px solid color-mix(in srgb, var(--jobs-blue) 70%, #0000);
 	border-radius: 16px;
-	padding: 32px;
-	box-shadow: 0 8px 24px rgba(0,120,166,.24);
-}
-
-.form-card h2 {
-	margin: 0 0 24px;
-	font-size: 1.5rem;
-	font-weight: 800;
-	color: #fff;
-}
-
-/* Form elements */
-.form-group {
-	margin-bottom: 20px;
-}
-
-.form-group label {
-	display: block;
-	margin-bottom: 8px;
-	font-weight: 700;
-	color: #fff;
-	font-size: 0.95rem;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-	width: 100%;
-	padding: 12px 16px;
-	border-radius: 10px;
-	border: 2px solid rgba(255,255,255,.3);
-	background: rgba(255,255,255,.15);
-	color: #fff;
-	font: inherit;
-	font-size: 1rem;
-	transition: all 0.15s ease;
-	box-sizing: border-box;
-}
-
-.form-group select {
-	cursor: pointer;
-	appearance: none;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
-	background-repeat: no-repeat;
-	background-position: right 16px center;
-	padding-right: 48px;
-}
-
-.form-group textarea {
-	resize: vertical;
-	min-height: 120px;
-	font-family: inherit;
-}
-
-.form-group input::placeholder,
-.form-group textarea::placeholder {
-	color: rgba(255,255,255,.65);
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-	outline: none;
-	border-color: rgba(255,255,255,.6);
-	background: rgba(255,255,255,.2);
-}
-
-/* Submit button */
-.btn-submit {
+	overflow: hidden;
 	background: #fff;
-	color: #0078a6;
-	padding: 14px 32px;
-	border: none;
-	border-radius: 12px;
-	font-weight: 800;
-	font-size: 1.1rem;
+	box-shadow: 0 10px 28px rgba(2,6,23,.08);
+}
+.jobs-row {
+	display: grid;
+	grid-template-columns: 28px 1fr 28px;
+	align-items: center;
+	gap: 10px;
+	padding: 10px 12px;
+}
+.jobs-ico { width: 18px; height: 18px; color: var(--jobs-blue); opacity: .95; }
+.jobs-input {
+	appearance: none; border: none; outline: none; background: transparent;
+	font: inherit; color: #0f172a; padding: 6px 0; width: 100%;
+}
+.jobs-row:focus-within { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--jobs-blue) 35%, #0000); border-radius: 12px; }
+.jobs-input-wrap { position: relative; }
+
+/* Search suggestions */
+.search-suggestions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 16px;
+}
+.suggestion-pill {
+	appearance: none;
+	border: 2px solid #0078a6;
+	background: #fff;
+	color: #0f172a;
+	border-radius: 999px;
+	padding: 10px 16px;
+	font-weight: 600;
+	font-size: 0.9rem;
 	cursor: pointer;
-	transition: transform 0.15s ease, box-shadow 0.15s ease;
-	width: 100%;
-	margin-top: 8px;
+	transition: all 0.15s ease;
 }
-
-.btn-submit:hover {
-	transform: translateY(-2px);
-	box-shadow: 0 6px 18px rgba(255,255,255,.3);
+.suggestion-pill:hover {
+	background: #f0f9ff;
+	border-color: #0078a6;
+	transform: translateY(-1px);
 }
-
-.btn-submit:active {
+.suggestion-pill:active {
 	transform: translateY(0);
 }
 
-.btn-submit:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-}
+/* Job results section */
+.jobs-results { max-width: 960px; margin: 0 auto 80px; padding: 0 12px; }
+.results-header { display: flex; align-items: center; gap: 8px; margin: 10px 0 12px; font-size: .9rem; color: #64748b; }
+.results-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--jobs-blue); }
 
-/* Alerts */
-.alert {
-	padding: 16px 20px;
-	border-radius: 12px;
-	margin-bottom: 24px;
-	font-weight: 600;
-	text-align: center;
-}
-
-.alert-success {
-	background: rgba(34, 197, 94, 0.2);
-	border: 2px solid rgba(34, 197, 94, 0.5);
+.jobs-list { display: grid; gap: 12px; }
+.job-card {
+	background: #0078a6;
 	color: #fff;
+	border-radius: 16px;
+	padding: 20px 22px;
+	box-shadow: 0 8px 24px rgba(0,120,166,.24);
+	transition: transform .15s ease, box-shadow .15s ease;
+	position: relative;
 }
-
-.alert-error {
-	background: rgba(239, 68, 68, 0.2);
-	border: 2px solid rgba(239, 68, 68, 0.5);
+.job-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,120,166,.32); }
+.job-title { font-weight: 800; font-size: 1.1rem; margin: 0 0 14px; color: #fff; }
+.job-meta { display: flex; flex-wrap: wrap; gap: 14px 18px; font-size: .9rem; opacity: .95; }
+.job-meta-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.job-meta-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.job-heart {
+	position: absolute;
+	top: 20px;
+	right: 22px;
+	width: 22px;
+	height: 22px;
 	color: #fff;
+	opacity: .9;
+	cursor: pointer;
+	transition: transform .12s ease, opacity .12s ease;
 }
-
-.alert ul {
-	margin: 8px 0 0;
-	padding-left: 24px;
-	text-align: left;
-}
+.job-heart:hover { transform: scale(1.1); opacity: 1; }
 
 /* Bottom navigation */
 .dash-bottom-nav {
@@ -313,94 +308,39 @@ body {
 </style>
 </head>
 <body>
-	<!-- Topbar -->
-	<div class="dash-topbar">
-		<div class="dash-brand">Servisyo Hub</div>
-	</div>
-
-	<!-- Main Content -->
-	<div class="post-container">
-		<div class="page-title">
-			<h1>Post a Service Request</h1>
-			<p>Tell us what service you need and we'll connect you with providers</p>
-		</div>
-
-		<?php if ($success): ?>
-			<div class="alert alert-success">
-				✓ <?php echo e($success); ?>
-			</div>
-		<?php endif; ?>
-
-		<?php if (!empty($errors)): ?>
-			<div class="alert alert-error">
-				<strong>Please fix the following errors:</strong>
-				<ul>
-					<?php foreach ($errors as $err): ?>
-						<li><?php echo e($err); ?></li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-		<?php endif; ?>
-
-		<div class="form-card">
-			<?php if ($not_logged_in): ?>
-				<h2>Login Required</h2>
-				<p style="text-align: center; margin: 0;">You need to be logged in to post a service request.</p>
-			<?php elseif (!$dbAvailable): ?>
-				<h2>Service Unavailable</h2>
-				<p style="text-align: center; margin: 0;">Database connection error. Please try again later.</p>
-			<?php else: ?>
-				<h2>Service Request Details</h2>
-				<form method="POST" action="">
-					<div class="form-group">
-						<label for="category">Service Category *</label>
-						<select name="category" id="category" required>
-							<option value="">-- Select a service --</option>
-							<option value="Cleaning" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Cleaning') ? 'selected' : ''; ?>>House Cleaning</option>
-							<option value="Plumbing" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Plumbing') ? 'selected' : ''; ?>>Plumbing Services</option>
-							<option value="Electrical" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Electrical') ? 'selected' : ''; ?>>Electrical Repair</option>
-							<option value="Aircon" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Aircon') ? 'selected' : ''; ?>>Aircon Cleaning</option>
-							<option value="Painting" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Painting') ? 'selected' : ''; ?>>Painting</option>
-							<option value="Gardening" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Gardening') ? 'selected' : ''; ?>>Gardening</option>
-							<option value="Pest Control" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Pest Control') ? 'selected' : ''; ?>>Pest Control</option>
-							<option value="Appliance Repair" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Appliance Repair') ? 'selected' : ''; ?>>Appliance Repair</option>
-							<option value="Car Spa" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Car Spa') ? 'selected' : ''; ?>>Car Spa</option>
-							<option value="Beauty Services" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Beauty Services') ? 'selected' : ''; ?>>Beauty Services</option>
-							<option value="Massage" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Massage') ? 'selected' : ''; ?>>Massage</option>
-							<option value="Pet Care" <?php echo (isset($_POST['category']) && $_POST['category'] === 'Pet Care') ? 'selected' : ''; ?>>Pet Care</option>
-						</select>
-					</div>
-
-					<div class="form-group">
-						<label for="title">Title *</label>
-						<input type="text" name="title" id="title" placeholder="e.g., Need house cleaning service" value="<?php echo e($_POST['title'] ?? ''); ?>" required>
-					</div>
-
-					<div class="form-group">
-						<label for="description">Description *</label>
-						<textarea name="description" id="description" placeholder="Describe what you need in detail..." required><?php echo e($_POST['description'] ?? ''); ?></textarea>
-					</div>
-
-					<div class="form-group">
-						<label for="location">Location *</label>
-						<input type="text" name="location" id="location" placeholder="e.g., Brgy. 442 Zone 44, Manila" value="<?php echo e($_POST['location'] ?? ''); ?>" required>
-					</div>
-
-					<div class="form-group">
-						<label for="budget">Budget (Optional)</label>
-						<input type="text" name="budget" id="budget" placeholder="e.g., ₱500 - ₱1000" value="<?php echo e($_POST['budget'] ?? ''); ?>">
-					</div>
-
-					<div class="form-group">
-						<label for="date_needed">Date Needed (Optional)</label>
-						<input type="date" name="date_needed" id="date_needed" value="<?php echo e($_POST['date_needed'] ?? ''); ?>" min="<?php echo date('Y-m-d'); ?>">
-					</div>
-
-					<button type="submit" class="btn-submit">Post Service Request</button>
-				</form>
-			<?php endif; ?>
+	<!-- Greeting with avatar (left) and text (right) -->
+	<div class="jobs-greeting">
+		<div class="jobs-avatar"><?php echo htmlspecialchars($avatar); ?></div>
+		<div class="jobs-greeting-text">
+			<p class="jobs-greeting-label">Good morning!</p>
+			<h1 class="jobs-greeting-name"><?php echo htmlspecialchars($display); ?></h1>
 		</div>
 	</div>
+
+	<!-- Question section -->
+	<div class="jobs-question">
+		<h2 class="jobs-question-text">What do you need done today?</h2>
+	</div>
+
+	<!-- Main search bar -->
+	<section class="jobs-search-simple" aria-label="Quick search">
+		<div class="jobs-box">
+			<div class="jobs-row">
+				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+				<div class="jobs-input-wrap">
+					<input class="jobs-input" type="search" id="searchInput" placeholder="Search for a Job" aria-label="Search for a Job" autocomplete="off" />
+				</div>
+				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+			</div>
+		</div>
+		
+		<!-- Search suggestions -->
+		<div class="search-suggestions">
+			<?php foreach ($recentSearches as $search): ?>
+				<button type="button" class="suggestion-pill"><?php echo htmlspecialchars($search); ?></button>
+			<?php endforeach; ?>
+		</div>
+	</section>
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
@@ -428,123 +368,42 @@ body {
 		const searchInput = document.getElementById('searchInput');
 		const suggestionPills = document.querySelectorAll('.suggestion-pill');
 
+		// Save search to database
+		function saveSearch(query) {
+			if (!query || query.trim() === '') return;
+			
+			fetch('../config/save_search.php', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded',
+				},
+				body: 'query=' + encodeURIComponent(query)
+			}).catch(err => console.error('Failed to save search:', err));
+		}
+
+		// Handle pill clicks
 		suggestionPills.forEach(pill => {
 			pill.addEventListener('click', function() {
 				searchInput.value = this.textContent;
 				searchInput.focus();
 			});
 		});
+
+		// Handle search on Enter key
+		searchInput.addEventListener('keypress', function(e) {
+			if (e.key === 'Enter') {
+				e.preventDefault();
+				const query = this.value.trim();
+				if (query) {
+					saveSearch(query);
+					// Optionally: redirect to search results or filter results
+					// For now, just save it
+				}
+			}
+		});
 	})();
 	</script>
 </body>
 </html>
-		clearSelected(cats);
-		cats.querySelectorAll('.opt').forEach(o => { if (o.dataset.parent === initialParent) o.setAttribute('aria-selected','true'); });
-		renderServices(initialParent);
-		srvs.style.display = 'grid'; back.classList.add('show'); pickNote.textContent = 'Pick a service.';
-		if (initialService) {
-			srvs.querySelectorAll('.opt').forEach(o => { if (o.textContent.trim() === initialService) o.setAttribute('aria-selected','true'); });
-		}
-	}
-
-	cats.addEventListener('click', (e) => {
-		const btn = e.target.closest('.opt[data-parent]');
-		if (!btn) return;
-		clearSelected(cats); clearSelected(srvs);
-		btn.setAttribute('aria-selected','true');
-		const parent = btn.dataset.parent;
-		parentInp.value = parent;
-		renderServices(parent);
-		serviceInp.value = '';
-		srvs.style.display = 'grid';
-		back.classList.add('show');
-		pickNote.textContent = 'Pick a service.';
-	});
-
-	srvs.addEventListener('click', (e) => {
-		const btn = e.target.closest('.opt[data-s]');
-		if (!btn) return;
-		clearSelected(srvs);
-		btn.setAttribute('aria-selected','true');
-		serviceInp.value = btn.dataset.s;
-		// Prefill a sensible default title if empty
-		const t = document.getElementById('title');
-		if (t && !t.value.trim()) t.value = 'Need ' + btn.dataset.s.toLowerCase();
-	});
-
-	back.addEventListener('click', () => {
-		parentInp.value = ''; serviceInp.value = '';
-		clearSelected(cats); clearSelected(srvs);
-		srvs.style.display = 'none';
-		back.classList.remove('show');
-		pickNote.textContent = 'Choose a category to start.';
-	});
-})();
-</script>
-
-<!-- Floating bottom navigation -->
-<nav class="dash-bottom-nav">
-	<a href="./home-services.php" aria-label="Home">
-		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-		<span>Home</span>
-	</a>
-	<a href="./clients-post.php" class="active" aria-label="Post">
-		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-		<span>Post</span>
-	</a>
-	<a href="./my-services.php" aria-label="My Services">
-		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-		<span>My Services</span>
-	</a>
-	<a href="./clients-profile.php" aria-label="Profile">
-		<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-		<span>Profile</span>
-	</a>
-</nav>
-
-<style>
-/* Bottom navigation styling */
-.dash-bottom-nav {
-	position: fixed;
-	left: 50%;
-	right: auto;
-	bottom: 16px;
-	z-index: 1000;
-	width: max-content;
-	transform: translateX(-50%) scale(0.92);
-	transform-origin: bottom center;
-	transition: transform 180ms ease, box-shadow 180ms ease;
-	border: 1px solid #e5e7eb;
-	background: #fff;
-	border-radius: 18px;
-	box-shadow: 0 18px 46px rgba(2,6,23,.16);
-	padding: 10px 12px;
-	display: flex;
-	gap: 6px;
-}
-.dash-bottom-nav:hover {
-	transform: translateX(-50%) scale(1);
-	box-shadow: 0 12px 28px rgba(2,6,23,.12);
-}
-.dash-bottom-nav a {
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	padding: 10px 12px;
-	border-radius: 12px;
-	color: #0f172a;
-	text-decoration: none;
-	font-weight: 800;
-	transition: background 0.15s ease, color 0.15s ease;
-}
-.dash-bottom-nav a.active, .dash-bottom-nav a:hover {
-	background: #0ea5e9;
-	color: #fff;
-}
-.dash-bottom-nav .dash-icon {
-	width: 18px;
-	height: 18px;
-}
-</style>
 </body>
 </html>
