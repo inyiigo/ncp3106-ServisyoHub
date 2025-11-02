@@ -619,6 +619,47 @@ body {
 	min-width: 60px;
 	text-align: center;
 }
+
+/* Sub-steps */
+.sub-step {
+	animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* Question Items */
+.question-item {
+	margin-bottom: 16px;
+	position: relative;
+}
+.add-question-btn {
+	width: 100%;
+	padding: 14px;
+	border: 2px dashed #cbd5e1;
+	background: transparent;
+	border-radius: 12px;
+	color: #64748b;
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 24px 0;
+	transition: all 0.15s ease;
+}
+.add-question-btn:hover {
+	border-color: #94a3b8;
+	color: #475569;
+	background: #f8fafc;
+}
+.add-question-btn svg {
+	width: 18px;
+	height: 18px;
+}
 .warning-message {
 	display: flex;
 	align-items: flex-start;
@@ -1005,68 +1046,123 @@ body {
 
 				<!-- Step 2: Description -->
 				<div class="modal-step" data-step="2">
-					<p class="step-title">Step 2 of 4</p>
-					<h2 class="step-heading">Describe your task</h2>
+					<p class="step-title">Step 1 of 4</p>
 					
-					<p class="guidance-text">Summarize the key details! A great description should:</p>
-					<ul class="guidance-list">
-						<li>Cover essential details</li>
-						<li>Clearly outline expected results</li>
-						<li>Request reference works when necessary</li>
-					</ul>
-					
-					<textarea 
-						name="description" 
-						class="form-input form-textarea" 
-						placeholder="Include details of your task here"
-						required
-						id="descriptionInput"
-					></textarea>
-					<p class="char-count">Minimum 30 characters</p>
-					
-					<button type="button" class="generate-button" id="generateBtn">
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-							<path d="M21 3v5h-5"/>
-						</svg>
-						Generate
-					</button>
-					
-					<div class="helper-section">
-						<p class="helper-label">How many helpers do you need?</p>
-						<div class="helper-counter">
-							<button type="button" class="counter-btn" id="decreaseHelper">−</button>
-							<span class="counter-value" id="helperCount">1</span>
-							<button type="button" class="counter-btn" id="increaseHelper">+</button>
-						</div>
-					</div>
-					
-					<!-- Add Image Sub-step -->
-					<h3 class="step-subheading">Add an image</h3>
-					<p class="step-subtitle">Add an image to better elaborate your task. (optional)</p>
-					
-					<div class="upload-section">
-						<button type="button" class="upload-button" id="uploadBtn">
-							<span>Upload</span>
+					<!-- Sub-step 1: Describe your task -->
+					<div class="sub-step" id="subStep2_1">
+						<h2 class="step-heading">Describe your task</h2>
+						
+						<p class="guidance-text">Summarize the key details! A great description should:</p>
+						<ul class="guidance-list">
+							<li>Cover essential details</li>
+							<li>Clearly outline expected results</li>
+							<li>Request reference works when necessary</li>
+						</ul>
+						
+						<textarea 
+							name="description" 
+							class="form-input form-textarea" 
+							placeholder="Include details of your task here"
+							required
+							id="descriptionInput"
+						></textarea>
+						<p class="char-count">Minimum 30 characters</p>
+						
+						<button type="button" class="generate-button" id="generateBtn">
 							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-								<polyline points="17 8 12 3 7 8"/>
-								<line x1="12" y1="3" x2="12" y2="15"/>
+								<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+								<path d="M21 3v5h-5"/>
 							</svg>
+							Generate
 						</button>
-						<p class="upload-info">Max file size: 5 MB</p>
-						<input type="file" id="imageUpload" name="task_image" accept="image/*" style="display: none;" />
+						
+						<div class="helper-section">
+							<p class="helper-label">How many helpers do you need?</p>
+							<div class="helper-counter">
+								<button type="button" class="counter-btn" id="decreaseHelper">−</button>
+								<span class="counter-value" id="helperCount">1</span>
+								<button type="button" class="counter-btn" id="increaseHelper">+</button>
+							</div>
+						</div>
+						
+						<button type="button" class="modal-button next-button" id="nextSubStep2_1">Next</button>
 					</div>
 					
-					<div class="warning-message">
-						<svg viewBox="0 0 24 24" fill="currentColor">
-							<path d="M12 2L2 20h20L12 2zm0 5l6 11H6l6-11z"/>
-							<path d="M11 10h2v5h-2zm0 6h2v2h-2z" fill="#fff"/>
-						</svg>
-						<p>Any tasks containing contact details or attempting to move conversations off the platform will be removed.</p>
+					<!-- Sub-step 2: Add an image (optional) -->
+					<div class="sub-step" id="subStep2_2" style="display: none;">
+						<h2 class="step-heading">Add an image</h2>
+						<p class="step-subtitle">Add an image to better elaborate your task. (optional)</p>
+						
+						<div class="upload-section">
+							<button type="button" class="upload-button" id="uploadBtn">
+								<span>Upload</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+									<polyline points="17 8 12 3 7 8"/>
+									<line x1="12" y1="3" x2="12" y2="15"/>
+								</svg>
+							</button>
+							<p class="upload-info">Max file size: 5 MB</p>
+							<input type="file" id="imageUpload" name="task_image" accept="image/*" style="display: none;" />
+						</div>
+						
+						<div class="warning-message">
+							<svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M12 2L2 20h20L12 2zm0 5l6 11H6l6-11z"/>
+								<path d="M11 10h2v5h-2zm0 6h2v2h-2z" fill="#fff"/>
+							</svg>
+							<p>Images with contact details or attempts to take conversations off-platform will be removed, leading to a ban or task removal.</p>
+						</div>
+						
+						<button type="button" class="modal-button back-button" id="backSubStep2_2">Back</button>
+						<button type="button" class="modal-button next-button" id="nextSubStep2_2">Next</button>
 					</div>
 					
-					<button type="button" class="modal-button next-button" id="nextStep2">Next</button>
+					<!-- Sub-step 3: Pre-screen helpers -->
+					<div class="sub-step" id="subStep2_3" style="display: none;">
+						<h2 class="step-heading">Pre-screen helpers</h2>
+						<p class="step-subtitle">Add questions to help find the right helper</p>
+						
+						<div id="questionsList">
+							<div class="question-item">
+								<input 
+									type="text" 
+									name="question1" 
+									class="form-input" 
+									placeholder="e.g., Do you have experience with this type of work?"
+									id="question1Input"
+								/>
+							</div>
+						</div>
+						
+						<button type="button" class="add-question-btn" id="addQuestionBtn">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="12" y1="5" x2="12" y2="19"/>
+								<line x1="5" y1="12" x2="19" y2="12"/>
+							</svg>
+							Add another question
+						</button>
+						
+						<button type="button" class="modal-button back-button" id="backSubStep2_3">Back</button>
+						<button type="button" class="modal-button next-button" id="nextSubStep2_3">Next</button>
+					</div>
+					
+					<!-- Sub-step 4: Requirements (optional) -->
+					<div class="sub-step" id="subStep2_4" style="display: none;">
+						<h2 class="step-heading">Requirements</h2>
+						<p class="step-subtitle">Add any specific requirements for this task (optional)</p>
+						
+						<textarea 
+							name="requirements" 
+							class="form-input form-textarea" 
+							placeholder="e.g., Must have own tools, Valid ID required, etc."
+							id="requirementsInput"
+							rows="6"
+						></textarea>
+						
+						<button type="button" class="modal-button back-button" id="backSubStep2_4">Back</button>
+						<button type="button" class="modal-button next-button" id="nextStep2">Continue to Details</button>
+					</div>
 				</div>
 
 				<!-- Step 3: Details -->
@@ -1257,20 +1353,75 @@ body {
 			const titleInput = document.getElementById('titleInput');
 			if (titleInput.value.trim().length >= 10) {
 				goToStep(2);
+				showSubStep(2, 1); // Show first sub-step of Step 2
 			} else {
 				alert('Please enter at least 10 characters for the title.');
 			}
 		});
 		
-		// Step 2 -> Step 3
+		// Sub-step navigation for Step 2
+		let currentSubStep = 1;
+		
+		function showSubStep(step, subStep) {
+			// Hide all sub-steps of Step 2
+			document.querySelectorAll('#subStep2_1, #subStep2_2, #subStep2_3, #subStep2_4').forEach(sub => {
+				sub.style.display = 'none';
+			});
+			
+			// Show target sub-step
+			document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
+			currentSubStep = subStep;
+		}
+		
+		// Sub-step 2.1 -> 2.2 (Describe -> Add Image)
+		document.getElementById('nextSubStep2_1').addEventListener('click', function() {
+			const descInput = document.getElementById('descriptionInput');
+			if (descInput.value.trim().length >= 30) {
+				showSubStep(2, 2);
+			} else {
+				alert('Please enter at least 30 characters for the description.');
+			}
+		});
+		
+		// Sub-step 2.2 -> 2.3 (Add Image -> Pre-screen)
+		document.getElementById('nextSubStep2_2').addEventListener('click', function() {
+			showSubStep(2, 3);
+		});
+		
+		// Back from sub-step 2.2 to 2.1
+		document.getElementById('backSubStep2_2').addEventListener('click', function() {
+			showSubStep(2, 1);
+		});
+		
+		// Sub-step 2.3 -> 2.4 (Pre-screen -> Requirements)
+		document.getElementById('nextSubStep2_3').addEventListener('click', function() {
+			showSubStep(2, 4);
+		});
+		
+		// Back from sub-step 2.3 to 2.2
+		document.getElementById('backSubStep2_3').addEventListener('click', function() {
+			showSubStep(2, 2);
+		});
+		
+		// Sub-step 2.4 -> Step 3 (Requirements -> Details)
 		document.getElementById('nextStep2').addEventListener('click', function() {
+			goToStep(3);
+		});
+		
+		// Back from sub-step 2.4 to 2.3
+		document.getElementById('backSubStep2_4').addEventListener('click', function() {
+			showSubStep(2, 3);
+		});
+		
+		// Step 2 -> Step 3
+		/*document.getElementById('nextStep2').addEventListener('click', function() {
 			const descInput = document.getElementById('descriptionInput');
 			if (descInput.value.trim().length >= 30) {
 				goToStep(3);
 			} else {
 				alert('Please enter at least 30 characters for the description.');
 			}
-		});
+		});*/
 		
 		// Step 3 -> Step 4
 		document.getElementById('nextStep3').addEventListener('click', function() {
@@ -1286,10 +1437,34 @@ body {
 		// Back buttons
 		document.getElementById('backStep3').addEventListener('click', function() {
 			goToStep(2);
+			showSubStep(2, 4); // Go back to last sub-step of Step 2
 		});
 		
 		document.getElementById('backStep4').addEventListener('click', function() {
 			goToStep(3);
+		});
+		
+		// Add question functionality
+		let questionCount = 1;
+		document.getElementById('addQuestionBtn').addEventListener('click', function() {
+			if (questionCount < 5) { // Limit to 5 questions
+				questionCount++;
+				const questionsList = document.getElementById('questionsList');
+				const newQuestion = document.createElement('div');
+				newQuestion.className = 'question-item';
+				newQuestion.innerHTML = `
+					<input 
+						type="text" 
+						name="question${questionCount}" 
+						class="form-input" 
+						placeholder="Add another screening question"
+						id="question${questionCount}Input"
+					/>
+				`;
+				questionsList.appendChild(newQuestion);
+			} else {
+				alert('Maximum 5 questions allowed');
+			}
 		});
 		
 		// Upload button click handler
