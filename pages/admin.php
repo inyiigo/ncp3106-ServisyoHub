@@ -1,270 +1,336 @@
 <?php
 session_start();
-
-// Safe DB connection (tries config then localhost fallback, no fatal errors)
-$configPath = __DIR__ . '/../includes/config.php';
-$mysqli = null;
-$dbAvailable = false;
-$lastConnError = '';
-
-if (file_exists($configPath)) { require_once $configPath; }
-
-$attempts = [];
-if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
-$attempts[] = ['localhost', 'root', '', 'servisyohub'];
-
-foreach ($attempts as $creds) {
-	list($h,$u,$p,$n) = $creds;
-	if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
-	try {
-		$conn = @mysqli_connect($h,$u,$p,$n);
-		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
-		else { $lastConnError = mysqli_connect_error() ?: 'Connection failed'; if ($conn) { @mysqli_close($conn); } }
-	} catch (Throwable $ex) {
-		$lastConnError = $ex->getMessage();
-	} finally {
-		if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
-	}
-}
-
-function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
-function quick_count($mysqli, $sql){
-	$cnt = 0;
-	if (!$mysqli) return $cnt;
-	$res = @mysqli_query($mysqli, $sql);
-	if ($res) {
-		$row = mysqli_fetch_row($res);
-		if ($row) $cnt = (int)$row[0];
-		mysqli_free_result($res);
-	}
-	return $cnt;
-}
-
-// Admin KPIs (graceful if tables missing)
-$k_users = $dbAvailable ? quick_count($mysqli, "SELECT COUNT(*) FROM users") : 0;
-$k_jobs  = $dbAvailable ? quick_count($mysqli, "SELECT COUNT(*) FROM jobs") : 0;
-$k_apps  = $dbAvailable ? quick_count($mysqli, "SELECT COUNT(*) FROM job_applications") : 0;
-$k_pay   = $dbAvailable ? quick_count($mysqli, "SELECT COUNT(*) FROM payments") : 0;
-
-// Recent lists (graceful if tables missing)
-$recentUsers = [];
-if ($dbAvailable) {
-	$res = @mysqli_query($mysqli, "SELECT id, COALESCE(username,'') AS username, COALESCE(email,'') AS email FROM users ORDER BY id DESC LIMIT 8");
-	if ($res) { while ($row = mysqli_fetch_assoc($res)) $recentUsers[] = $row; mysqli_free_result($res); }
-}
-$recentJobs = [];
-if ($dbAvailable) {
-	$res = @mysqli_query($mysqli, "SELECT id, COALESCE(title,'Job') AS title, COALESCE(status,'pending') AS status FROM jobs ORDER BY id DESC LIMIT 8");
-	if ($res) { while ($row = mysqli_fetch_assoc($res)) $recentJobs[] = $row; mysqli_free_result($res); }
-}
+// Optional: basic guard
+// if (empty($_SESSION['is_admin'])) { header('Location: ./login.php'); exit; }
 ?>
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Admin • ServisyoHub</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<link rel="stylesheet" href="../assets/css/styles.css">
-<style>
-/* page tweaks using site tokens */
-.page-wrap { max-width: 1100px; margin: 24px auto; padding: 18px; position: relative; z-index: 1; }
-.header-row { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.header-row h2 { margin:0; }
-.note { color: var(--muted); }
+	<meta charset="utf-8">
+	<title>Admin Dashboard • ServisyoHub</title>
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<link rel="stylesheet" href="../assets/css/styles.css">
+	<style>
+		:root{
+			--blue:#0078a6;
+			--bg:#ffffff;
+			--text:#0f172a;
+			--muted:#64748b;
+			--line:#e2e8f0;
+			--card:#ffffff;
+			--shadow:0 8px 24px rgba(2,6,23,.08);
+			--topbar-h: 0px; /* was 64px; no topbar now */
+		}
+		*{box-sizing:border-box}
+		html,body{height:100%}
+		body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+		a{text-decoration:none;color:inherit}
 
-/* metrics grid */
-.kpi { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; }
-@media (max-width: 960px){ .kpi { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 520px){ .kpi { grid-template-columns: 1fr; } }
-.kpi-card { padding:14px; border-radius:14px; background: rgba(255,255,255,.35); border: 2px solid rgba(255,255,255,.6); box-shadow: 0 8px 20px rgba(2,6,23,.15); backdrop-filter: blur(4px); }
-.kpi-label { color: var(--muted); font-weight:700; font-size:.9rem; }
-.kpi-value { font-weight: 900; font-size: 1.6rem; }
+		/* layout */
+		.admin-wrap{
+			display:grid;
+			grid-template-columns:260px 1fr;
+			grid-template-areas: "aside main"; /* ensure main is outside sidebar */
+			min-height:100dvh
+		}
+		.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;height:var(--topbar-h);padding:0 16px;background:#fff;border-bottom:3px solid var(--blue);box-shadow:0 4px 14px rgba(2,6,23,.06)}
+		.brand{display:flex;align-items:center;gap:10px;font-weight:800}
+		.brand img{height:28px}
+		.menu-btn{display:none;border:0;background:transparent;font-size:22px}
+		@media (max-width:960px){ .menu-btn{display:inline-flex} }
+		.main{padding:16px; grid-area: main;} /* bind main to its own grid area */
+		.container{max-width:1200px;margin:0 auto;display:grid;gap:14px}
 
-/* lists */
-.grid { display:grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top:14px; }
-@media (max-width: 960px){ .grid { grid-template-columns: 1fr; } }
-.table { width:100%; border-collapse:collapse; }
-.table th, .table td { padding:10px 12px; border-bottom:1px solid var(--line); background:transparent; color: #fff; }
-.badge { padding:4px 8px; border-radius:999px; font-weight:800; font-size:.78rem; }
-.badge-pending { background:#fef3c7; color:#92400e; }
-.badge-inprogress { background:#dbeafe; color:#1e40af; }
-.badge-completed { background:#dcfce7; color:#166534; }
-.badge-cancelled { background:#fee2e2; color:#991b1b; }
+		/* sidebar */
+		.aside{
+			background:#fff;border-right:1px solid var(--line);padding:16px 10px;
+			position:sticky;top:var(--topbar-h);height:calc(100dvh - var(--topbar-h));overflow:auto;
+			grid-area: aside; /* bind sidebar to aside area */
+		}
+		.aside h3{margin:4px 10px 10px;font-size:.95rem;color:var(--muted);font-weight:800}
+		.nav{display:grid;gap:6px}
+		.nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;color:var(--text);border:1px solid transparent}
+		.nav a.active{background:#f0f9ff;border-color:color-mix(in srgb, var(--blue) 30%, #0000);color:var(--blue);font-weight:800}
+		.nav a:hover{background:#f8fafc;border-color:#eef2f7}
+		.nav svg{width:18px;height:18px}
 
-/* Make form cards blue */
-.form-card.glass-card {
-	background: #0078a6 !important;
-	color: #fff;
-	border-radius: 16px;
-	padding: 16px 20px;
-	box-shadow: 0 8px 24px rgba(0,120,166,.24);
-	border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
-}
-.form-card.glass-card h3 { color: #fff; }
-.form-card.glass-card .note { color: rgba(255,255,255,.85); }
+		/* mobile drawer keeps content separate */
+		@media (max-width: 960px){
+			.admin-wrap{grid-template-columns:1fr; grid-template-areas: "main";}
+			.aside{
+				position:fixed;
+				inset:var(--topbar-h) auto 0 0;
+				height:calc(100dvh - var(--topbar-h));
+				transform:translateX(-100%);
+				transition:transform .2s ease;
+				z-index:20;
+				width:260px;
+				overflow:auto;
+			}
+			.aside.open{transform:none}
+			/* mask moved outside .admin-wrap; styles remain the same */
+			.aside-mask{
+				position:fixed;
+				inset:var(--topbar-h) 0 0 0;
+				background:rgba(15,23,42,.35);
+				backdrop-filter:saturate(140%) blur(2px);
+				display:none;
+				z-index:19
+			}
+			.aside-mask.show{display:block}
+			body.aside-open{ overflow:hidden; }
+		}
 
-/* page override: white background */
-body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
+		/* grid areas */
+		.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+		@media (max-width:1024px){.stats{grid-template-columns:repeat(2,1fr)}}
+		@media (max-width:560px){.stats{grid-template-columns:1fr}}
+		.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+		.card h4{margin:0 0 6px;font-size:.95rem;color:var(--muted)}
+		.metric{font-size:1.4rem;font-weight:800}
+		.delta{font-size:.85rem;color:var(--muted)}
 
-/* Blue bottom border on topbar */
-.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
+		.charts{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+		@media (max-width:960px){.charts{grid-template-columns:1fr}}
 
-/* Background logo - transparent and behind UI */
-.bg-logo {
-	position: fixed;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	width: 25%;
-	max-width: 350px;
-	opacity: 0.15;
-	z-index: 0;
-	pointer-events: none;
-}
-.bg-logo img {
-	width: 100%;
-	height: auto;
-	display: block;
-}
+		.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+		@media (max-width:1024px){.tiles{grid-template-columns:repeat(2,1fr)}}
+		@media (max-width:560px){.tiles{grid-template-columns:1fr}}
+		.tile{background:linear-gradient(135deg,#7c3aed 0%,#9333ea 60%,#a855f7 100%);color:#fff;border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+		.tile.orange{background:linear-gradient(135deg,#fb923c 0%,#f97316 60%,#f59e0b 100%)}
+		.tile.cyan{background:linear-gradient(135deg,#06b6d4 0%,#0891b2 60%,#0ea5e9 100%)}
+		.tile.blue{background:linear-gradient(135deg,#3b82f6 0%,#2563eb 60%,#1d4ed8 100%)}
+		.tile .big{font-size:1.2rem;font-weight:800;margin-top:6px}
 
-/* centered floating bottom navigation */
-.dash-bottom-nav {
-	position: fixed;
-	left: 50%;
-	right: auto;
-	bottom: 16px;
-	z-index: 1000;
-	width: max-content;
-	transform: translateX(-50%) scale(0.92);
-	transform-origin: bottom center;
-	transition: transform 180ms ease, box-shadow 180ms ease;
-	border: 3px solid #0078a6;
-	background: transparent;
-}
-.dash-bottom-nav:hover {
-	transform: translateX(-50%) scale(1);
-	box-shadow: 0 12px 28px rgba(2,6,23,.12);
-	}
+		/* lower grid */
+		.lower{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+		@media (max-width:960px){.lower{grid-template-columns:1fr}}
+		.activity{display:grid;gap:10px}
+		.act{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff}
+		.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.75rem;font-weight:800}
+		.badge.purple{background:#ede9fe;color:#6d28d9}
+		.badge.green{background:#dcfce7;color:#166534}
+		.badge.orange{background:#ffedd5;color:#9a3412}
 
-	/* Remove bottom back button styles */
-	@media (max-width:520px){ .bottom-box{ left:12px; right:12px; bottom:14px; display:flex; justify-content:center; } .back-box{ width:100%; justify-content:center; } }
-</style>
+		.table{width:100%;border-collapse:collapse}
+		.table th,.table td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size:.95rem}
+		.status{padding:6px 10px;border-radius:10px;font-weight:800;font-size:.78rem}
+		.status.process{background:#e0f2fe;color:#075985}
+		.status.open{background:#ede9fe;color:#5b21b6}
+		.status.hold{background:#fef3c7;color:#92400e}
+
+		/* Client widgets */
+		.client-overview .card .metric { font-size: 1.3rem; }
+		.client-widgets { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+		@media (max-width:960px){ .client-widgets{ grid-template-columns:1fr; } }
+		.c-list { margin:0; padding-left:18px; display:grid; gap:6px; color: var(--muted); }
+		.table.compact th, .table.compact td { padding:8px 10px; font-size:.9rem; }
+		.tag { display:inline-block; padding:4px 8px; border-radius:999px; font-size:.78rem; font-weight:800; }
+		.tag.pending { background:#fef3c7; color:#92400e; }
+		.tag.active { background:#e0f2fe; color:#075985; }
+		.tag.done { background:#dcfce7; color:#166534; }
+		/* Feedback list */
+		.feedback { display:grid; gap:10px; }
+		.feedback .item { display:flex; gap:10px; align-items:flex-start; color: var(--muted); }
+		.feedback .dot { width:10px; height:10px; border-radius:50%; background:#0078a6; margin-top:7px; flex:0 0 10px; }
+
+		/* NEW: section titles and 2-col layout */
+		.section-title { margin: 4px 4px 2px; color: var(--muted); font-weight: 800; font-size: .95rem; }
+		.layout-two { display:grid; grid-template-columns: 2fr 1fr; gap:12px; }
+		@media (max-width: 960px){ .layout-two{ grid-template-columns:1fr; } }
+
+		/* make nav logo small */
+		.nav-logo { margin: 6px 10px 12px; display:flex; align-items:center; justify-content:center; }
+		.nav-logo img { height: 32px; width: auto; display:block; }
+
+		/* NEW: top bar inside the sidebar */
+		.side-topbar{
+			position: sticky;
+			top: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center; /* center the logo */
+			gap: 10px;
+			padding: 10px 12px;
+			background: #fff;
+			border-bottom: 1px solid var(--line);
+			z-index: 1;
+		}
+		.side-topbar img{
+			height: 32px;
+			width: auto;
+			display: block;
+			margin: 0 auto; /* ensure centered image */
+		}
+	</style>
 </head>
-<body class="theme-profile-bg">
-	<!-- Background Logo -->
-	<div class="bg-logo">
-		<img src="../assets/images/job_logo.png" alt="" />
-	</div>
+<body>
 
-	<div class="dash-topbar center">
-		<div class="dash-brand">
-			<img src="../assets/images/bluefont.png" alt="ServisyoHub" class="dash-brand-logo" onerror="this.style.display='none'">
+<div class="admin-wrap">
+	<aside class="aside" id="aside">
+		<!-- Sidebar top bar with logo -->
+		<div class="side-topbar">
+			<img src="../assets/images/bluefont.png" alt="ServisyoHub" />
 		</div>
-	</div>
 
-	<div class="page-wrap">
-		<div class="header-row">
-			<div>
-				<h2>Admin Dashboard</h2>
-				<div class="note">
-					<?php
-					if (!$dbAvailable) echo 'Database unavailable: ' . e($lastConnError);
-					else echo 'Overview of users, jobs, and activity.';
-					?>
+		<nav class="nav">
+			<a class="active" href="./admin.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>
+				Dashboard
+			</a>
+		</nav>
+	</aside>
+
+	<main class="main">
+		<div class="container">
+			<p class="section-title">Jobs Overview</p>
+			<!-- Jobs overview -->
+			<section class="stats" aria-label="Jobs overview">
+				<div class="card">
+					<h4>Applications</h4>
+					<div class="metric">0</div>
+					<div class="delta">0% vs last month</div>
 				</div>
-			</div>
+				<div class="card">
+					<h4>Open Jobs</h4>
+					<div class="metric">0</div>
+					<div class="delta">—</div>
+				</div>
+				<div class="card">
+					<h4>Active Jobs</h4>
+					<div class="metric">0</div>
+					<div class="delta">Today</div>
+				</div>
+				<div class="card">
+					<h4>Response Rate</h4>
+					<div class="metric">0%</div>
+					<div class="delta">Monthly</div>
+				</div>
+			</section>
+
+			<p class="section-title">Clients Overview</p>
+			<!-- Clients overview -->
+			<section class="stats" aria-label="Clients overview">
+				<div class="card">
+					<h4>New Clients</h4>
+					<div class="metric">0</div>
+					<div class="delta">0% vs last month</div>
+				</div>
+				<div class="card">
+					<h4>Active Bookings</h4>
+					<div class="metric">0</div>
+					<div class="delta">Today</div>
+				</div>
+				<div class="card">
+					<h4>Pending Requests</h4>
+					<div class="metric">0</div>
+					<div class="delta">Awaiting review</div>
+				</div>
+				<div class="card">
+					<h4>Unread Messages</h4>
+					<div class="metric">0</div>
+					<div class="delta">Inbox</div>
+				</div>
+			</section>
+
+			<!-- Replace separate charts/client-widgets with a 2-col layout -->
+			<section class="layout-two" aria-label="Clients and insights">
+				<div>
+					<p class="section-title">Clients</p>
+					<!-- Client widgets -->
+					<section class="client-widgets" aria-label="Clients">
+						<div class="card">
+							<h4>Pending Client Requests</h4>
+							<ul class="c-list">
+								<li>House cleaning • Brgy. 442 • Today 2:00 PM</li>
+								<li>Plumbing check • Sampaloc • Tomorrow 10:00 AM</li>
+								<li>Errand runner • Quiapo • Fri 9:00 AM</li>
+							</ul>
+						</div>
+						<div class="card">
+							<h4>Active Bookings</h4>
+							<table class="table compact" aria-label="Active bookings">
+								<thead><tr><th>Ref</th><th>Client</th><th>Service</th><th>When</th><th>Status</th></tr></thead>
+								<tbody>
+									<tr><td>BK-1042</td><td>A. Santos</td><td>Cleaning</td><td>Today 3:00 PM</td><td><span class="tag active">Active</span></td></tr>
+									<tr><td>BK-1041</td><td>J. Cruz</td><td>Plumbing</td><td>Tomorrow 9:30 AM</td><td><span class="tag pending">Pending</span></td></tr>
+									<tr><td>BK-1039</td><td>M. Reyes</td><td>Errands</td><td>Fri 8:00 AM</td><td><span class="tag pending">Pending</span></td></tr>
+								</tbody>
+							</table>
+						</div>
+					</section>
+				</div>
+				<div>
+					<p class="section-title">Insights</p>
+					<!-- Charts -->
+					<section class="charts" aria-label="Charts">
+						<div class="card">
+							<h4>Lead Sources</h4>
+							<canvas id="trafChart" height="110"></canvas>
+							<div style="display:flex;gap:10px;margin-top:10px;color:var(--muted);font-weight:700">
+								<span>0% Search</span><span>•</span><span>0% Referrals</span><span>•</span><span>0% Direct</span>
+							</div>
+						</div>
+					</section>
+				</div>
+			</section>
+
+			<!-- Details -->
+			<section class="lower" aria-label="Details">
+				<div class="card">
+					<h4>Recent Feedback</h4>
+					<div class="feedback">
+						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Great service, very responsive.” • Cleaning • K. P.</div></div>
+						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Arrived on time and finished quickly.” • Plumbing • R. T.</div></div>
+						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Helpful and professional.” • Errands • L. G.</div></div>
+					</div>
+				</div>
+
+				<div class="card">
+					<h4>Work Queue</h4>
+					<ul class="list">
+						<li>Verify client details • Open</li>
+						<li>Confirm schedule • In progress</li>
+						<li>Review application • On hold</li>
+					</ul>
+				</div>
+			</section>
 		</div>
+	</main>
+</div>
 
-		<!-- KPIs -->
-		<section class="kpi">
-			<div class="kpi-card">
-				<div class="kpi-label">Users</div>
-				<div class="kpi-value"><?php echo number_format($k_users); ?></div>
-			</div>
-			<div class="kpi-card">
-				<div class="kpi-label">Jobs</div>
-				<div class="kpi-value"><?php echo number_format($k_jobs); ?></div>
-			</div>
-			<div class="kpi-card">
-				<div class="kpi-label">Applications</div>
-				<div class="kpi-value"><?php echo number_format($k_apps); ?></div>
-			</div>
-			<div class="kpi-card">
-				<div class="kpi-label">Payments</div>
-				<div class="kpi-value"><?php echo number_format($k_pay); ?></div>
-			</div>
-		</section>
+<!-- Move mask OUTSIDE the grid so it doesn't sit in the sidebar column -->
+<div class="aside-mask" id="asideMask"></div>
 
-		<!-- Recent lists -->
-		<section class="grid">
-			<div class="form-card glass-card">
-				<h3 style="margin:0 0 8px;">Recent Users</h3>
-				<?php if (!$dbAvailable): ?>
-					<div class="note">Cannot load users.</div>
-				<?php elseif (empty($recentUsers)): ?>
-					<div class="note">No users to display.</div>
-				<?php else: ?>
-					<table class="table">
-						<thead>
-							<tr><th>#</th><th>Username</th><th>Email</th></tr>
-						</thead>
-						<tbody>
-							<?php foreach ($recentUsers as $u): ?>
-								<tr>
-									<td><?php echo e($u['id']); ?></td>
-									<td><?php echo e($u['username']); ?></td>
-									<td><?php echo e($u['email']); ?></td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
-			</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const aside = document.getElementById('aside');
+const mask = document.getElementById('asideMask');
+const menuBtn = document.getElementById('menuBtn');
 
-			<div class="form-card glass-card">
-				<h3 style="margin:0 0 8px;">Recent Jobs</h3>
-				<?php if (!$dbAvailable): ?>
-					<div class="note">Cannot load jobs.</div>
-				<?php elseif (empty($recentJobs)): ?>
-					<div class="note">No jobs to display.</div>
-				<?php else: ?>
-					<table class="table">
-						<thead>
-							<tr><th>#</th><th>Title</th><th>Status</th></tr>
-						</thead>
-						<tbody>
-							<?php foreach ($recentJobs as $j): ?>
-								<?php
-									$st = strtolower($j['status']);
-									$badge = $st==='completed' ? 'badge-completed' : ($st==='cancelled' ? 'badge-cancelled' : (($st==='in progress'||$st==='in_progress')?'badge-inprogress':'badge-pending'));
-								?>
-								<tr>
-									<td><?php echo e($j['id']); ?></td>
-									<td><?php echo e($j['title']); ?></td>
-									<td><span class="badge <?php echo $badge; ?>"><?php echo e(ucwords(str_replace('_',' ', $st))); ?></span></td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				<?php endif; ?>
-			</div>
-		</section>
-	</div>
+menuBtn?.addEventListener('click', ()=>{
+	aside.classList.toggle('open');
+	mask.classList.toggle('show');
+	document.body.classList.toggle('aside-open');
+});
+mask?.addEventListener('click', ()=>{
+	aside.classList.remove('open');
+	mask.classList.remove('show');
+	document.body.classList.remove('aside-open');
+});
 
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./admin.php" class="active" aria-label="Dashboard">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Dashboard</span>
-		</a>
-		<a href="./admin-users.php" aria-label="Users">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Users</span>
-		</a>
-		<a href="./admin-settings.php" aria-label="Settings">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m5.2-13.2l-3 3m-4.4 4.4l-3 3m0-10.4l3 3m4.4 4.4l3 3"/></svg>
-			<span>Settings</span>
-		</a>
-	</nav>
+// Lead Sources doughnut (all zeros)
+const trafCtx = document.getElementById('trafChart');
+if (trafCtx){
+	new Chart(trafCtx, {
+		type:'doughnut',
+		data:{
+			labels:['Search','Referrals','Direct'],
+			datasets:[{ data:[0,0,0], backgroundColor:['#8b5cf6','#f472b6','#fde68a'], borderWidth:0 }]
+		},
+		options:{ plugins:{legend:{display:false}}, cutout:'62%' }
+	});
+}
+</script>
 </body>
 </html>
