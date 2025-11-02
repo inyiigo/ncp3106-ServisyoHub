@@ -174,6 +174,24 @@ ob_end_flush();
 		.svc-cat:hover { background: #f1f5f9; }
 		.svc-cat.active { background:#0078a6; color:#fff; border-color:#0078a6; }
 
+		/* Carousel wrapper and arrows for categories */
+		.svc-cats-wrap { max-width:1100px; margin:10px auto 8px; padding:0 16px; position:relative; }
+		.svc-cats-wrap .svc-cats { margin:0 !important; padding:0 !important; }
+		.cat-nav-btn {
+			position:absolute; top:50%; transform:translateY(-50%);
+			width:34px; height:34px; border-radius:999px;
+			border:2px solid #e2e8f0; background:#fff; color:#0f172a;
+			display:grid; place-items:center; cursor:pointer;
+			box-shadow:0 6px 16px rgba(0,0,0,.08);
+			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+			z-index:2;
+		}
+		.cat-nav-btn:hover { transform:translateY(-50%) scale(1.05); border-color:#0078a6; background:#f8fafc; }
+		.cat-nav-btn[disabled] { opacity:.35; cursor:default; transform:translateY(-50%); box-shadow:none; }
+		.cat-nav-btn.prev { left:8px; }
+		.cat-nav-btn.next { right:8px; }
+		.cat-nav-btn svg { width:16px; height:16px; }
+
 		/* Results/notify toolbar */
 		.results-bar {
 			max-width: 1100px; margin: 0 auto 10px; padding: 0 16px;
@@ -290,16 +308,29 @@ ob_end_flush();
 				</div>
 			</section>
 
-			<!-- NEW: Category tabs + results bar + white list -->
-			<nav class="svc-cats" aria-label="Categories">
-				<button type="button" class="svc-cat active">All</button>
-				<button type="button" class="svc-cat">Errands</button>
-				<button type="button" class="svc-cat">Part-time</button>
-				<button type="button" class="svc-cat">Explore</button>
-				<button type="button" class="svc-cat">Household</button>
-				<button type="button" class="svc-cat">Creative</button>
-				<button type="button" class="svc-cat">Tech</button>
-			</nav>
+			<!-- Categories carousel: full list + arrows -->
+			<div class="svc-cats-wrap" aria-label="Categories carousel">
+				<button type="button" class="cat-nav-btn prev" id="catPrev" aria-label="Previous categories">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+				</button>
+				<nav id="svcCats" class="svc-cats" aria-label="Categories">
+					<button type="button" class="svc-cat active" data-cat="All">All</button>
+					<button type="button" class="svc-cat" data-cat="Business & admin">Business &amp; admin</button>
+					<button type="button" class="svc-cat" data-cat="Care services">Care services</button>
+					<button type="button" class="svc-cat" data-cat="Creative">Creative</button>
+					<button type="button" class="svc-cat" data-cat="Household">Household</button>
+					<button type="button" class="svc-cat" data-cat="Part-time">Part-time</button>
+					<button type="button" class="svc-cat" data-cat="Research">Research</button>
+					<button type="button" class="svc-cat" data-cat="Social media">Social media</button>
+					<button type="button" class="svc-cat" data-cat="Talents">Talents</button>
+					<button type="button" class="svc-cat" data-cat="Teach me">Teach me</button>
+					<button type="button" class="svc-cat" data-cat="Tech & IT">Tech &amp; IT</button>
+					<button type="button" class="svc-cat" data-cat="Others">Others</button>
+				</nav>
+				<button type="button" class="cat-nav-btn next" id="catNext" aria-label="Next categories">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+				</button>
+			</div>
 
 			<div class="results-bar">
 				<div class="results-left">
@@ -441,5 +472,125 @@ ob_end_flush();
 			<span>Profile</span>
 		</a>
 	</nav>
+
+	<script>
+	// Categories carousel + search + filter logic
+	(function(){
+		const row = document.getElementById('svcCats');
+		const prev = document.getElementById('catPrev');
+		const next = document.getElementById('catNext');
+		const search = document.querySelector('.svc-search-input');
+		const feedCards = document.querySelectorAll('.feed-card');
+		const svcCards = document.querySelectorAll('.svc-card');
+		
+		if (!row || !prev || !next) return;
+
+		let activeCategory = 'All';
+
+		function updateArrows(){
+			const max = row.scrollWidth - row.clientWidth - 1;
+			prev.disabled = row.scrollLeft <= 0;
+			next.disabled = row.scrollLeft >= max;
+		}
+		
+		function scrollByStep(dir){
+			const step = Math.max(160, Math.floor(row.clientWidth * 0.9));
+			row.scrollBy({ left: dir * step, behavior: 'smooth' });
+			setTimeout(updateArrows, 250);
+		}
+		
+		prev.addEventListener('click', ()=> scrollByStep(-1));
+		next.addEventListener('click', ()=> scrollByStep(1));
+		row.addEventListener('scroll', updateArrows, { passive: true });
+		window.addEventListener('resize', updateArrows);
+
+		// Category click: activate, fill search, filter posts
+		row.addEventListener('click', (e)=>{
+			const btn = e.target.closest('.svc-cat');
+			if (!btn) return;
+			
+			// Update active state
+			row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+			btn.classList.add('active');
+			
+			activeCategory = btn.getAttribute('data-cat') || 'All';
+			
+			// Fill/clear search box
+			if (search) {
+				if (activeCategory === 'All') {
+					search.value = '';
+				} else {
+					search.value = activeCategory;
+				}
+			}
+			
+			// Filter Recent Posts by category
+			filterPosts(activeCategory);
+		});
+
+		function filterPosts(category){
+			// Filter feed cards (Recent Posts)
+			feedCards.forEach(card => {
+				const cardCat = card.querySelector('.fc-cat')?.textContent.trim() || '';
+				if (category === 'All' || cardCat === category) {
+					card.style.display = '';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+
+			// Filter service list cards
+			svcCards.forEach(card => {
+				const cardTitle = card.querySelector('.svc-title')?.textContent.trim().toLowerCase() || '';
+				if (category === 'All' || cardTitle.includes(category.toLowerCase())) {
+					card.style.display = '';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+		}
+
+		// Search box typing also filters
+		if (search) {
+			search.addEventListener('input', ()=>{
+				const term = search.value.trim().toLowerCase();
+				
+				// If search matches a category, activate it
+				const matchBtn = Array.from(row.querySelectorAll('.svc-cat')).find(b => {
+					const cat = (b.getAttribute('data-cat') || '').toLowerCase();
+					return cat === term;
+				});
+				
+				if (matchBtn) {
+					row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+					matchBtn.classList.add('active');
+					activeCategory = matchBtn.getAttribute('data-cat') || 'All';
+					filterPosts(activeCategory);
+				} else if (term === '') {
+					// Empty search = All
+					const allBtn = row.querySelector('.svc-cat[data-cat="All"]');
+					if (allBtn) {
+						row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+						allBtn.classList.add('active');
+						activeCategory = 'All';
+						filterPosts('All');
+					}
+				} else {
+					// Free-text search: show all that match
+					feedCards.forEach(card => {
+						const text = card.textContent.toLowerCase();
+						card.style.display = text.includes(term) ? '' : 'none';
+					});
+					svcCards.forEach(card => {
+						const text = card.textContent.toLowerCase();
+						card.style.display = text.includes(term) ? '' : 'none';
+					});
+				}
+			});
+		}
+
+		updateArrows();
+	})();
+	</script>
 </body>
 </html>
