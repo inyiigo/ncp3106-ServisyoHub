@@ -381,6 +381,9 @@ body {
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
+	overflow-y: auto;
+	-webkit-overflow-scrolling: touch;
+	contain: layout style paint;
 }
 .post-modal.active {
 	opacity: 1;
@@ -388,8 +391,28 @@ body {
 }
 .post-modal-header {
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
+	align-items: center;
 	padding: 20px;
+}
+.modal-back {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 8px;
+	color: #0f172a;
+	transition: color 0.15s ease;
+	display: none;
+}
+.modal-back.visible {
+	display: block;
+}
+.modal-back:hover {
+	color: #64748b;
+}
+.modal-back svg {
+	width: 24px;
+	height: 24px;
 }
 .modal-close {
 	background: none;
@@ -448,12 +471,21 @@ body {
 	background: #0f172a;
 	border-color: #0f172a;
 }
+.step-item.completed .step-circle {
+	background: #0f172a;
+	border-color: #0f172a;
+}
 .step-item.active .step-circle::after {
 	content: '';
 	width: 12px;
 	height: 12px;
 	border-radius: 50%;
 	background: #fff;
+}
+.step-item.completed .step-circle svg {
+	width: 20px;
+	height: 20px;
+	color: #fff;
 }
 .step-label {
 	font-size: 0.9rem;
@@ -463,12 +495,16 @@ body {
 .step-item.active .step-label {
 	color: #0f172a;
 }
+.step-item.completed .step-label {
+	color: #0f172a;
+}
 
 /* Modal Content */
 .modal-content {
 	max-width: 600px;
 	margin: 0 auto;
-	padding: 0 20px 40px;
+	padding: 0 20px 180px;
+	contain: layout style;
 }
 .modal-step {
 	display: none;
@@ -488,11 +524,273 @@ body {
 	color: #0f172a;
 	margin-bottom: 24px;
 }
+.step-subheading {
+	font-size: 1.4rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin-top: 32px;
+	margin-bottom: 12px;
+}
 .step-subtitle {
 	font-size: 1rem;
 	color: #64748b;
 	margin-bottom: 16px;
 	font-weight: 500;
+}
+.guidance-text {
+	color: #64748b;
+	font-size: 0.95rem;
+	line-height: 1.6;
+	margin-bottom: 12px;
+}
+.guidance-list {
+	list-style: none;
+	padding: 0;
+	margin: 0 0 20px 0;
+}
+.guidance-list li {
+	color: #64748b;
+	font-size: 0.95rem;
+	padding-left: 20px;
+	position: relative;
+	margin-bottom: 8px;
+}
+.guidance-list li::before {
+	content: '•';
+	position: absolute;
+	left: 0;
+	font-weight: bold;
+}
+.generate-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	background: transparent;
+	color: #64748b;
+	border: none;
+	padding: 0;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	margin: 12px 0 0 0;
+	transition: color 0.15s ease;
+}
+.generate-button:hover {
+	color: #0f172a;
+}
+.generate-button svg {
+	width: 20px;
+	height: 20px;
+}
+.helper-section {
+	margin: 32px 0 0 0;
+	padding: 32px 0 0 0;
+	border-top: 1px solid #e5e7eb;
+}
+.helper-label {
+	font-size: 1rem;
+	color: #64748b;
+	margin-bottom: 16px;
+	font-weight: 500;
+}
+.helper-counter {
+	display: flex;
+	align-items: center;
+	gap: 24px;
+}
+.counter-btn {
+	width: 48px;
+	height: 48px;
+	border-radius: 50%;
+	border: 2px solid #e5e7eb;
+	background: #fff;
+	color: #0f172a;
+	font-size: 1.5rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: all 0.15s ease;
+}
+.counter-btn:hover {
+	border-color: #cbd5e1;
+	background: #f8fafc;
+}
+.counter-value {
+	font-size: 1.5rem;
+	font-weight: 700;
+	color: #0f172a;
+	min-width: 60px;
+	text-align: center;
+}
+
+/* Sub-steps */
+.sub-step {
+	animation: fadeIn 0.3s ease;
+	min-height: 200px;
+}
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(10px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+/* Question Items */
+.question-item {
+	margin-bottom: 16px;
+	position: relative;
+}
+.add-question-btn {
+	width: 100%;
+	padding: 14px;
+	border: 2px dashed #cbd5e1;
+	background: transparent;
+	border-radius: 12px;
+	color: #64748b;
+	font-size: 0.95rem;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	margin: 24px 0;
+	transition: all 0.15s ease;
+}
+.add-question-btn:hover {
+	border-color: #94a3b8;
+	color: #475569;
+	background: #f8fafc;
+}
+.add-question-btn svg {
+	width: 18px;
+	height: 18px;
+}
+
+/* Checkbox */
+.checkbox-label {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	cursor: pointer;
+	margin: 24px 0;
+	user-select: none;
+}
+.checkbox-input {
+	width: 24px;
+	height: 24px;
+	border: 2px solid #cbd5e1;
+	border-radius: 6px;
+	cursor: pointer;
+	appearance: none;
+	-webkit-appearance: none;
+	background: #fff;
+	position: relative;
+	flex-shrink: 0;
+	transition: all 0.15s ease;
+}
+.checkbox-input:checked {
+	background: #0f172a;
+	border-color: #0f172a;
+}
+.checkbox-input:checked::after {
+	content: '';
+	position: absolute;
+	left: 7px;
+	top: 3px;
+	width: 6px;
+	height: 10px;
+	border: solid #fff;
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+}
+.checkbox-text {
+	font-size: 0.95rem;
+	color: #475569;
+	line-height: 1.5;
+}
+
+.warning-message {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	background: #fef3c7;
+	padding: 16px;
+	border-radius: 12px;
+	margin: 32px 0 120px 0;
+}
+.warning-message svg {
+	width: 20px;
+	height: 20px;
+	color: #f59e0b;
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+.warning-message p {
+	margin: 0;
+	color: #78716c;
+	font-size: 0.9rem;
+	line-height: 1.5;
+}
+.upload-section {
+	margin: 24px 0;
+}
+.upload-button {
+	width: 100%;
+	background: #fff;
+	color: #0f172a;
+	border: 2px solid #e5e7eb;
+	border-radius: 999px;
+	padding: 16px;
+	font-size: 1rem;
+	font-weight: 600;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	transition: all 0.15s ease;
+	margin-bottom: 8px;
+}
+.upload-button:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+.upload-button svg {
+	width: 20px;
+	height: 20px;
+}
+.upload-info {
+	text-align: right;
+	font-size: 0.85rem;
+	color: #cbd5e1;
+	margin-bottom: 24px;
+}
+.upload-warning {
+	color: #94a3b8;
+	font-size: 0.9rem;
+	line-height: 1.5;
+	margin-bottom: 100px;
+}
+.generate-screening-button {
+	width: 100%;
+	background: #f87171;
+	color: #fff;
+	border: none;
+	border-radius: 12px;
+	padding: 16px;
+	font-size: 1rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	position: fixed;
+	bottom: 20px;
+	left: 20px;
+	right: 20px;
+	max-width: 600px;
+	margin: 0 auto;
+}
+.generate-screening-button:hover {
+	background: #ef4444;
 }
 .form-input {
 	width: 100%;
@@ -545,6 +843,49 @@ body {
 	right: 20px;
 	max-width: 600px;
 	margin: 0 auto;
+}
+.back-button {
+	background: transparent;
+	color: #64748b;
+	border: 2px solid #e5e7eb;
+	margin-bottom: 16px;
+	margin-top: 0;
+}
+.back-button:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+}
+.button-group {
+	position: fixed !important;
+	left: 50% !important;
+	bottom: 80px !important;
+	width: calc(100% - 40px);
+	max-width: 560px;
+	transform: translateX(-50%) translateZ(0);
+	display: flex;
+	flex-direction: column-reverse;
+	gap: 12px;
+	z-index: 2100;
+	background: #fff;
+	padding-top: 12px;
+	will-change: transform;
+	backface-visibility: hidden;
+	contain: layout style paint;
+	pointer-events: auto;
+}
+.button-group .modal-button {
+	margin-top: 0 !important;
+	margin-bottom: 0 !important;
+	transform: translateZ(0);
+}
+.button-group .modal-button.next-button {
+	position: static !important;
+	margin: 0;
+	background: #0f172a;
+	color: #fff;
+}
+.button-group .modal-button.next-button:hover {
+	background: #1e293b;
 }
 
 /* Bottom navigation */
@@ -733,6 +1074,11 @@ body {
 	<!-- Post Modal -->
 	<div class="post-modal" id="postModal">
 		<div class="post-modal-header">
+			<button class="modal-back" id="modalBack" aria-label="Back">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M15 18l-6-6 6-6"/>
+				</svg>
+			</button>
 			<button class="modal-close" id="closeModal" aria-label="Close">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M18 6 6 18M6 6l12 12"/>
@@ -741,33 +1087,31 @@ body {
 		</div>
 
 		<!-- Step Progress -->
-		<div class="step-progress">
-			<div class="step-item active" data-step="1">
-				<div class="step-circle"></div>
-				<span class="step-label">Title</span>
-			</div>
-			<div class="step-item" data-step="2">
-				<div class="step-circle"></div>
-				<span class="step-label">Description</span>
-			</div>
-			<div class="step-item" data-step="3">
-				<div class="step-circle"></div>
-				<span class="step-label">Details</span>
-			</div>
-			<div class="step-item" data-step="4">
-				<div class="step-circle"></div>
-				<span class="step-label">Budget</span>
-			</div>
-		</div>
-
-		<!-- Modal Form -->
+			<div class="step-progress">
+				<div class="step-item active" data-step="1">
+					<div class="step-circle"></div>
+					<span class="step-label">Title</span>
+				</div>
+				<div class="step-item" data-step="2">
+					<div class="step-circle"></div>
+					<span class="step-label">Description</span>
+				</div>
+				<div class="step-item" data-step="3">
+					<div class="step-circle"></div>
+					<span class="step-label">Details</span>
+				</div>
+				<div class="step-item" data-step="4">
+					<div class="step-circle"></div>
+					<span class="step-label">Budget</span>
+				</div>
+			</div>		<!-- Modal Form -->
 		<form id="postForm" method="POST" action="">
 			<div class="modal-content">
 				<!-- Step 1: Title -->
 				<div class="modal-step active" data-step="1">
-					<p class="step-title">Step 1 of 1</p>
+					<p class="step-title">Step 1 of 4</p>
 					<h2 class="step-heading">What do you need done today?</h2>
-					<p class="step-subtitle">Give your quest a title</p>
+					<p class="step-subtitle">Give your task a title</p>
 					<input 
 						type="text" 
 						name="title" 
@@ -778,22 +1122,139 @@ body {
 						id="titleInput"
 					/>
 					<p class="char-count">Minimum 10 characters</p>
-					<button type="button" class="modal-button next-button" id="nextStep1">Generate quest description</button>
+					<button type="button" class="modal-button next-button" id="nextStep1">Generate task description</button>
 				</div>
 
 				<!-- Step 2: Description -->
 				<div class="modal-step" data-step="2">
-					<p class="step-title">Step 2 of 4</p>
-					<h2 class="step-heading">Describe your task</h2>
-					<p class="step-subtitle">Provide more details about what you need</p>
-					<textarea 
-						name="description" 
-						class="form-input form-textarea" 
-						placeholder="Describe what you need done..."
-						required
-						id="descriptionInput"
-					></textarea>
-					<button type="button" class="modal-button next-button" id="nextStep2">Continue</button>
+					<p class="step-title" id="step2Title">Step 1 of 4</p>
+					
+					<!-- Sub-step 1: Describe your task -->
+					<div class="sub-step" id="subStep2_1">
+						<h2 class="step-heading">Describe your task</h2>
+						
+						<p class="guidance-text">Summarize the key details! A great description should:</p>
+						<ul class="guidance-list">
+							<li>Cover essential details</li>
+							<li>Clearly outline expected results</li>
+							<li>Request reference works when necessary</li>
+						</ul>
+						
+						<textarea 
+							name="description" 
+							class="form-input form-textarea" 
+							placeholder="Include details of your task here"
+							required
+							id="descriptionInput"
+						></textarea>
+						<p class="char-count">Minimum 30 characters</p>
+						
+						<button type="button" class="generate-button" id="generateBtn">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+								<path d="M21 3v5h-5"/>
+							</svg>
+							Generate
+						</button>
+						
+						<div class="helper-section">
+							<p class="helper-label">How many helpers do you need?</p>
+							<div class="helper-counter">
+								<button type="button" class="counter-btn" id="decreaseHelper">−</button>
+								<span class="counter-value" id="helperCount">1</span>
+								<button type="button" class="counter-btn" id="increaseHelper">+</button>
+							</div>
+						</div>
+						
+						<button type="button" class="modal-button next-button" id="nextSubStep2_1">Next</button>
+					</div>
+					
+					<!-- Sub-step 2: Add an image (optional) -->
+					<div class="sub-step" id="subStep2_2" style="display: none;">
+						<h2 class="step-heading">Add an image</h2>
+						<p class="step-subtitle">Add an image to better elaborate your task. (optional)</p>
+						
+						<div class="upload-section">
+							<button type="button" class="upload-button" id="uploadBtn">
+								<span>Upload</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+									<polyline points="17 8 12 3 7 8"/>
+									<line x1="12" y1="3" x2="12" y2="15"/>
+								</svg>
+							</button>
+							<p class="upload-info">Max file size: 5 MB</p>
+							<input type="file" id="imageUpload" name="task_image" accept="image/*" style="display: none;" />
+						</div>
+						
+						<div class="warning-message">
+							<svg viewBox="0 0 24 24" fill="currentColor">
+								<path d="M12 2L2 20h20L12 2zm0 5l6 11H6l6-11z"/>
+								<path d="M11 10h2v5h-2zm0 6h2v2h-2z" fill="#fff"/>
+							</svg>
+							<p>Images with contact details or attempts to take conversations off-platform will be removed, leading to a ban or task removal.</p>
+						</div>
+						
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_2">Back</button>
+							<button type="button" class="modal-button next-button" id="nextSubStep2_2">Next</button>
+						</div>
+					</div>
+					
+					<!-- Sub-step 3: Pre-screen helpers -->
+					<div class="sub-step" id="subStep2_3" style="display: none;">
+						<h2 class="step-heading">Pre-screen helpers</h2>
+						<p class="step-subtitle">Add questions to help find the right helper</p>
+						
+						<div id="questionsList">
+							<div class="question-item">
+								<input 
+									type="text" 
+									name="question1" 
+									class="form-input" 
+									placeholder="e.g., Do you have experience with this type of work?"
+									id="question1Input"
+								/>
+							</div>
+						</div>
+						
+						<button type="button" class="add-question-btn" id="addQuestionBtn">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<line x1="12" y1="5" x2="12" y2="19"/>
+								<line x1="5" y1="12" x2="19" y2="12"/>
+							</svg>
+							Add another question
+						</button>
+						
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_3">Back</button>
+							<button type="button" class="modal-button next-button" id="nextSubStep2_3">Next</button>
+						</div>
+					</div>
+					
+					<!-- Sub-step 4: Requirements (optional) -->
+					<div class="sub-step" id="subStep2_4" style="display: none;">
+						<h2 class="step-heading">Requirements <span style="font-weight: 400; color: #94a3b8;">(optional)</span></h2>
+						<p class="step-subtitle">Are there any specific requirements for your task that the helper must meet?</p>
+						
+						<input 
+							type="text" 
+							name="requirements" 
+							class="form-input" 
+							placeholder="Do you have your own car?"
+							id="requirementsInput"
+						/>
+						
+						<label class="checkbox-label">
+							<input type="checkbox" name="make_mandatory" id="makeMandatory" class="checkbox-input" />
+							<span class="checkbox-text">Make resumes/portfolios/socials mandatory with offers</span>
+						</label>
+						
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep2_4">Back</button>
+							<button type="button" class="modal-button next-button" id="nextStep2">Next</button>
+						</div>
+					</div>
 				</div>
 
 				<!-- Step 3: Details -->
@@ -817,6 +1278,7 @@ body {
 						required
 						id="dateInput"
 					/>
+					<button type="button" class="modal-button back-button" id="backStep3">Back</button>
 					<button type="button" class="modal-button next-button" id="nextStep3">Continue</button>
 				</div>
 
@@ -833,7 +1295,8 @@ body {
 						id="budgetInput"
 					/>
 					<input type="hidden" name="category" value="General" id="categoryInput" />
-					<button type="submit" class="modal-button next-button">Post Quest</button>
+					<button type="button" class="modal-button back-button" id="backStep4">Back</button>
+					<button type="submit" class="modal-button next-button">Post Task</button>
 				</div>
 			</div>
 		</form>
@@ -845,6 +1308,7 @@ body {
 		const modal = document.getElementById('postModal');
 		const searchInput = document.getElementById('searchInput');
 		const closeModal = document.getElementById('closeModal');
+		const modalBack = document.getElementById('modalBack');
 		const suggestionPills = document.querySelectorAll('.suggestion-pill');
 		const trendingItems = document.querySelectorAll('.service-item');
 		const titleInput = document.getElementById('titleInput');
@@ -895,46 +1359,165 @@ body {
 		});
 	})();
 	
+	// Helper counter
+	(function(){
+		let helperCount = 1;
+		const countDisplay = document.getElementById('helperCount');
+		const decreaseBtn = document.getElementById('decreaseHelper');
+		const increaseBtn = document.getElementById('increaseHelper');
+		
+		decreaseBtn.addEventListener('click', function() {
+			if (helperCount > 1) {
+				helperCount--;
+				countDisplay.textContent = helperCount;
+			}
+		});
+		
+		increaseBtn.addEventListener('click', function() {
+			helperCount++;
+			countDisplay.textContent = helperCount;
+		});
+	})();
+	
 	// Multi-step form navigation
 	(function(){
 		let currentStep = 1;
 		const totalSteps = 4;
+		const modalBack = document.getElementById('modalBack');
+		
+		function updateStepProgress(stepNumber) {
+			// Mark previous steps as completed
+			document.querySelectorAll('.step-item').forEach((item, index) => {
+				const stepNum = index + 1;
+				item.classList.remove('active', 'completed');
+				
+				if (stepNum < stepNumber) {
+					item.classList.add('completed');
+					// Add checkmark for completed steps
+					const circle = item.querySelector('.step-circle');
+					if (!circle.querySelector('svg')) {
+						circle.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+					}
+				} else if (stepNum === stepNumber) {
+					item.classList.add('active');
+					// Remove checkmark, show dot
+					const circle = item.querySelector('.step-circle');
+					circle.innerHTML = '';
+				} else {
+					// Future steps - empty circle
+					const circle = item.querySelector('.step-circle');
+					circle.innerHTML = '';
+				}
+			});
+			
+			// Show/hide back button in header
+			if (stepNumber > 1) {
+				modalBack.classList.add('visible');
+			} else {
+				modalBack.classList.remove('visible');
+			}
+		}
 		
 		function goToStep(stepNumber) {
 			// Hide all steps
 			document.querySelectorAll('.modal-step').forEach(step => {
 				step.classList.remove('active');
 			});
-			document.querySelectorAll('.step-item').forEach(item => {
-				item.classList.remove('active');
-			});
 			
 			// Show current step
 			document.querySelector(`.modal-step[data-step="${stepNumber}"]`).classList.add('active');
-			document.querySelector(`.step-item[data-step="${stepNumber}"]`).classList.add('active');
+			
+			// Update progress indicators
+			updateStepProgress(stepNumber);
 			
 			currentStep = stepNumber;
 		}
+		
+		// Header back button
+		modalBack.addEventListener('click', function() {
+			if (currentStep > 1) {
+				goToStep(currentStep - 1);
+			}
+		});
 		
 		// Step 1 -> Step 2
 		document.getElementById('nextStep1').addEventListener('click', function() {
 			const titleInput = document.getElementById('titleInput');
 			if (titleInput.value.trim().length >= 10) {
 				goToStep(2);
+				showSubStep(2, 1); // Show first sub-step of Step 2
 			} else {
 				alert('Please enter at least 10 characters for the title.');
 			}
 		});
 		
-		// Step 2 -> Step 3
-		document.getElementById('nextStep2').addEventListener('click', function() {
+		// Sub-step navigation for Step 2
+		let currentSubStep = 1;
+		
+		function showSubStep(step, subStep) {
+			// Hide all sub-steps of Step 2
+			document.querySelectorAll('#subStep2_1, #subStep2_2, #subStep2_3, #subStep2_4').forEach(sub => {
+				sub.style.display = 'none';
+			});
+			
+			// Show target sub-step
+			document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
+			currentSubStep = subStep;
+			
+			// Update step title
+			const stepTitle = document.getElementById('step2Title');
+			stepTitle.textContent = `Step ${subStep} of 4`;
+		}
+		
+		// Sub-step 2.1 -> 2.2 (Describe -> Add Image)
+		document.getElementById('nextSubStep2_1').addEventListener('click', function() {
 			const descInput = document.getElementById('descriptionInput');
-			if (descInput.value.trim().length > 0) {
-				goToStep(3);
+			if (descInput.value.trim().length >= 30) {
+				showSubStep(2, 2);
 			} else {
-				alert('Please provide a description.');
+				alert('Please enter at least 30 characters for the description.');
 			}
 		});
+		
+		// Sub-step 2.2 -> 2.3 (Add Image -> Pre-screen)
+		document.getElementById('nextSubStep2_2').addEventListener('click', function() {
+			showSubStep(2, 3);
+		});
+		
+		// Back from sub-step 2.2 to 2.1
+		document.getElementById('backSubStep2_2').addEventListener('click', function() {
+			showSubStep(2, 1);
+		});
+		
+		// Sub-step 2.3 -> 2.4 (Pre-screen -> Requirements)
+		document.getElementById('nextSubStep2_3').addEventListener('click', function() {
+			showSubStep(2, 4);
+		});
+		
+		// Back from sub-step 2.3 to 2.2
+		document.getElementById('backSubStep2_3').addEventListener('click', function() {
+			showSubStep(2, 2);
+		});
+		
+		// Sub-step 2.4 -> Step 3 (Requirements -> Details)
+		document.getElementById('nextStep2').addEventListener('click', function() {
+			goToStep(3);
+		});
+		
+		// Back from sub-step 2.4 to 2.3
+		document.getElementById('backSubStep2_4').addEventListener('click', function() {
+			showSubStep(2, 3);
+		});
+		
+		// Step 2 -> Step 3
+		/*document.getElementById('nextStep2').addEventListener('click', function() {
+			const descInput = document.getElementById('descriptionInput');
+			if (descInput.value.trim().length >= 30) {
+				goToStep(3);
+			} else {
+				alert('Please enter at least 30 characters for the description.');
+			}
+		});*/
 		
 		// Step 3 -> Step 4
 		document.getElementById('nextStep3').addEventListener('click', function() {
@@ -944,6 +1527,58 @@ body {
 				goToStep(4);
 			} else {
 				alert('Please fill in location and date.');
+			}
+		});
+		
+		// Back buttons
+		document.getElementById('backStep3').addEventListener('click', function() {
+			goToStep(2);
+			showSubStep(2, 4); // Go back to last sub-step of Step 2
+		});
+		
+		document.getElementById('backStep4').addEventListener('click', function() {
+			goToStep(3);
+		});
+		
+		// Add question functionality
+		let questionCount = 1;
+		document.getElementById('addQuestionBtn').addEventListener('click', function() {
+			if (questionCount < 5) { // Limit to 5 questions
+				questionCount++;
+				const questionsList = document.getElementById('questionsList');
+				const newQuestion = document.createElement('div');
+				newQuestion.className = 'question-item';
+				newQuestion.innerHTML = `
+					<input 
+						type="text" 
+						name="question${questionCount}" 
+						class="form-input" 
+						placeholder="Add another screening question"
+						id="question${questionCount}Input"
+					/>
+				`;
+				questionsList.appendChild(newQuestion);
+			} else {
+				alert('Maximum 5 questions allowed');
+			}
+		});
+		
+		// Upload button click handler
+		document.getElementById('uploadBtn').addEventListener('click', function() {
+			document.getElementById('imageUpload').click();
+		});
+		
+		// Show file name when file is selected
+		document.getElementById('imageUpload').addEventListener('change', function(e) {
+			if (e.target.files.length > 0) {
+				const fileName = e.target.files[0].name;
+				const fileSize = (e.target.files[0].size / (1024 * 1024)).toFixed(2);
+				if (fileSize > 5) {
+					alert('File size must be less than 5 MB');
+					e.target.value = '';
+					return;
+				}
+				document.querySelector('.upload-info').textContent = `Selected: ${fileName} (${fileSize} MB)`;
 			}
 		});
 	})();
