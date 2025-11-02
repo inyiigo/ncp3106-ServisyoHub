@@ -709,6 +709,350 @@ body {
 	line-height: 1.5;
 }
 
+/* Location Type Buttons */
+.location-type-buttons {
+	display: flex;
+	gap: 12px;
+	margin-bottom: 24px;
+}
+.location-type-btn {
+	flex: 1;
+	padding: 14px 24px;
+	border: 2px solid #e5e7eb;
+	background: #fff;
+	border-radius: 999px;
+	font-size: 1rem;
+	font-weight: 600;
+	color: #64748b;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.location-type-btn:hover {
+	border-color: #cbd5e1;
+	background: #f8fafc;
+}
+.location-type-btn.active {
+	background: #0f172a;
+	border-color: #0f172a;
+	color: #fff;
+}
+
+/* Location Picker */
+.location-picker-input {
+	position: relative;
+	margin-bottom: 16px;
+}
+.location-picker-input svg {
+	position: absolute;
+	left: 16px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 20px;
+	height: 20px;
+	color: #94a3b8;
+	pointer-events: none;
+}
+.location-picker-field {
+	width: 100%;
+	border: none;
+	background: #f1f5f9;
+	border-radius: 12px;
+	padding: 16px 16px 16px 48px;
+	font-size: 1rem;
+	color: #0f172a;
+	font-family: inherit;
+	outline: none;
+	transition: background 0.15s ease;
+}
+.location-picker-field:focus {
+	background: #e2e8f0;
+}
+.location-picker-field::placeholder {
+	color: #cbd5e1;
+}
+
+/* Date Option Buttons */
+.date-option-btn {
+	width: 100%;
+	padding: 16px 20px;
+	border: 2px solid #e5e7eb;
+	background: #fff;
+	border-radius: 16px;
+	font-size: 1rem;
+	font-weight: 500;
+	color: #64748b;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+	text-align: left;
+}
+.date-option-btn:hover {
+	border-color: #cbd5e1;
+	background: #f8fafc;
+}
+.date-option-btn.active {
+	background: #0f172a;
+	border-color: #0f172a;
+	color: #fff;
+}
+.date-option-btn.active svg {
+	opacity: 1 !important;
+	stroke: #fff;
+}
+.date-option-btn span {
+	flex: 1;
+}
+
+/* Time Picker Modal */
+.time-picker-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 3000;
+	display: none;
+	align-items: flex-end;
+	justify-content: center;
+}
+.time-picker-overlay.active {
+	display: flex;
+}
+.time-picker-modal {
+	background: #fff;
+	border-radius: 24px 24px 0 0;
+	width: 100%;
+	max-width: 500px;
+	padding: 24px;
+	animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+.time-picker-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 32px;
+}
+.time-picker-header h3 {
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+}
+.time-picker-close {
+	background: none;
+	border: none;
+	padding: 8px;
+	cursor: pointer;
+	color: #64748b;
+}
+.time-picker-close:hover {
+	color: #0f172a;
+}
+.time-picker-wheels {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 32px;
+	height: 200px;
+	position: relative;
+}
+.time-picker-wheels::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	height: 48px;
+	background: #f1f5f9;
+	border-radius: 12px;
+	pointer-events: none;
+	z-index: 1;
+}
+.time-wheel {
+	flex: 1;
+	height: 200px;
+	overflow-y: scroll;
+	scroll-snap-type: y mandatory;
+	-webkit-overflow-scrolling: touch;
+	position: relative;
+	z-index: 2;
+	scrollbar-width: none;
+	-ms-overflow-style: none;
+}
+.time-wheel::-webkit-scrollbar {
+	display: none;
+}
+.time-wheel-item {
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	scroll-snap-align: center;
+	font-size: 1.5rem;
+	font-weight: 600;
+	color: #cbd5e1;
+	transition: all 0.2s ease;
+}
+.time-wheel-item.selected {
+	color: #0f172a;
+	font-size: 2rem;
+}
+.time-separator {
+	font-size: 2rem;
+	font-weight: 700;
+	color: #0f172a;
+	z-index: 2;
+	margin: 0 4px;
+}
+.time-picker-done {
+	width: 100%;
+	background: #0f172a;
+	color: #fff;
+	border: none;
+	border-radius: 16px;
+	padding: 18px;
+	font-size: 1.1rem;
+	font-weight: 700;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+.time-picker-done:hover {
+	background: #1e293b;
+}
+
+/* Calendar Picker Modal */
+.calendar-picker-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: rgba(0, 0, 0, 0.5);
+	z-index: 3000;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	padding: 20px;
+}
+.calendar-picker-overlay.active {
+	display: flex;
+}
+.calendar-picker-modal {
+	background: #fff;
+	border-radius: 24px;
+	width: 100%;
+	max-width: 400px;
+	padding: 24px;
+	animation: scaleIn 0.3s ease;
+}
+@keyframes scaleIn {
+	from {
+		transform: scale(0.9);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+.calendar-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+}
+.calendar-header h3 {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0;
+}
+.calendar-nav {
+	display: flex;
+	gap: 8px;
+}
+.calendar-nav button {
+	background: #f1f5f9;
+	border: none;
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #64748b;
+	transition: all 0.15s ease;
+}
+.calendar-nav button:hover {
+	background: #e2e8f0;
+	color: #0f172a;
+}
+.calendar-weekdays {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 8px;
+	margin-bottom: 8px;
+}
+.calendar-weekday {
+	text-align: center;
+	font-size: 0.75rem;
+	font-weight: 600;
+	color: #94a3b8;
+	padding: 8px 0;
+}
+.calendar-days {
+	display: grid;
+	grid-template-columns: repeat(7, 1fr);
+	gap: 8px;
+	margin-bottom: 20px;
+}
+.calendar-day {
+	aspect-ratio: 1;
+	border: none;
+	background: #fff;
+	border-radius: 12px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #0f172a;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.calendar-day:hover:not(.disabled):not(.selected) {
+	background: #f1f5f9;
+}
+.calendar-day.disabled {
+	color: #cbd5e1;
+	cursor: not-allowed;
+}
+.calendar-day.other-month {
+	color: #cbd5e1;
+}
+.calendar-day.selected {
+	background: #0f172a;
+	color: #fff;
+}
+.calendar-day.today {
+	border: 2px solid #0f172a;
+}
+
 .warning-message {
 	display: flex;
 	align-items: flex-start;
@@ -1259,47 +1603,323 @@ body {
 
 				<!-- Step 3: Details -->
 				<div class="modal-step" data-step="3">
-					<p class="step-title">Step 3 of 4</p>
-					<h2 class="step-heading">Task details</h2>
-					<p class="step-subtitle">Location and when you need it done</p>
-					<input 
-						type="text" 
-						name="location" 
-						class="form-input" 
-						placeholder="Location"
-						required
-						style="margin-bottom: 16px;"
-						id="locationInput"
-					/>
-					<input 
-						type="date" 
-						name="date_needed" 
-						class="form-input" 
-						required
-						id="dateInput"
-					/>
-					<button type="button" class="modal-button back-button" id="backStep3">Back</button>
-					<button type="button" class="modal-button next-button" id="nextStep3">Continue</button>
+					<p class="step-title" id="step3Title">Step 1 of 2</p>
+					
+					<!-- Sub-step 1: Tell us where -->
+					<div class="sub-step" id="subStep3_1">
+						<h2 class="step-heading">Tell us where</h2>
+						<p class="step-subtitle">Where do you need it done?</p>
+						
+						<div class="location-type-buttons">
+							<button type="button" class="location-type-btn active" id="inPersonBtn">In-Person</button>
+							<button type="button" class="location-type-btn" id="onlineBtn">Online</button>
+						</div>
+						
+						<div id="locationFieldsContainer">
+							<label class="form-label">Starting location</label>
+							<input 
+								type="text" 
+								name="starting_location" 
+								class="form-input" 
+								value="Philippines"
+								readonly
+								style="margin-bottom: 16px;"
+								id="startingLocationInput"
+							/>
+							
+							<label class="form-label">Where in Philippines?</label>
+							<div class="location-picker-input">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+									<circle cx="12" cy="10" r="3"/>
+								</svg>
+								<input 
+									type="text" 
+									name="location" 
+									class="location-picker-field" 
+									placeholder="Pick a location"
+									required
+									id="locationInput"
+								/>
+							</div>
+							
+							<label class="form-label">Ending location <span style="font-weight: 400; color: #94a3b8;">(optional)</span></label>
+							<select name="ending_location" class="form-input" id="endingLocationInput">
+								<option value="">Select a country</option>
+								<option value="Philippines">Philippines</option>
+								<option value="USA">USA</option>
+								<option value="Japan">Japan</option>
+							</select>
+						</div>
+						
+						<button type="button" class="modal-button next-button" id="nextSubStep3_1">Next</button>
+					</div>
+					
+					<!-- Sub-step 2: Date needed -->
+					<div class="sub-step" id="subStep3_2" style="display: none;">
+						<h2 class="step-heading">When do you want it done?</h2>
+						
+						<!-- Date Section -->
+						<div style="margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e7eb;">
+							<label class="form-label">Date</label>
+							
+							<button type="button" class="date-option-btn active" id="todayBtn" data-date="today">
+								<span>Today, <?php echo date('j M'); ?></span>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="specificDateBtn" data-date="specific">
+								<span>On a specific date</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
+									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+									<line x1="16" y1="2" x2="16" y2="6"/>
+									<line x1="8" y1="2" x2="8" y2="6"/>
+									<line x1="3" y1="10" x2="21" y2="10"/>
+								</svg>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="beforeDateBtn" data-date="before">
+								<span>Before a specific date</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
+									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+									<line x1="16" y1="2" x2="16" y2="6"/>
+									<line x1="8" y1="2" x2="8" y2="6"/>
+									<line x1="3" y1="10" x2="21" y2="10"/>
+								</svg>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="dateRangeBtn" data-date="range">
+								<span>Select a date range</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
+									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+									<line x1="16" y1="2" x2="16" y2="6"/>
+									<line x1="8" y1="2" x2="8" y2="6"/>
+									<line x1="3" y1="10" x2="21" y2="10"/>
+								</svg>
+							</button>
+							
+							<input 
+								type="hidden" 
+								name="date_needed" 
+								id="dateInput"
+								value="<?php echo date('Y-m-d'); ?>"
+							/>
+						</div>
+						
+						<!-- Urgency Section -->
+						<div style="margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e7eb;">
+							<label class="form-label">Urgency</label>
+							<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Is this time sensitive?</p>
+							
+							<button type="button" class="date-option-btn" id="urgentBtn" data-urgency="urgent">
+								<span>Yes, it's urgent</span>
+							</button>
+							
+							<button type="button" class="date-option-btn active" id="flexibleBtn" data-urgency="flexible">
+								<span>No, I'm flexible</span>
+							</button>
+							
+							<input type="hidden" name="urgency" id="urgencyInput" value="flexible" />
+						</div>
+						
+						<!-- Time Section -->
+						<div style="margin-top: 24px; margin-bottom: 100px;">
+							<label class="form-label">Time</label>
+							<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">What time in the day would you like this done?</p>
+							
+							<button type="button" class="date-option-btn active" id="noPreferenceBtn" data-time="no-preference">
+								<span>No preference</span>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="specificTimeBtn" data-time="specific">
+								<span>Pick a specific time</span>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="timeRangeBtn" data-time="range">
+								<span>Pick a time range</span>
+							</button>
+							
+							<input type="hidden" name="time_preference" id="timePreferenceInput" value="no-preference" />
+							
+							<div id="specificTimeContainer" style="display: none; margin-top: 16px;">
+								<input 
+									type="text" 
+									name="specific_time" 
+									class="form-input" 
+									placeholder="Select a specific time"
+									id="specificTimeInput"
+									readonly
+									style="background: #f1f5f9; color: #0f172a; cursor: pointer;"
+								/>
+							</div>
+							
+							<div id="timeRangeContainer" style="display: none; margin-top: 16px;">
+								<input 
+									type="text" 
+									name="time_range_start" 
+									class="form-input" 
+									placeholder="Start time"
+									id="timeRangeStartInput"
+									readonly
+									style="background: #f1f5f9; color: #0f172a; cursor: pointer; margin-bottom: 12px;"
+								/>
+								<input 
+									type="text" 
+									name="time_range_end" 
+									class="form-input" 
+									placeholder="End time"
+									id="timeRangeEndInput"
+									readonly
+									style="background: #f1f5f9; color: #0f172a; cursor: pointer;"
+								/>
+							</div>
+						</div>
+						
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="backSubStep3_2">Back</button>
+							<button type="button" class="modal-button next-button" id="nextStep3">Next</button>
+						</div>
+					</div>
 				</div>
 
 				<!-- Step 4: Budget -->
 				<div class="modal-step" data-step="4">
-					<p class="step-title">Step 4 of 4</p>
-					<h2 class="step-heading">What's your budget?</h2>
-					<p class="step-subtitle">Suggest a budget for this task</p>
-					<input 
-						type="text" 
-						name="budget" 
-						class="form-input" 
-						placeholder="₱ 0.00"
-						id="budgetInput"
-					/>
-					<input type="hidden" name="category" value="General" id="categoryInput" />
-					<button type="button" class="modal-button back-button" id="backStep4">Back</button>
-					<button type="submit" class="modal-button next-button">Post Task</button>
+					<p class="step-title" id="step4Title">Step 1 of 4</p>
+					<h2 class="step-heading">Generate guest budget</h2>
+					
+					<!-- Sub-step 1: Payment Type & Estimated Hours -->
+					<div class="sub-step" id="subStep4_1">
+						<div style="margin-top: 24px;">
+							<label class="form-label">Type of payment</label>
+							<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Is your budget based on a one-time payment or on an hourly rate?</p>
+							
+							<div style="display: flex; gap: 12px; margin-bottom: 24px;">
+								<button type="button" class="date-option-btn active" id="oneTimePaymentBtn" data-payment="one-time" style="flex: 1; text-align: center;">
+									<span>One-time payment</span>
+								</button>
+								
+								<button type="button" class="date-option-btn" id="perHourBtn" data-payment="per-hour" style="flex: 1; text-align: center;">
+									<span>Per hour</span>
+								</button>
+							</div>
+							
+							<input type="hidden" name="payment_type" id="paymentTypeInput" value="one-time" />
+						</div>
+						
+						<div style="margin-top: 24px;">
+							<label class="form-label">Estimated hours</label>
+							<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">How many hours will this quest take?</p>
+							<p class="step-subtitle" style="margin-top: 0; margin-bottom: 16px; font-size: 0.9rem;">E.g. If spread over 2 days but only needs 8 hours of actual work, enter 8 not 48.</p>
+							
+							<div style="background: #f1f5f9; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
+								<div style="display: flex; align-items: flex-start; gap: 8px;">
+									<span style="font-size: 1.2rem;">💡</span>
+									<div>
+										<p style="margin: 0 0 8px 0; font-weight: 600; color: #0f172a; font-size: 0.95rem;">Need help estimating?</p>
+										<ul style="margin: 0; padding-left: 20px; color: #64748b; font-size: 0.9rem; line-height: 1.6;">
+											<li>Delivery: Include time for pickup, travel & drop-off</li>
+											<li>Shift work: Enter hours per shift or total weekly hours</li>
+											<li>Project-based: Enter total hours needed to finish the task</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+							
+							<div style="position: relative; margin-bottom: 16px;">
+								<input 
+									type="number" 
+									name="estimated_hours" 
+									class="form-input" 
+									placeholder="3"
+									id="estimatedHoursInput"
+									min="1"
+									style="padding-right: 80px;"
+								/>
+								<span style="position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 500;">Hour(s)</span>
+							</div>
+							
+							<div style="background: #fef3c7; padding: 12px 16px; border-radius: 12px; margin-bottom: 100px;">
+								<p style="margin: 0; color: #92400e; font-size: 0.9rem; line-height: 1.5;">
+									<span style="font-size: 1rem;">✨</span> Our estimate, based on the title and description, suggests this quest will take approximately <strong>3 hours</strong>.
+								</p>
+							</div>
+							
+							<button type="button" class="modal-button next-button" id="generateBudgetBtn" style="background: #f87171; position: fixed; bottom: 80px; left: 20px; right: 20px; width: auto; max-width: calc(500px - 40px); margin: 0 auto;">Generate guest budget</button>
+						</div>
+					</div>
+					
+					<!-- Sub-step 2: Budget Input (will be added later) -->
+					<div class="sub-step" id="subStep4_2" style="display: none;">
+						<input 
+							type="text" 
+							name="budget" 
+							class="form-input" 
+							placeholder="₱ 0.00"
+							id="budgetInput"
+						/>
+						<input type="hidden" name="category" value="General" id="categoryInput" />
+						<button type="button" class="modal-button back-button" id="backStep4Sub2">Back</button>
+						<button type="submit" class="modal-button next-button">Post Task</button>
+					</div>
 				</div>
 			</div>
 		</form>
+	</div>
+
+	<!-- Time Picker Modal -->
+	<div class="time-picker-overlay" id="timePickerOverlay">
+		<div class="time-picker-modal">
+			<div class="time-picker-header">
+				<h3>Select time</h3>
+				<button type="button" class="time-picker-close" id="closeTimePicker">
+					<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<line x1="18" y1="6" x2="6" y2="18"></line>
+						<line x1="6" y1="6" x2="18" y2="18"></line>
+					</svg>
+				</button>
+			</div>
+			
+			<div class="time-picker-wheels">
+				<div class="time-wheel" id="hourWheel"></div>
+				<span class="time-separator">:</span>
+				<div class="time-wheel" id="minuteWheel"></div>
+				<div class="time-wheel" id="periodWheel"></div>
+			</div>
+			
+			<button type="button" class="time-picker-done" id="timePickerDone">Done</button>
+		</div>
+	</div>
+
+	<!-- Calendar Picker Modal -->
+	<div class="calendar-picker-overlay" id="calendarPickerOverlay">
+		<div class="calendar-picker-modal">
+			<div class="calendar-header">
+				<h3 id="calendarMonthYear">November 2025</h3>
+				<div class="calendar-nav">
+					<button type="button" id="prevMonth">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<polyline points="15 18 9 12 15 6"></polyline>
+						</svg>
+					</button>
+					<button type="button" id="nextMonth">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<polyline points="9 18 15 12 9 6"></polyline>
+						</svg>
+					</button>
+				</div>
+			</div>
+			
+			<div class="calendar-weekdays">
+				<div class="calendar-weekday">Su</div>
+				<div class="calendar-weekday">Mo</div>
+				<div class="calendar-weekday">Tu</div>
+				<div class="calendar-weekday">We</div>
+				<div class="calendar-weekday">Th</div>
+				<div class="calendar-weekday">Fr</div>
+				<div class="calendar-weekday">Sa</div>
+			</div>
+			
+			<div class="calendar-days" id="calendarDays"></div>
+		</div>
 	</div>
 
 	<script>
@@ -1455,18 +2075,29 @@ body {
 		let currentSubStep = 1;
 		
 		function showSubStep(step, subStep) {
-			// Hide all sub-steps of Step 2
-			document.querySelectorAll('#subStep2_1, #subStep2_2, #subStep2_3, #subStep2_4').forEach(sub => {
-				sub.style.display = 'none';
-			});
-			
-			// Show target sub-step
-			document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
-			currentSubStep = subStep;
-			
-			// Update step title
-			const stepTitle = document.getElementById('step2Title');
-			stepTitle.textContent = `Step ${subStep} of 4`;
+			if (step === 2) {
+				// Hide all sub-steps of Step 2
+				document.querySelectorAll('#subStep2_1, #subStep2_2, #subStep2_3, #subStep2_4').forEach(sub => {
+					sub.style.display = 'none';
+				});
+				// Show target sub-step
+				document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
+				currentSubStep = subStep;
+				// Update step title
+				const stepTitle = document.getElementById('step2Title');
+				stepTitle.textContent = `Step ${subStep} of 4`;
+			} else if (step === 3) {
+				// Hide all sub-steps of Step 3
+				document.querySelectorAll('#subStep3_1, #subStep3_2').forEach(sub => {
+					sub.style.display = 'none';
+				});
+				// Show target sub-step
+				document.getElementById(`subStep${step}_${subStep}`).style.display = 'block';
+				currentSubStep = subStep;
+				// Update step title
+				const stepTitle = document.getElementById('step3Title');
+				stepTitle.textContent = `Step ${subStep} of 2`;
+			}
 		}
 		
 		// Sub-step 2.1 -> 2.2 (Describe -> Add Image)
@@ -1510,31 +2141,588 @@ body {
 		});
 		
 		// Step 2 -> Step 3
-		/*document.getElementById('nextStep2').addEventListener('click', function() {
-			const descInput = document.getElementById('descriptionInput');
-			if (descInput.value.trim().length >= 30) {
-				goToStep(3);
-			} else {
-				alert('Please enter at least 30 characters for the description.');
+		document.getElementById('nextStep2').addEventListener('click', function() {
+			goToStep(3);
+			showSubStep(3, 1); // Show first sub-step of Step 3
+		});
+		
+		// Step 3 sub-step 1 -> sub-step 2
+		document.getElementById('nextSubStep3_1').addEventListener('click', function() {
+			const locationInput = document.getElementById('locationInput');
+			const onlineBtn = document.getElementById('onlineBtn');
+			const isOnline = onlineBtn.classList.contains('active');
+			
+			// Only validate location if In-Person mode is active
+			if (!isOnline && locationInput.value.trim().length === 0) {
+				alert('Please select a location.');
+				return;
 			}
-		});*/
+			
+			showSubStep(3, 2);
+		});
+		
+		// Back from Step 3 sub-step 2 to sub-step 1
+		document.getElementById('backSubStep3_2').addEventListener('click', function() {
+			showSubStep(3, 1);
+		});
 		
 		// Step 3 -> Step 4
 		document.getElementById('nextStep3').addEventListener('click', function() {
-			const locationInput = document.getElementById('locationInput');
+			// Close any open overlays that could block clicks
+			try {
+				const calendarPickerOverlay = document.getElementById('calendarPickerOverlay');
+				if (calendarPickerOverlay) calendarPickerOverlay.classList.remove('active');
+				const timePickerOverlay = document.getElementById('timePickerOverlay');
+				if (timePickerOverlay) timePickerOverlay.classList.remove('active');
+			} catch (e) { /* noop */ }
+			
 			const dateInput = document.getElementById('dateInput');
-			if (locationInput.value.trim().length > 0 && dateInput.value) {
-				goToStep(4);
-			} else {
-				alert('Please fill in location and date.');
+			const timePreferenceInput = document.getElementById('timePreferenceInput');
+			
+			// Fallback defaults to avoid being blocked by empty values
+			if (!dateInput || !dateInput.value) {
+				const today = new Date();
+				const y = today.getFullYear();
+				const m = String(today.getMonth() + 1).padStart(2, '0');
+				const d = String(today.getDate()).padStart(2, '0');
+				if (dateInput) dateInput.value = `${y}-${m}-${d}`;
+			}
+			if (!timePreferenceInput || !timePreferenceInput.value) {
+				if (timePreferenceInput) timePreferenceInput.value = 'no-preference';
+			}
+			
+			// Proceed to Budget step
+			goToStep(4);
+			// Ensure user sees the top of the next step
+			try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
+		});
+		
+		// Location type toggle
+		document.getElementById('inPersonBtn').addEventListener('click', function() {
+			this.classList.add('active');
+			document.getElementById('onlineBtn').classList.remove('active');
+			// Show location fields
+			document.getElementById('locationFieldsContainer').style.display = 'block';
+			document.getElementById('locationInput').required = true;
+		});
+		
+		document.getElementById('onlineBtn').addEventListener('click', function() {
+			this.classList.add('active');
+			document.getElementById('inPersonBtn').classList.remove('active');
+			// Hide location fields
+			document.getElementById('locationFieldsContainer').style.display = 'none';
+			document.getElementById('locationInput').required = false;
+		});
+		
+		// Date option buttons toggle (only date section buttons)
+		const todayBtn = document.getElementById('todayBtn');
+		const specificDateBtn = document.getElementById('specificDateBtn');
+		const beforeDateBtn = document.getElementById('beforeDateBtn');
+		const dateRangeBtnOption = document.getElementById('dateRangeBtn');
+		const dateInput = document.getElementById('dateInput');
+		
+		const dateButtons = [todayBtn, specificDateBtn, beforeDateBtn, dateRangeBtnOption];
+		
+		// Calendar Picker functionality
+		const calendarPickerOverlay = document.getElementById('calendarPickerOverlay');
+		const calendarDays = document.getElementById('calendarDays');
+		const calendarMonthYear = document.getElementById('calendarMonthYear');
+		const prevMonth = document.getElementById('prevMonth');
+		const nextMonth = document.getElementById('nextMonth');
+		
+		let currentCalendarDate = new Date();
+		let selectedDate = null;
+		let currentDateType = 'specific'; // 'specific', 'before', or 'range'
+		let rangeStartDate = null;
+		let rangeEndDate = null;
+		
+		function openCalendar(dateType) {
+			currentDateType = dateType;
+			currentCalendarDate = new Date();
+			
+			// Reset range dates when opening for range selection
+			if (dateType === 'range') {
+				rangeStartDate = null;
+				rangeEndDate = null;
+			}
+			
+			calendarPickerOverlay.classList.add('active');
+			renderCalendar();
+		}
+		
+		function closeCalendar() {
+			calendarPickerOverlay.classList.remove('active');
+		}
+		
+		function renderCalendar() {
+			const year = currentCalendarDate.getFullYear();
+			const month = currentCalendarDate.getMonth();
+			
+			// Update header
+			const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+				'July', 'August', 'September', 'October', 'November', 'December'];
+			calendarMonthYear.textContent = `${monthNames[month]} ${year}`;
+			
+			// Get first day of month and number of days
+			const firstDay = new Date(year, month, 1).getDay();
+			const daysInMonth = new Date(year, month + 1, 0).getDate();
+			const daysInPrevMonth = new Date(year, month, 0).getDate();
+			
+			// Clear calendar
+			calendarDays.innerHTML = '';
+			
+			// Add previous month's days
+			for (let i = firstDay - 1; i >= 0; i--) {
+				const day = daysInPrevMonth - i;
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'calendar-day other-month';
+				btn.textContent = day;
+				calendarDays.appendChild(btn);
+			}
+			
+			// Add current month's days
+			const today = new Date();
+			for (let day = 1; day <= daysInMonth; day++) {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'calendar-day';
+				btn.textContent = day;
+				
+				const currentDate = new Date(year, month, day);
+				
+				// Mark today
+				if (year === today.getFullYear() && month === today.getMonth() && day === today.getDate()) {
+					btn.classList.add('today');
+				}
+				
+				// Mark selected date (for specific and before)
+				if (selectedDate && 
+					year === selectedDate.getFullYear() && 
+					month === selectedDate.getMonth() && 
+					day === selectedDate.getDate()) {
+					btn.classList.add('selected');
+				}
+				
+				// Mark range dates
+				if (currentDateType === 'range') {
+					if (rangeStartDate && rangeEndDate) {
+						if (currentDate >= rangeStartDate && currentDate <= rangeEndDate) {
+							btn.classList.add('selected');
+						}
+					} else if (rangeStartDate) {
+						if (currentDate.getTime() === rangeStartDate.getTime()) {
+							btn.classList.add('selected');
+						}
+					}
+				}
+				
+				// Add click handler
+				btn.addEventListener('click', function() {
+					if (currentDateType === 'range') {
+						// Handle range selection
+						if (!rangeStartDate || (rangeStartDate && rangeEndDate)) {
+							// Start new range
+							rangeStartDate = new Date(year, month, day);
+							rangeEndDate = null;
+							renderCalendar(); // Re-render to show selection
+						} else {
+							// Set end date
+							const clickedDate = new Date(year, month, day);
+							if (clickedDate < rangeStartDate) {
+								// If clicked date is before start, swap them
+								rangeEndDate = rangeStartDate;
+								rangeStartDate = clickedDate;
+							} else {
+								rangeEndDate = clickedDate;
+							}
+							
+							// Update date input with range
+							const startYear = rangeStartDate.getFullYear();
+							const startMonth = String(rangeStartDate.getMonth() + 1).padStart(2, '0');
+							const startDay = String(rangeStartDate.getDate()).padStart(2, '0');
+							dateInput.value = `${startYear}-${startMonth}-${startDay}`;
+							
+							// Update button text
+							const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+								'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+							const startText = `${rangeStartDate.getDate()} ${monthNames[rangeStartDate.getMonth()]} ${rangeStartDate.getFullYear()}`;
+							const endText = `${rangeEndDate.getDate()} ${monthNames[rangeEndDate.getMonth()]} ${rangeEndDate.getFullYear()}`;
+							dateRangeBtnOption.querySelector('span').textContent = `${startText} - ${endText}`;
+							
+							closeCalendar();
+						}
+					} else {
+						// Handle single date selection
+						selectedDate = new Date(year, month, day);
+						
+						// Update date input
+						const selectedYear = selectedDate.getFullYear();
+						const selectedMonth = String(selectedDate.getMonth() + 1).padStart(2, '0');
+						const selectedDay = String(selectedDate.getDate()).padStart(2, '0');
+						dateInput.value = `${selectedYear}-${selectedMonth}-${selectedDay}`;
+						
+						// Update button text based on date type
+						const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+							'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+						const dateText = `${selectedDay} ${monthNames[selectedDate.getMonth()]}`;
+						
+						if (currentDateType === 'specific') {
+							specificDateBtn.querySelector('span').textContent = `On ${dateText}`;
+						} else if (currentDateType === 'before') {
+							beforeDateBtn.querySelector('span').textContent = `Before ${dateText}`;
+						}
+						
+						closeCalendar();
+					}
+				});
+				
+				calendarDays.appendChild(btn);
+			}
+			
+			// Add next month's days to fill grid
+			const totalCells = calendarDays.children.length;
+			const remainingCells = 42 - totalCells; // 6 rows * 7 days
+			for (let day = 1; day <= remainingCells; day++) {
+				const btn = document.createElement('button');
+				btn.type = 'button';
+				btn.className = 'calendar-day other-month';
+				btn.textContent = day;
+				calendarDays.appendChild(btn);
+			}
+		}
+		
+		prevMonth.addEventListener('click', function() {
+			currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+			renderCalendar();
+		});
+		
+		nextMonth.addEventListener('click', function() {
+			currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+			renderCalendar();
+		});
+		
+		calendarPickerOverlay.addEventListener('click', function(e) {
+			if (e.target === calendarPickerOverlay) {
+				closeCalendar();
 			}
 		});
 		
-		// Back buttons
-		document.getElementById('backStep3').addEventListener('click', function() {
+		// Date button handlers
+		dateButtons.forEach(button => {
+			button.addEventListener('click', function() {
+				// Remove active class from date buttons only
+				dateButtons.forEach(btn => btn.classList.remove('active'));
+				// Add active class to clicked button
+				this.classList.add('active');
+				
+				// Reset all button texts to default when switching
+				specificDateBtn.querySelector('span').textContent = 'On a specific date';
+				beforeDateBtn.querySelector('span').textContent = 'Before a specific date';
+				dateRangeBtnOption.querySelector('span').textContent = 'Select a date range';
+				
+				// Set date value based on selection
+				const dateType = this.getAttribute('data-date');
+				const today = new Date();
+				
+				if (dateType === 'today') {
+					const year = today.getFullYear();
+					const month = String(today.getMonth() + 1).padStart(2, '0');
+					const day = String(today.getDate()).padStart(2, '0');
+					dateInput.value = `${year}-${month}-${day}`;
+				} else {
+					// Open calendar for other options
+					openCalendar(dateType);
+				}
+			});
+		});
+		
+		// Urgency buttons toggle
+		const urgentBtn = document.getElementById('urgentBtn');
+		const flexibleBtn = document.getElementById('flexibleBtn');
+		const urgencyInput = document.getElementById('urgencyInput');
+		
+		urgentBtn.addEventListener('click', function() {
+			this.classList.add('active');
+			flexibleBtn.classList.remove('active');
+			urgencyInput.value = 'urgent';
+		});
+		
+		flexibleBtn.addEventListener('click', function() {
+			this.classList.add('active');
+			urgentBtn.classList.remove('active');
+			urgencyInput.value = 'flexible';
+		});
+		
+		// Time preference buttons toggle
+		const noPreferenceBtn = document.getElementById('noPreferenceBtn');
+		const specificTimeBtn = document.getElementById('specificTimeBtn');
+		const timeRangeBtnOption = document.getElementById('timeRangeBtn');
+		const timePreferenceInput = document.getElementById('timePreferenceInput');
+		const specificTimeContainer = document.getElementById('specificTimeContainer');
+		const timeRangeContainer = document.getElementById('timeRangeContainer');
+		
+		noPreferenceBtn.addEventListener('click', function() {
+			// Remove active from all time buttons
+			noPreferenceBtn.classList.add('active');
+			specificTimeBtn.classList.remove('active');
+			timeRangeBtnOption.classList.remove('active');
+			
+			// Hide time input containers
+			specificTimeContainer.style.display = 'none';
+			timeRangeContainer.style.display = 'none';
+			
+			// Update hidden input
+			timePreferenceInput.value = 'no-preference';
+		});
+		
+		specificTimeBtn.addEventListener('click', function() {
+			// Remove active from all time buttons
+			noPreferenceBtn.classList.remove('active');
+			specificTimeBtn.classList.add('active');
+			timeRangeBtnOption.classList.remove('active');
+			
+			// Show specific time container
+			specificTimeContainer.style.display = 'block';
+			timeRangeContainer.style.display = 'none';
+			
+			// Update hidden input
+			timePreferenceInput.value = 'specific-time';
+			
+			// Open time picker if no time selected
+			if (!specificTimeInput.value) {
+				currentTimeInputType = 'specific';
+				openTimePicker();
+			}
+		});
+		
+		timeRangeBtnOption.addEventListener('click', function() {
+			// Remove active from all time buttons
+			noPreferenceBtn.classList.remove('active');
+			specificTimeBtn.classList.remove('active');
+			timeRangeBtnOption.classList.add('active');
+			
+			// Show time range container
+			specificTimeContainer.style.display = 'none';
+			timeRangeContainer.style.display = 'block';
+			
+			// Update hidden input
+			timePreferenceInput.value = 'time-range';
+		});
+		
+		// Payment type toggle (Step 4)
+		const oneTimePaymentBtn = document.getElementById('oneTimePaymentBtn');
+		const perHourBtn = document.getElementById('perHourBtn');
+		const paymentTypeInput = document.getElementById('paymentTypeInput');
+		
+		oneTimePaymentBtn.addEventListener('click', function() {
+			this.classList.add('active');
+			perHourBtn.classList.remove('active');
+			paymentTypeInput.value = 'one-time';
+		});
+		
+		perHourBtn.addEventListener('click', function() {
+			this.classList.add('active');
+			oneTimePaymentBtn.classList.remove('active');
+			paymentTypeInput.value = 'per-hour';
+		});
+		
+		// Generate budget button
+		document.getElementById('generateBudgetBtn').addEventListener('click', function() {
+			const estimatedHours = document.getElementById('estimatedHoursInput').value;
+			
+			if (!estimatedHours || estimatedHours <= 0) {
+				alert('Please enter estimated hours.');
+				return;
+			}
+			
+			// Move to sub-step 2 of budget (will be implemented)
+			// For now, just show success message
+			alert('Budget generation functionality will be added in the next step!');
+		});
+		
+		// Time Picker functionality
+		const timePickerOverlay = document.getElementById('timePickerOverlay');
+		const closeTimePicker = document.getElementById('closeTimePicker');
+		const timePickerDone = document.getElementById('timePickerDone');
+		const hourWheel = document.getElementById('hourWheel');
+		const minuteWheel = document.getElementById('minuteWheel');
+		const periodWheel = document.getElementById('periodWheel');
+		const specificTimeInput = document.getElementById('specificTimeInput');
+		const timeRangeStartInput = document.getElementById('timeRangeStartInput');
+		const timeRangeEndInput = document.getElementById('timeRangeEndInput');
+		
+		let selectedHour = 12;
+		let selectedMinute = 0;
+		let selectedPeriod = 'AM';
+		let currentTimeInputType = 'specific'; // 'specific', 'range-start', or 'range-end'
+		
+		// Allow clicking on the input to reopen time picker
+		specificTimeInput.addEventListener('click', function() {
+			currentTimeInputType = 'specific';
+			openTimePicker();
+		});
+		
+		timeRangeStartInput.addEventListener('click', function() {
+			currentTimeInputType = 'range-start';
+			openTimePicker();
+		});
+		
+		timeRangeEndInput.addEventListener('click', function() {
+			currentTimeInputType = 'range-end';
+			openTimePicker();
+		});
+		
+		function openTimePicker() {
+			// Parse existing value based on current input type
+			let currentInput = null;
+			if (currentTimeInputType === 'specific') {
+				currentInput = specificTimeInput;
+			} else if (currentTimeInputType === 'range-start') {
+				currentInput = timeRangeStartInput;
+			} else if (currentTimeInputType === 'range-end') {
+				currentInput = timeRangeEndInput;
+			}
+			
+			if (currentInput && currentInput.value) {
+				const timeMatch = currentInput.value.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+				if (timeMatch) {
+					selectedHour = parseInt(timeMatch[1]);
+					selectedMinute = parseInt(timeMatch[2]);
+					selectedPeriod = timeMatch[3].toUpperCase();
+				}
+			}
+			
+			timePickerOverlay.classList.add('active');
+			initializeWheels();
+		}
+		
+		function closeTimePickerModal() {
+			timePickerOverlay.classList.remove('active');
+		}
+		
+		function initializeWheels() {
+			// Create hours (1-12)
+			hourWheel.innerHTML = '';
+			for (let i = 0; i < 4; i++) hourWheel.innerHTML += '<div class="time-wheel-item"></div>'; // Padding top
+			for (let i = 1; i <= 12; i++) {
+				const item = document.createElement('div');
+				item.className = 'time-wheel-item';
+				item.textContent = String(i).padStart(2, '0');
+				item.dataset.value = i;
+				hourWheel.appendChild(item);
+			}
+			for (let i = 0; i < 4; i++) hourWheel.innerHTML += '<div class="time-wheel-item"></div>'; // Padding bottom
+			
+			// Create minutes (00-59)
+			minuteWheel.innerHTML = '';
+			for (let i = 0; i < 4; i++) minuteWheel.innerHTML += '<div class="time-wheel-item"></div>';
+			for (let i = 0; i < 60; i++) {
+				const item = document.createElement('div');
+				item.className = 'time-wheel-item';
+				item.textContent = String(i).padStart(2, '0');
+				item.dataset.value = i;
+				minuteWheel.appendChild(item);
+			}
+			for (let i = 0; i < 4; i++) minuteWheel.innerHTML += '<div class="time-wheel-item"></div>';
+			
+			// Create periods (AM/PM)
+			periodWheel.innerHTML = '';
+			for (let i = 0; i < 4; i++) periodWheel.innerHTML += '<div class="time-wheel-item"></div>';
+			['AM', 'PM'].forEach(period => {
+				const item = document.createElement('div');
+				item.className = 'time-wheel-item';
+				item.textContent = period;
+				item.dataset.value = period;
+				periodWheel.appendChild(item);
+			});
+			for (let i = 0; i < 4; i++) periodWheel.innerHTML += '<div class="time-wheel-item"></div>';
+			
+			// Set initial scroll positions
+			scrollToValue(hourWheel, 12);
+			scrollToValue(minuteWheel, 0);
+			scrollToValue(periodWheel, 'AM');
+			
+			// Add scroll listeners
+			hourWheel.addEventListener('scroll', () => updateSelection(hourWheel));
+			minuteWheel.addEventListener('scroll', () => updateSelection(minuteWheel));
+			periodWheel.addEventListener('scroll', () => updateSelection(periodWheel));
+		}
+		
+		function scrollToValue(wheel, value) {
+			const items = wheel.querySelectorAll('.time-wheel-item[data-value]');
+			items.forEach(item => {
+				if (item.dataset.value == value) {
+					const itemTop = item.offsetTop;
+					const wheelHeight = wheel.clientHeight;
+					const itemHeight = item.clientHeight;
+					wheel.scrollTop = itemTop - (wheelHeight / 2) + (itemHeight / 2);
+				}
+			});
+		}
+		
+		function updateSelection(wheel) {
+			const items = wheel.querySelectorAll('.time-wheel-item[data-value]');
+			const wheelRect = wheel.getBoundingClientRect();
+			const centerY = wheelRect.top + wheelRect.height / 2;
+			
+			let closestItem = null;
+			let closestDistance = Infinity;
+			
+			items.forEach(item => {
+				item.classList.remove('selected');
+				const itemRect = item.getBoundingClientRect();
+				const itemCenterY = itemRect.top + itemRect.height / 2;
+				const distance = Math.abs(centerY - itemCenterY);
+				
+				if (distance < closestDistance) {
+					closestDistance = distance;
+					closestItem = item;
+				}
+			});
+			
+			if (closestItem) {
+				closestItem.classList.add('selected');
+				
+				// Update selected values
+				if (wheel === hourWheel) {
+					selectedHour = parseInt(closestItem.dataset.value);
+				} else if (wheel === minuteWheel) {
+					selectedMinute = parseInt(closestItem.dataset.value);
+				} else if (wheel === periodWheel) {
+					selectedPeriod = closestItem.dataset.value;
+				}
+			}
+		}
+		
+		closeTimePicker.addEventListener('click', closeTimePickerModal);
+		timePickerOverlay.addEventListener('click', function(e) {
+			if (e.target === timePickerOverlay) {
+				closeTimePickerModal();
+			}
+		});
+		
+		timePickerDone.addEventListener('click', function() {
+			// Display in 12-hour format with AM/PM
+			const displayTime = `${String(selectedHour).padStart(2, '0')}:${String(selectedMinute).padStart(2, '0')} ${selectedPeriod}`;
+			
+			// Set value to correct input based on currentTimeInputType
+			if (currentTimeInputType === 'specific') {
+				specificTimeInput.value = displayTime;
+			} else if (currentTimeInputType === 'range-start') {
+				timeRangeStartInput.value = displayTime;
+			} else if (currentTimeInputType === 'range-end') {
+				timeRangeEndInput.value = displayTime;
+			}
+			
+			closeTimePickerModal();
+		});
+		
+		// Back buttons - update backStep3 handler
+		/*document.getElementById('backStep3').addEventListener('click', function() {
 			goToStep(2);
 			showSubStep(2, 4); // Go back to last sub-step of Step 2
-		});
+		});*/
 		
 		document.getElementById('backStep4').addEventListener('click', function() {
 			goToStep(3);
