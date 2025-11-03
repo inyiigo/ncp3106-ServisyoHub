@@ -109,6 +109,8 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 }
 
 /* centered floating bottom navigation */
+/* REMOVED bottom nav styles */
+/*
 .dash-bottom-nav {
 	position: fixed;
 	left: 50%;
@@ -126,7 +128,7 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 	transform: translateX(-50%) scale(1);
 	box-shadow: 0 12px 28px rgba(2,6,23,.12);
 }
-
+*/
 @media (max-width:520px) {
 	.bottom-box { left: 12px; right: 12px; bottom: 14px; display:flex; justify-content:center; }
 	.back-box { width:100%; justify-content:center; }
@@ -172,24 +174,17 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 	</main>
 
 	<div class="bottom-box" role="navigation" aria-label="Page actions">
-		<a href="./clients-profile.php" class="back-box" title="Back to profile">← Back to profile</a>
+		<a href="./settings.php" class="back-box" title="Back to settings">← Back to settings</a>
 	</div>
 
-	<!-- Floating bottom navigation -->
+	<!-- REMOVED floating bottom navigation -->
+	<!--
 	<nav class="dash-bottom-nav">
-		<a href="./home-gawain.php" aria-label="Home">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Home</span>
-		</a>
-		<a href="./my-gawain.php" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Gawain</span>
-		</a>
-		<a href="./clients-profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Profile</span>
-		</a>
+		<a href="./home-gawain.php" aria-label="Home">...</a>
+		<a href="./my-gawain.php" aria-label="My Gawain">...</a>
+		<a href="./profile.php" aria-label="Profile">...</a>
 	</nav>
+	-->
 
 	<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 	<script>
