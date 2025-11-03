@@ -180,9 +180,9 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					<span>Manage Payment</span>
 					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
 				</a>
-				<a class="prof-item" href="./my-services.php">
+				<a class="prof-item" href="./my-gawain.php">
 					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18v4H3zM3 10h18v10H3z"/></svg>
-					<span>Service History</span>
+							<span>Gawain History</span>
 					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
 				</a>
 				<a class="prof-item" href="./location.php">
@@ -216,7 +216,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" aria-label="Browse">
+		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
@@ -226,9 +226,9 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-		<a href="./my-services.php" aria-label="My Services">
+		<a href="./my-gawain.php" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Services</span>
+			<span>My Gawain</span>
 		</a>
 		<a href="./clients-profile.php" class="active" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>

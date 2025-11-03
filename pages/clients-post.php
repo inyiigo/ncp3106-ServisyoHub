@@ -1372,7 +1372,7 @@ body {
 	<!-- Top Bar -->
 	<div class="top-bar">
 		<div class="top-bar-content">
-			<a href="./home-services.php" class="top-bar-logo">
+			<a href="./home-gawain.php" class="top-bar-logo">
 				<img src="../assets/images/bluefont.png" alt="Servisyo Hub" />
 			</a>
 		</div>
@@ -1412,9 +1412,9 @@ body {
 		</div>
 	</section>
 
-	<!-- Trending Services -->
-	<section class="trending-services" aria-label="Trending Services">
-		<h3 class="trending-title">Trending Services</h3>
+	<!-- Trending Gawain -->
+	<section class="trending-services" aria-label="Trending Gawain">
+		<h3 class="trending-title">Trending Gawain</h3>
 		
 		<div class="trending-list">
 			<!-- Service Item 1 -->
@@ -1476,7 +1476,7 @@ body {
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" aria-label="Home">
+		<a href="./home-gawain.php" aria-label="Home">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
 			<span>Home</span>
 		</a>
@@ -1484,9 +1484,9 @@ body {
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-		<a href="./my-services.php" aria-label="My Services">
+		<a href="./my-gawain.php" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Services</span>
+			<span>My Gawain</span>
 		</a>
 		<a href="./clients-profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
@@ -1931,8 +1931,8 @@ body {
 					<!-- Sub-step 2: Set a budget -->
 					<div class="sub-step" id="subStep4_2" style="display: none;">
 
-						<label class="form-label">Hero’s fee</label>
-						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">This is the amount you’ll pay for the Hero’s time and services.</p>
+						<label class="form-label">Kasangga’s fee</label>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">This is the amount you’ll pay for the Kasangga’s time and gawain.</p>
 
 						<div style="position: relative; margin-bottom: 16px;">
 							<span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 700;">PHP</span>
@@ -1954,7 +1954,7 @@ body {
 								<span>📈</span>
 								<span>Pricing insights:</span>
 							</p>
-							<p id="insightMessage" style="margin: 6px 0 12px 0; color: #0f172a; font-weight: 600;">Hero fee is within the recommended range</p>
+							<p id="insightMessage" style="margin: 6px 0 12px 0; color: #0f172a; font-weight: 600;">Kasangga fee is within the recommended range</p>
 							<div style="height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-bottom: 8px;">
 								<div id="insightBar" style="height: 100%; width: 60%; background: #10b981;"></div>
 							</div>
@@ -1976,9 +1976,9 @@ body {
 
 						<label class="checkbox-label" style="margin-top: 12px;">
 							<input type="checkbox" class="checkbox-input" id="negotiableCheckbox" />
-							<span class="checkbox-text">Let Heroes know the fee is negotiable</span>
+							<span class="checkbox-text">Let Kasangga know the fee is negotiable</span>
 						</label>
-						<p style="color: #78716c; font-size: 0.9rem; margin: 8px 0 20px 0;">Even without this, Heroes can still offer other amounts, but being flexible upfront may get you more responses.</p>
+						<p style="color: #78716c; font-size: 0.9rem; margin: 8px 0 20px 0;">Even without this, Kasangga can still offer other amounts, but being flexible upfront may get you more responses.</p>
 
 						<!-- Totals -->
 						<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
@@ -1993,7 +1993,7 @@ body {
 						</button>
 						<div id="priceBreakdownContent" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
 							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-								<span>Hero's fee</span>
+								<span>Kasangga's fee</span>
 								<span>PHP<span id="breakdownHeroFee">0.00</span></span>
 							</div>
 							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
@@ -2021,7 +2021,7 @@ body {
 					<div class="sub-step" id="subStep4_3" style="display: none;">
 
 						<label class="form-label">Cost of purchases (optional)</label>
-						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Will the Hero need to buy anything to complete the quest, like materials or items? Add an estimated cost below.</p>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Will the Kasangga need to buy anything to complete the quest, like materials or items? Add an estimated cost below.</p>
 
 						<div style="position: relative; margin-bottom: 16px; max-width: 360px;">
 							<span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 700;">PHP</span>
@@ -2050,7 +2050,7 @@ body {
 						</button>
 						<div id="priceBreakdownContent_ac" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
 							<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-								<span>Hero's fee</span>
+								<span>Kasangga's fee</span>
 								<span>PHP<span id="breakdownHeroFee_ac">0.00</span></span>
 							</div>
 							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -2093,7 +2093,7 @@ body {
 							</button>
 							<div id="priceBreakdownContent_rv" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
 								<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-									<span>Hero's fee</span>
+									<span>Kasangga's fee</span>
 									<span>PHP<span id="breakdownHeroFee_rv">0.00</span></span>
 								</div>
 								<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -2153,9 +2153,9 @@ body {
 								<p id="summaryRequirementsText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
 							</div>
 
-							<!-- Heroes required -->
+							<!-- Kasangga required -->
 							<div style="margin-bottom:20px;">
-								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Heroes Required</p>
+								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Kasangga Required</p>
 								<p id="summaryHeroesText" style="margin:0; color:#0f172a; font-weight:700;"></p>
 							</div>
 
@@ -2181,7 +2181,7 @@ body {
 							<ul class="guidance-list" style="margin-bottom: 16px;">
 								<li>Price quest fairly</li>
 								<li>Remain contactable and keep communications within the Quest app</li>
-								<li>Pay the Hero when the quest is completed</li>
+								<li>Pay the Kasangga when the quest is completed</li>
 							</ul>
 
 							<p class="step-subtitle">You confirm that this quest is not:</p>
@@ -2191,7 +2191,7 @@ body {
 								<li>Illegal and inappropriate acts</li>
 								<li>Financial loans</li>
 								<li>Sale of items</li>
-								<li>Listing of services</li>
+								<li>Listing of gawain</li>
 								<li>Academic deceit</li>
 								<li>Referral posts</li>
 							</ul>
@@ -2227,7 +2227,7 @@ body {
 							<ul class="next-steps">
 								<li>
 									<span class="step-badge">1</span>
-									<span>Heroes will make offers to your quest</span>
+									<span>Kasangga will make offers to your quest</span>
 								</li>
 								<li>
 									<span class="step-badge">2</span>
@@ -2235,7 +2235,7 @@ body {
 								</li>
 								<li>
 									<span class="step-badge">3</span>
-									<span>Release the securely held payment to your Hero after quest completion & review them</span>
+									<span>Release the securely held payment to your Kasangga after quest completion & review them</span>
 								</li>
 							</ul>
 
@@ -2332,9 +2332,9 @@ body {
 				<span class="info-subtitle">Connection fee</span>
 				<span>PHP<span id="infoConnectionFee">0.00</span></span>
 			</div>
-			<p class="info-note">This fee covers the costs of keeping the platform running, support, and bringing more Heroes onto the platform.</p>
+			<p class="info-note">This fee covers the costs of keeping the platform running, support, and bringing more Kasangga onto the platform.</p>
 
-			<p class="info-note" style="color:#78716c; font-size: 0.85rem;">Note: If the quest is cancelled after the Hero confirms availability, your booking fees will not be refunded.</p>
+			<p class="info-note" style="color:#78716c; font-size: 0.85rem;">Note: If the quest is cancelled after the Kasangga confirms availability, your booking fees will not be refunded.</p>
 
 			<button type="button" class="info-close-btn" id="bookingFeeInfoGotIt">Got it</button>
 		</div>
@@ -3065,7 +3065,7 @@ body {
 			// Simple insight bar position within 0-2x recommended
 			const insightBar = document.getElementById('insightBar');
 			insightBar.style.width = '60%';
-			document.getElementById('insightMessage').textContent = 'Hero fee is within the recommended range';
+			document.getElementById('insightMessage').textContent = 'Kasangga fee is within the recommended range';
 
 				// Show sub-step 2, update titles
 			document.getElementById('subStep4_1').style.display = 'none';
@@ -3128,7 +3128,7 @@ body {
 					insightBar.style.width = '40%';
 					insightBar.style.background = '#f59e0b';
 				} else if (heroFee <= recommended * 1.2) {
-					insightMessage.textContent = 'Hero fee is within the recommended range';
+					insightMessage.textContent = 'Kasangga fee is within the recommended range';
 					insightBar.style.width = '60%';
 					insightBar.style.background = '#10b981';
 				} else {

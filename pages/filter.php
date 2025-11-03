@@ -156,16 +156,16 @@ $max      = $_GET['max']      ?? '';
 
 	<!-- NEW: place the blue "x" below the top bar -->
 	<div class="exit-row">
-		<a href="./home-services.php" class="filter-exit" aria-label="Exit filters">x</a>
+		<a href="./home-gawain.php" class="filter-exit" aria-label="Exit filters">x</a>
 	</div>
 
 	<div class="dash-shell">
 		<main class="dash-content">
 			<section class="filter-card" aria-label="Filters">
 				<h2>Filter Options</h2>
-				<p class="help">Choose how to filter results. Applied filters will be sent to the Services page.</p>
+				<p class="help">Choose how to filter results. Applied filters will be sent to the Gawain page.</p>
 
-				<form method="get" action="./home-services.php">
+				<form method="get" action="./home-gawain.php">
 					<fieldset>
 						<legend>Sort Results</legend>
 						<div class="inline" role="radiogroup" aria-label="Sort Results">

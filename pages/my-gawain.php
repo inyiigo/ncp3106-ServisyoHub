@@ -1,19 +1,17 @@
 <?php
-// 301: This legacy route moved to my-gawain.php
-http_response_code(301);
-header('Location: ./my-gawain.php');
-exit;
+session_start();
+$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'there');
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>My Services • Servisyo Hub</title>
+	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
 	<style>
-		/* Match bottom nav behavior from home-services.php and center at bottom */
+		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
 			position: fixed;
 			left: 50%;
@@ -77,21 +75,21 @@ exit;
 			<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
 
 			<!-- Browse CTA card placed above empty state -->
-			<section class="dash-cards" aria-label="Browse services">
+			<section class="dash-cards" aria-label="Browse gawain">
 				<div class="dash-card blue">
 					<div>
-						<div class="dash-pill">Need to browse services?</div>
+						<div class="dash-pill">Need to browse gawain?</div>
 						<h3>Find a Provider</h3>
-						<p>Explore verified services around you.</p>
+						<p>Explore verified gawain around you.</p>
 					</div>
-					<a href="./home-services.php" class="dash-pill">Browse</a>
+					<a href="./home-gawain.php" class="dash-pill">Browse</a>
 				</div>
 			</section>
 
 			<div class="empty-wrap">
 				<div class="empty-card">
 					<p class="empty-title">No bookings yet</p>
-					<p class="empty-text">When you book a service, it will appear here so you can track its progress.</p>
+					<p class="empty-text">When you book a gawain, it will appear here so you can track its progress.</p>
 				</div>
 			</div>
 		</main>
@@ -99,7 +97,7 @@ exit;
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" aria-label="Browse">
+		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
@@ -109,9 +107,9 @@ exit;
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-		<a href="./my-services.php" class="active" aria-label="My Services">
+		<a href="./my-gawain.php" class="active" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Services</span>
+			<span>My Gawain</span>
 		</a>
 		<a href="./clients-profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>

@@ -20,7 +20,7 @@ if (!$mobile) {
     <h2>Set your password</h2>
     <p class="hint">Mobile: <strong><?php echo htmlspecialchars($mobile); ?></strong></p>
 
-    <form action="./home-services.php" method="POST" novalidate>
+  <form action="./home-gawain.php" method="POST" novalidate>
       <div class="field">
         <label for="password">Password</label>
         <input type="password" id="password" name="password" placeholder="At least 6 characters" minlength="6" required />
