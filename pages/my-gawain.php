@@ -111,7 +111,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
 			<span>My Gawain</span>
 		</a>
-		<a href="./clients-profile.php" aria-label="Profile">
+		<a href="./profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
 			<span>Profile</span>
 		</a>
