@@ -72,215 +72,69 @@ ob_end_flush();
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Home • Services • Servisyo Hub</title>
+	<title>Home • Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
 	<style>
 		/* Side nav: compact by default, expand on hover */
-		.dash-aside {
-			width: 64px;                    /* compact */
-			transition: width 200ms ease, box-shadow 180ms ease;
-			overflow: hidden;               /* hide labels when compact */
-		}
-		.dash-aside:hover {
-			width: 240px;                   /* expand */
-			box-shadow: 0 12px 28px rgba(2,6,23,.12);
-		}
-		/* Keep nav items on one line and hide overflow when compact */
-		.dash-aside .dash-nav a {
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			display: flex;
-			align-items: center;
-			gap: 10px;
-		}
-		.dash-aside .dash-nav .dash-icon {
-			width: 20px; height: 20px; flex: 0 0 20px;
-		}
+		.dash-aside { width: 64px; transition: width 200ms ease, box-shadow 180ms ease; overflow: hidden; }
+		.dash-aside:hover { width: 240px; box-shadow: 0 12px 28px rgba(2,6,23,.12); }
+		.dash-aside .dash-nav a { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 10px; }
+		.dash-aside .dash-nav .dash-icon { width: 20px; height: 20px; flex: 0 0 20px; }
 
 		/* Bottom nav: centered at the bottom */
-		.dash-bottom-nav {
-			position: fixed;
-			left: 50%;
-			right: auto;
-			bottom: 16px;
-			transform: translateX(-50%) scale(0.92); /* keep existing scale */
-			transform-origin: bottom center;
-			margin: 0;
-			width: max-content; /* shrink to content so centering is precise */
-			transition: transform 180ms ease, box-shadow 180ms ease;
-			border: 3px solid #0078a6;
-			background: transparent;
-			z-index: 999; /* ensure above content */
-		}
-		.dash-bottom-nav:hover {
-			transform: translateX(-50%) scale(1);
-			box-shadow: 0 12px 28px rgba(2,6,23,.12);
-		}
-
-		@media (max-width:520px) {
-			.dash-bottom-nav {
-				bottom: 12px;
-				transform: translateX(-50%); /* no scale on very small screens */
-			}
-		}
-
-		/* Center the main content area */
+		.dash-bottom-nav { position: fixed; left: 50%; right: auto; bottom: 16px; transform: translateX(-50%) scale(0.92); transform-origin: bottom center; margin: 0; width: max-content; transition: transform 180ms ease, box-shadow 180ms ease; border: 3px solid #0078a6; background: transparent; z-index: 999; }
+		.dash-bottom-nav:hover { transform: translateX(-50%) scale(1); box-shadow: 0 12px 28px rgba(2,6,23,.12); }
+		@media (max-width:520px) { .dash-bottom-nav { bottom: 12px; transform: translateX(-50%); } }
 		.dash-content { max-width: 1100px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
-
-		/* Center hero text */
 		.home-hero { text-align: center; }
-
-		/* REMOVE unused category grid styles */
-		/* .home-sections .dash-cat { text-align: center; }
-		   .dash-cat-title { display: flex; justify-content: center; }
-		   .dash-svc-grid { justify-content: center; }
-		   .dash-svc-card { background: #0078a6 !important; color:#fff; border: 2px solid color-mix(in srgb, #0078a6 80%, #0000); box-shadow: 0 8px 24px rgba(0,120,166,.24); backdrop-filter: none; }
-		   .dash-svc-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(0,120,166,.32); }
-		   .dash-svc-card .info .title { color:#fff; }
-		   .dash-svc-card .info .sub { color: rgba(255,255,255,.85); } */
-
-		/* Blue bottom border on topbar */
 		.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
-
-		/* Background logo - transparent and behind UI */
-		.bg-logo {
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 25%;
-			max-width: 350px;
-			opacity: 0.15;
-			z-index: 0;
-			pointer-events: none;
-		}
-		.bg-logo img {
-			width: 100%;
-			height: auto;
-			display: block;
-		}
-		.svc-cats {
-			max-width: 1100px; margin: 10px auto 8px; padding: 0 16px;
-			display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
-		}
+		.bg-logo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25%; max-width: 350px; opacity: 0.15; z-index: 0; pointer-events: none; }
+		.bg-logo img { width: 100%; height: auto; display: block; }
+		.svc-cats { max-width: 1100px; margin: 10px auto 8px; padding: 0 16px; display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
 		.svc-cats::-webkit-scrollbar { display: none; }
-		.svc-cat {
-			appearance: none; border: 2px solid #e2e8f0; background: #fff; color: #0f172a;
-			border-radius: 999px; padding: 8px 16px; font-weight: 800; font-size: .9rem; white-space: nowrap;
-			cursor: pointer; transition: all .15s ease;
-		}
+		.svc-cat { appearance: none; border: 2px solid #e2e8f0; background: #fff; color: #0f172a; border-radius: 999px; padding: 8px 16px; font-weight: 800; font-size: .9rem; white-space: nowrap; cursor: pointer; transition: all .15s ease; }
 		.svc-cat:hover { background: #f1f5f9; }
 		.svc-cat.active { background:#0078a6; color:#fff; border-color:#0078a6; }
-
-		/* Carousel wrapper and arrows for categories */
 		.svc-cats-wrap { max-width:1100px; margin:10px auto 8px; padding:0 16px; position:relative; }
 		.svc-cats-wrap .svc-cats { margin:0 !important; padding:0 !important; }
-		.cat-nav-btn {
-			position:absolute; top:50%; transform:translateY(-50%);
-			width:34px; height:34px; border-radius:999px;
-			border:2px solid #e2e8f0; background:#fff; color:#0f172a;
-			display:grid; place-items:center; cursor:pointer;
-			box-shadow:0 6px 16px rgba(0,0,0,.08);
-			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
-			z-index:2;
-		}
+		.cat-nav-btn { position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:999px; border:2px solid #e2e8f0; background:#fff; color:#0f172a; display:grid; place-items:center; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.08); transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease; z-index:2; }
 		.cat-nav-btn:hover { transform:translateY(-50%) scale(1.05); border-color:#0078a6; background:#f8fafc; }
 		.cat-nav-btn[disabled] { opacity:.35; cursor:default; transform:translateY(-50%); box-shadow:none; }
 		.cat-nav-btn.prev { left:8px; }
 		.cat-nav-btn.next { right:8px; }
 		.cat-nav-btn svg { width:16px; height:16px; }
-
-		/* Results/notify toolbar */
-		.results-bar {
-			max-width: 1100px; margin: 0 auto 10px; padding: 0 16px;
-			display:flex; align-items:center; justify-content: space-between; gap:10px;
-		}
+		.results-bar { max-width: 1100px; margin: 0 auto 10px; padding: 0 16px; display:flex; align-items:center; justify-content: space-between; gap:10px; }
 		.results-left { display:flex; align-items:center; gap:8px; color:#64748b; font-weight:700; }
-		.results-left .ico { width:18px; height:18px; color:#64748b; }
+		.results-left .ico { width:18px; height:18px; color: #64748b; }
 		.results-right { display:flex; align-items:center; gap:8px; }
-		.notify-btn {
-			display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:10px;
-			border:2px solid #e2e8f0; background:#fff; color:#0f172a; font-weight:800; cursor:pointer;
-			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-		}
+		.notify-btn { display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:10px; border:2px solid #e2e8f0; background:#fff; color:#0f172a; font-weight:800; cursor:pointer; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 		.notify-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
-
-		/* Filter button: match hover with notify button */
-		.toggle-btn { /* supports <a> as button */
-			display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px;
-			border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer;
-			text-decoration:none;
-			transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; /* updated */
-		}
-		.toggle-btn:hover {
-			background:#f8fafc;
-			transform: translateY(-1px); /* added */
-			box-shadow: 0 6px 16px rgba(0,0,0,.08); /* added */
-			border-color:#0078a6; /* added */
-		}
-		.toggle-btn svg, .toggle-btn img { width:18px; height:18px; } /* keep both for compatibility */
-
-		/* White list-style cards */
-		.svc-list {
-			max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px;
-		}
-		.svc-card {
-			display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start;
-			background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px;
-			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
-		}
+		.toggle-btn { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer; text-decoration:none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; }
+		.toggle-btn:hover { background:#f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
+		.toggle-btn svg, .toggle-btn img { width:18px; height:18px; }
+		.svc-list { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px; }
+		.svc-card { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start; background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 		.svc-card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color:#0078a6; }
 		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; }
 		.svc-meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:#64748b; font-size:.9rem; }
 		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
 		.svc-meta .item svg { width:14px; height:14px; }
 		.svc-posted { margin-top:8px; display:flex; align-items:center; gap:8px; color:#94a3b8; font-size:.85rem; }
-		.svc-av {
-			width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#0f172a;
-			display:grid; place-items:center; font-weight:800; font-size:.75rem;
-		}
+		.svc-av { width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#0f172a; display:grid; place-items:center; font-weight:800; font-size:.75rem; }
 		.svc-price { display:grid; align-content:center; gap:4px; text-align:right; }
 		.svc-price .amt { font-weight:800; color:#0078a6; }
 		.svc-price .note { color:#94a3b8; font-size:.8rem; }
-
-		/* Service search bar under hero */
 		.svc-search { max-width: 1100px; margin: 8px auto 16px; padding: 0 16px; }
-		.svc-search-box {
-			display: flex; align-items: center; gap: 12px;
-			background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
-			padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06);
-			transition: box-shadow .15s ease, border-color .15s ease;
-		}
+		.svc-search-box { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06); transition: box-shadow .15s ease, border-color .15s ease; }
 		.svc-search-box:focus-within { border-color: #0078a6; box-shadow: 0 8px 20px rgba(0,120,166,.12); }
 		.svc-search-icon { width: 20px; height: 20px; color: #64748b; flex-shrink: 0; }
-		.svc-search-input {
-			appearance: none; border: 0; outline: 0; background: transparent;
-			font: inherit; color: #0f172a; flex: 1; font-size: .95rem;
-		}
+		.svc-search-input { appearance: none; border: 0; outline: 0; background: transparent; font: inherit; color: #0f172a; flex: 1; font-size: .95rem; }
 		.svc-search-input::placeholder { color: #94a3b8; }
-
-		/* REMOVE: over-broad white background that hides bg-logo */
-		/* html, body, .dash-shell, .dash-content {
-			background: #ffffff !important;
-			background-attachment: initial !important;
-		} */
-
-		/* Keep page white without painting inner containers */
-		body.theme-profile-bg {
-			background: #ffffff !important;
-			background-attachment: initial !important;
-		}
-
-		/* Ensure content sits above bg-logo and overlay is off */
+		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 		.dash-shell { position: relative; z-index: 1; }
 		.dash-overlay { display: none !important; }
-
-		@media (max-width:640px){
-			.svc-card { grid-template-columns: 1fr; }
-			.svc-price { text-align:left; }
-		}
+		@media (max-width:640px){ .svc-card { grid-template-columns: 1fr; } .svc-price { text-align:left; } }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -299,12 +153,12 @@ ob_end_flush();
 	<div class="dash-shell">
 		<main class="dash-content">
 			<!-- NEW: search bar below hero -->
-			<section class="svc-search" aria-label="Search services">
+			<section class="svc-search" aria-label="Search gawain">
 				<div class="svc-search-box">
 					<svg class="svc-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 					</svg>
-					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search services (e.g., cleaning, plumbing)" aria-label="Search services">
+					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search gawain (e.g., cleaning, plumbing)" aria-label="Search gawain">
 				</div>
 			</section>
 
@@ -388,7 +242,7 @@ ob_end_flush();
 				<?php endif; ?>
 			</section>
 
-			<!-- Recent Posts feed (before services) -->
+			<!-- Recent Posts feed (before gawain) -->
 			<section class="jobs-feed" aria-label="Recent posts">
 				<div class="feed-title">
 					<span>Recent Posts</span>
@@ -428,15 +282,15 @@ ob_end_flush();
 
 		<aside class="dash-aside">
 			<nav class="dash-nav" aria-label="Main navigation">
-				<a href="./home-services.php" class="active" aria-label="Browse">
+				<a href="./home-gawain.php" class="active" aria-label="Browse">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 					</svg>
 					<span>Browse</span>
 				</a>
-				<a href="./my-services.php" aria-label="My Services">
+				<a href="./my-gawain.php" aria-label="My Gawain">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-					<span>My Services</span>
+					<span>My Gawain</span>
 				</a>
 				<a href="./clients-profile.php" aria-label="Profile">
 					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
@@ -448,7 +302,7 @@ ob_end_flush();
 
 	<!-- Floating bottom navigation (Post button removed) -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" class="active" aria-label="Browse">
+		<a href="./home-gawain.php" class="active" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
@@ -458,9 +312,9 @@ ob_end_flush();
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-		<a href="./my-services.php" aria-label="My Services">
+		<a href="./my-gawain.php" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Services</span>
+			<span>My Gawain</span>
 		</a>
 		<a href="./clients-profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>

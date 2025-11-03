@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 		if($password == $db_password){
 			$_SESSION['user_id'] = $row['id'];
 			$_SESSION['mobile'] = $row['mobile'];
-			header("Location: home-services.php");
+			header("Location: home-gawain.php");
 			exit();
 		} else {
 			$error = "Incorrect password. Please try again.";

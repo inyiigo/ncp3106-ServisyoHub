@@ -1,0 +1,6 @@
+RewriteEngine On
+
+# Permanent redirects for legacy Service routes -> new Gawain routes
+# Example: /ncp3106-ServisyoHub/pages/home-services.php -> /ncp3106-ServisyoHub/pages/home-gawain.php
+RewriteRule ^pages/home-services\.php$ pages/home-gawain.php [R=301,L]
+RewriteRule ^pages/my-services\.php$ pages/my-gawain.php [R=301,L]

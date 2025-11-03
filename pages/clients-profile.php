@@ -261,6 +261,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 				</div>
 			</section>
 
+<<<<<<< HEAD
 			<!-- Tabs copied from the photo's structure (not its design) -->
 			<section class="prof-tabs" aria-label="Profile sections">
 				<div class="tabbar" role="tablist" aria-label="Profile tabs">
@@ -338,12 +339,52 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 					</div>
 				</div>
 			</section>
+=======
+			<!-- Menu list -->
+			<nav class="prof-menu" aria-label="Profile options">
+				<a class="prof-item" href="./manage-payment.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 7H3V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2Zm0 0v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7m18 0l-9 6-9-6"/></svg>
+					<span>Manage Payment</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./my-gawain.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h18v4H3zM3 10h18v10H3z"/></svg>
+							<span>Gawain History</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./location.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+					<span>Location</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./favorite-pros.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/></svg>
+					<span>Favorite Pros</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./clients-about-us.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6m0-4V4m0 6h.01M4 12a8 8 0 1 1 16 0 8 8 0 0 1-16 0Z"/></svg>
+					<span>About Us</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./terms-and-conditions.php">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4h12v16H6zM8 8h8M8 12h8M8 16h5"/></svg>
+					<span>Terms and Conditions</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+				<a class="prof-item" href="./clients-profile.php?logout=1">
+					<svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/></svg>
+					<span>Log out</span>
+					<svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+				</a>
+			</nav>
+>>>>>>> 46f80b13aabe211dc8199750c26847fad6cc9e4c
 		</div>
 	</div>
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-services.php" aria-label="Browse">
+		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
@@ -353,9 +394,9 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-		<a href="./my-services.php" aria-label="My Services">
+		<a href="./my-gawain.php" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Services</span>
+			<span>My Gawain</span>
 		</a>
 		<a href="./clients-profile.php" class="active" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
