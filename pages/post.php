@@ -1476,17 +1476,23 @@ body {
 
 	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
-		<a href="./home-gawain.php" aria-label="Home">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Home</span>
+		<a href="./home-gawain.php" aria-label="Browse">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+			</svg>
+			<span>Browse</span>
 		</a>
-		<a href="./clients-post.php" class="active" aria-label="Post">
+		<a href="./post.php" class="active" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
 		<a href="./my-gawain.php" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
 			<span>My Gawain</span>
+		</a>
+		<a href="./chats.php" aria-label="Chats">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+			<span>Chats</span>
 		</a>
 		<a href="./profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
@@ -2861,7 +2867,7 @@ body {
 						// Update button text based on date type
 						const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
 							'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-						const dateText = `${selectedDay} ${monthNames[selectedDate.getMonth()]}`;
+						const dateText = `${selectedDay} ${monthNames[selectedDate.getMonth()]} ${selectedYear}`;
 						
 						if (currentDateType === 'specific') {
 							specificDateBtn.querySelector('span').textContent = `On ${dateText}`;
@@ -2939,12 +2945,6 @@ body {
 		const urgencyInput = document.getElementById('urgencyInput');
 		
 		urgentBtn.addEventListener('click', function() {
-			this.classList.add('active');
-			flexibleBtn.classList.remove('active');
-			urgencyInput.value = 'urgent';
-		});
-		
-		flexibleBtn.addEventListener('click', function() {
 			this.classList.add('active');
 			urgentBtn.classList.remove('active');
 			urgencyInput.value = 'flexible';

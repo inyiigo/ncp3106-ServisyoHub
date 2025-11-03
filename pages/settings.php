@@ -103,7 +103,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
                     <span>Terms and Conditions</span>
                     <svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
                 </a>
-                <a class="prof-item" href="./clients-profile.php?logout=1">
+                <a class="prof-item" href="./profile.php?logout=1">
                     <svg class="prof-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/></svg>
                     <span>Log out</span>
                     <svg class="prof-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
