@@ -72,7 +72,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			justify-content: flex-start;
 			gap: 8px;
 			padding: 12px 8px 8px 8px;
-			border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
 			border-right: 0;
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
@@ -135,11 +134,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			background: linear-gradient(135deg, #0078a6 0%, #006a94 100%);
 			color: #fff; box-shadow: 0 6px 18px rgba(0,120,166,.4);
 		}
-		.dash-float-nav a.active::after {
-			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #00a8e8 100%);
-			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
-		}
 		.dash-float-nav .dash-icon {
 			width: 18px; height: 18px; justify-self: center; object-fit: contain; transition: transform .2s ease;
 		}
@@ -154,6 +148,29 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 		/* Remove top bar on this page */
 		.dash-topbar { display: none !important; }
+
+		/* Sidebar nav: match settings.php colors and remove border/inset line */
+		.dash-float-nav {
+			background: #2596be !important;
+			border: none !important;
+			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important; /* no inset line */
+		}
+		.dash-float-nav a { color: #fff !important; }
+		.dash-float-nav a:hover:not(.active) {
+			background: rgba(255,255,255,.15) !important;
+			color: #fff !important;
+		}
+		/* Active state readable on blue background */
+		.dash-float-nav a.active {
+			background: rgba(255,255,255,.22) !important;
+			color: #fff !important;
+			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
+		}
+		.dash-float-nav a.active::after {
+			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
+			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%);
+			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
+		}
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -192,7 +209,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		<div class="nav-brand">
 			<a href="./home-gawain.php" title="">
 				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
-				<img class="logo-wide" src="../assets/images/bluefont.png" alt="ServisyoHub">
+				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
 			</a>
 		</div>
 

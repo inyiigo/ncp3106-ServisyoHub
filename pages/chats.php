@@ -135,12 +135,10 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 			display: flex; flex-direction: column; justify-content: flex-start;
 			gap: 8px;
 			padding: 12px 8px 8px 8px;
-			border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
 			border-right: 0;
 			border-top-left-radius: 16px; border-bottom-left-radius: 16px;
-			background: rgba(255,255,255,.95);
-			backdrop-filter: saturate(1.15) blur(12px);
-			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
+			background: #2596be !important;
+			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important; /* remove inset 1px line */
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 			width: 56px;
 			overflow: hidden;
@@ -175,19 +173,23 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 			position: relative;
 			width: 40px; height: 40px;
 			display: grid; grid-template-columns: 40px 1fr; place-items: center; align-items: center;
-			border-radius: 12px; color: #0f172a; text-decoration: none; outline: none; white-space: nowrap;
+			border-radius: 12px; color: #fff !important; text-decoration: none; outline: none; white-space: nowrap;
 			transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4,0,0.2,1);
 		}
 		.dash-float-nav:hover a { width: 184px; }
-		.dash-float-nav a:hover:not(.active) { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); transform: scale(1.05); }
+		.dash-float-nav a:hover:not(.active) {
+			background: rgba(255,255,255,.15) !important;
+			color: #fff !important;
+		}
 		.dash-float-nav a:focus-visible { box-shadow: 0 0 0 3px rgba(0,120,166,.3); }
 		.dash-float-nav a.active {
-			background: linear-gradient(135deg, #0078a6 0%, #006a94 100%); color:#fff;
-			box-shadow: 0 6px 18px rgba(0,120,166,.4);
+			background: rgba(255,255,255,.22) !important;
+			color: #fff !important;
+			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
 		}
 		.dash-float-nav a.active::after {
 			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #00a8e8 100%); border-radius: 2px;
+			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
 			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
 		.dash-float-nav .dash-icon { width:18px; height:18px; justify-self:center; object-fit:contain; transition: transform .2s ease; }
@@ -235,7 +237,7 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 		<div class="nav-brand">
 			<a href="./home-gawain.php" title="">
 				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
-				<img class="logo-wide" src="../assets/images/bluefont.png" alt="ServisyoHub">
+				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
 			</a>
 		</div>
 
