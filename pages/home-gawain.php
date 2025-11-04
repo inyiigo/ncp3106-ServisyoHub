@@ -168,6 +168,9 @@ ob_end_flush();
 		/* Backdrop */
 		.svc-notify-backdrop { position:fixed; inset:0; background: rgba(15,23,42,.28); backdrop-filter: blur(1px); z-index:1090; opacity:0; pointer-events:none; transition: opacity .18s ease; }
 		.svc-notify-backdrop.is-open { opacity:1; pointer-events:auto; }
+		/* Sample post layout container */
+		.sample-post { max-width:1100px; margin:0 auto 24px; padding:0 16px; }
+		.sample-post .sample-title { font-weight:800; color:#0f172a; margin: 0 0 8px; }
 		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 		.dash-shell { position: relative; z-index: 1; }
 		.dash-overlay { display: none !important; }
@@ -434,6 +437,34 @@ ob_end_flush();
 						<?php endforeach; ?>
 					</div>
 				<?php endif; ?>
+			</section>
+
+			<!-- Sample Post Layout -->
+			<section class="sample-post" aria-label="Sample post layout">
+				<h3 class="sample-title">Sample Post Layout</h3>
+				<article class="svc-card" aria-label="Sample job post">
+					<div>
+						<h3 class="svc-title" title="Household Cleaning (2-Bedroom)">Household Cleaning (2-Bedroom)</h3>
+						<div class="svc-meta">
+							<span class="item" title="Quezon City">
+								<svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/><circle cx="12" cy="12" r="2"/></svg>
+								Quezon City
+							</span>
+							<span class="item">
+								<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+								On Nov 12, 2025
+							</span>
+						</div>
+						<div class="svc-posted">
+							<span class="svc-av">S</span>
+							<span>Posted 1h ago</span>
+						</div>
+					</div>
+					<div class="svc-price">
+						<span class="amt">₱1,800</span>
+						<span class="note">Fixed price</span>
+					</div>
+				</article>
 			</section>
 
 		</main>
