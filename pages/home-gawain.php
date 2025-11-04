@@ -246,7 +246,7 @@ ob_end_flush();
 		</aside>
 	</div>
 
-	<!-- Floating bottom navigation (Post button removed) -->
+	<!-- Floating bottom navigation -->
 	<nav class="dash-bottom-nav">
 		<a href="./home-gawain.php" class="active" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -254,7 +254,7 @@ ob_end_flush();
 			</svg>
 			<span>Browse</span>
 		</a>
-		<a href="./clients-post.php" aria-label="Post">
+		<a href="./post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
@@ -263,12 +263,19 @@ ob_end_flush();
 			<span>My Gawain</span>
 		</a>
 		<a href="./chats.php" aria-label="Chats">
+<<<<<<< HEAD
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 				<path d="M21 15a4 4 0 0 1-4 4H8l-4 4v-4H5a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4z"/>
 			</svg>
 			<span>Chats</span>
 		</a>
 		<a href="./clients-profile.php" aria-label="Profile">
+=======
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+			<span>Chats</span>
+		</a>
+		<a href="./profile.php" aria-label="Profile">
+>>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
 			<span>Profile</span>
 		</a>

@@ -169,25 +169,6 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 	display: block;
 }
 
-/* centered floating bottom navigation */
-.dash-bottom-nav {
-	position: fixed;
-	left: 50%;
-	right: auto;
-	bottom: 16px;
-	z-index: 1000;
-	width: max-content;
-	transform: translateX(-50%) scale(0.92);
-	transform-origin: bottom center;
-	transition: transform 180ms ease, box-shadow 180ms ease;
-	border: 3px solid #0078a6;
-	background: transparent;
-}
-.dash-bottom-nav:hover {
-	transform: translateX(-50%) scale(1);
-	box-shadow: 0 12px 28px rgba(2,6,23,.12);
-}
-
 /* bottom back button */
 .bottom-box { position: fixed; right: 20px; bottom: 20px; z-index: 999; background: transparent; border: none; padding: 0; box-shadow: none; }
 .back-box { 
@@ -314,23 +295,7 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 
 	<!-- added fixed bottom box with boxed Back button -->
 	<div class="bottom-box" role="navigation" aria-label="Page actions">
-		<a href="clients-profile.php" class="back-box" title="Back to profile">← Back to profile</a>
+		<a href="./settings.php" class="back-box" title="Back to settings">← Back to settings</a>
 	</div>
-
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./home-gawain.php" aria-label="Home">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-10.5Z"/></svg>
-			<span>Home</span>
-		</a>
-		<a href="./my-gawain.php" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Gawain</span>
-		</a>
-		<a href="./clients-profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Profile</span>
-		</a>
-	</nav>
 </body>
 </html>
