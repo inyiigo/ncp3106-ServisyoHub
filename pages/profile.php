@@ -213,11 +213,11 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			right: 0;
 			bottom: 0;
 			z-index: 1000;
-			display: flex;            /* was grid in some versions */
+			display: flex;                 /* ensure top stacking */
 			flex-direction: column;
 			justify-content: flex-start;
 			gap: 8px;
-			padding-top: 92px;
+			padding-top: 12px;
 			padding-bottom: 8px;
 			padding-left: 8px;
 			padding-right: 8px;
@@ -240,25 +240,24 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
 		}
 		
-		/* Container for nav items (at top) */
-		.dash-float-nav > div {
+		/* First group (all buttons except settings) sticks to top */
+		.dash-float-nav > div:first-child {
 			display: grid;
 			gap: 8px;
-			align-content: start;     /* ensure buttons stick to top */
+			align-content: start;
+		}
+		/* Settings container pinned to bottom */
+		.dash-float-nav .nav-settings {
+			margin-top: auto;
 		}
 
-		/* Settings container at bottom */
-		.dash-float-nav > .nav-settings {
-			margin-top: auto;         /* pin Settings to bottom */
-		}
-		
+		/* Fix icon sizing/alignment */
 		.dash-float-nav a {
 			position: relative;
 			width: 40px;
 			height: 40px;
 			display: grid;
-			grid-template-columns: 40px 1fr;
-			place-items: center;
+			grid-template-columns: 40px 1fr; /* icon + label (when expanded) */
 			align-items: center;
 			border-radius: 12px;
 			color: #0f172a;
@@ -344,6 +343,35 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			width: 28px;  /* was ~16-22px */
 			height: 28px;
 			object-fit: contain;
+		}
+
+		/* Sidebar: stack from top; keep Settings pinned bottom */
+		.dash-float-nav {
+			/* ensure full height at the very top */
+			position: fixed; top: 0; right: 0; bottom: 0;
+			/* force flex layout so items start at top */
+			display: flex !important;
+			flex-direction: column;
+			justify-content: flex-start;
+			/* remove large top padding if set before */
+			padding-top: 12px !important;
+		}
+
+		/* Top group (all nav buttons except settings) - align to top */
+		.dash-float-nav > .nav-main {
+			display: grid;
+			gap: 8px;
+			align-content: start;
+		}
+
+		/* Fallback: if you don't have .nav-main wrapper, keep first div at top */
+		.dash-float-nav > div:first-child { align-content: start; }
+
+		/* Bottom group (Settings) pinned to bottom */
+		.dash-float-nav > .nav-settings {
+			margin-top: auto !important;
+			display: grid;
+			gap: 8px;
 		}
 	</style>
 </head>
@@ -451,8 +479,8 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 	<!-- Right-side full-height sidebar navigation (smooth expand, settings at bottom) -->
 	<nav class="dash-float-nav" id="dashNav">
-		<div>
-			<!-- Browse: logo image, no text, slightly bigger -->
+		<div class="nav-main">
+			<!-- Ensure this Browse link has the logo and no text -->
 			<a href="./home-gawain.php" class="logo-link" aria-label="Browse">
 				<img class="dash-icon" src="../assets/images/job_logo.png" alt="ServisyoHub Logo">
 			</a>

@@ -34,7 +34,7 @@
       const animationDurationMs = 900; // keep in sync with CSS
       setTimeout(function () {
         if (progress) { progress.setAttribute('aria-valuenow', '100'); }
-        window.location.href = 'pages/user-choice.php';
+        window.location.href = 'pages/login.php';
       }, 3000 + animationDurationMs);
     });
   </script>
