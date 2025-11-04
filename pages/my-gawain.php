@@ -10,8 +10,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-<<<<<<< HEAD
-=======
 	<style>
 		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
@@ -113,7 +111,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		}
 		.dash-float-nav a:hover .dash-label { opacity: 1; transform: translateY(-50%) scale(1); }
 	</style>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
@@ -126,52 +123,43 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	</div>
 	<div class="dash-shell">
 		<main class="dash-content">
-			<header class="mq-header">
-				<h1 class="mq-title">My Gawain</h1>
-				<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
-					<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
-					<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
-					<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
-				</nav>
-				<div class="mq-filter-row">
-					<a class="mq-filter" href="./filter.php" aria-label="Filter">Filter: <strong>All</strong></a>
-				</div>
-			</header>
+			<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
 
-			<section class="mq-empty" aria-label="Empty state">
-				<div class="mq-illustration"><img src="../assets/images/job_logo.png" alt="" /></div>
-				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
-				<a class="btn mq-browse" href="./home-gawain.php">Browse gawain</a>
+			<!-- Browse CTA card placed above empty state -->
+			<section class="dash-cards" aria-label="Browse gawain">
+				<div class="dash-card blue">
+					<div>
+						<div class="dash-pill">Need to browse gawain?</div>
+						<h3>Find a Provider</h3>
+						<p>Explore verified gawain around you.</p>
+					</div>
+					<a href="./home-gawain.php" class="dash-pill">Browse</a>
+				</div>
 			</section>
+
+			<div class="empty-wrap">
+				<div class="empty-card">
+					<p class="empty-title">No bookings yet</p>
+					<p class="empty-text">When you book a gawain, it will appear here so you can track its progress.</p>
+				</div>
+			</div>
 		</main>
 	</div>
 
-<<<<<<< HEAD
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./clients-post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-			<span>Post</span>
-		</a>
-=======
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav">
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
 			<span class="dash-label">Browse</span>
 		</a>
-<<<<<<< HEAD
-=======
 		<a href="./post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
 			</svg>
 			<span class="dash-label">Post</span>
 		</a>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 		<a href="./my-gawain.php" class="active" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M4 7h16M4 12h10M4 17h7"/>
@@ -179,16 +167,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			<span class="dash-label">My Gawain</span>
 		</a>
 		<a href="./chats.php" aria-label="Chats">
-<<<<<<< HEAD
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-				<path d="M21 15a4 4 0 0 1-4 4H8l-4 4v-4H5a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4h12a4 4 0 0 1 4 4z"/>
-			</svg>
-			<span>Chats</span>
-		</a>
-		<a href="./clients-profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Profile</span>
-=======
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
 			</svg>
@@ -199,7 +177,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
 			</svg>
 			<span class="dash-label">Profile</span>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 		</a>
 	</nav>
 </body>
