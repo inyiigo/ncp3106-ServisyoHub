@@ -134,8 +134,17 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 		/* Ensure img logo fits like other icons */
 		.dash-float-nav .dash-icon {
-			object-fit: contain; /* added for img icons */
+			width: 18px;
+			height: 18px;
+			justify-self: center;
+			display: inline-block;
+			object-fit: contain;
+			color: currentColor;            /* ensure svg inherits link color */
+			stroke-linecap: round;          /* crisper lines */
+			stroke-linejoin: round;
+			transition: transform .2s ease; /* subtle hover scale */
 		}
+		.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
 
 		/* Ensure main content is above background */
 		.dash-topbar {
@@ -221,7 +230,6 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			padding-bottom: 8px;
 			padding-left: 8px;
 			padding-right: 8px;
-			border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
 			border-right: 0;
 			border-top: 2px solid color-mix(in srgb, #0078a6 75%, #0000); /* explicit top border */
 			background: rgba(255,255,255,.95);
@@ -238,8 +246,8 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		.dash-float-nav:hover {
 			width: 200px;
 			/* removed: transform: translateY(-2px); */
-			box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
-			border-top: 2px solid color-mix(in srgb, #0078a6 75%, #0000); /* keep top border on hover */
+			box-shadow: 0 12px 32px rgba(0,0,0,.28) !important; /* override hover inset shadow */
+			border-top: none !important;
 		}
 		
 		/* First group (all buttons except settings) sticks to top */
@@ -272,40 +280,19 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			width: 184px;
 		}
 		.dash-float-nav a:hover:not(.active) {
-			background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-			transform: scale(1.05);
-		}
-		.dash-float-nav a:focus-visible {
-			box-shadow: 0 0 0 3px rgba(0,120,166,.3);
+			background: rgba(255,255,255,.15) !important;
+			color: #fff !important;
 		}
 		.dash-float-nav a.active {
-			background: linear-gradient(135deg, #0078a6 0%, #006a94 100%);
-			color: #fff;
-			box-shadow: 0 6px 18px rgba(0,120,166,.4);
+			background: rgba(255,255,255,.22) !important;
+			color: #fff !important;
+			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
 		}
-		/* active indicator bar with pulse */
 		.dash-float-nav a.active::after {
-			content: "";
-			position: absolute;
-			left: -5px;
-			width: 3px;
-			height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #00a8e8 100%);
-			border-radius: 2px;
-			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
-			animation: indicatorPulse 2s ease-in-out infinite;
+			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
+			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%);
+			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
-		@keyframes indicatorPulse {
-			0%, 100% { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6); }
-			50% { opacity: .85; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 18px rgba(0,120,166,.8); }
-		}
-		.dash-float-nav .dash-icon { 
-			width: 18px; 
-			height: 18px; 
-			transition: transform .2s ease;
-			justify-self: center;
-		}
-		.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
 
 		/* Text label (smooth fade and slide in when expanded) */
 		.dash-float-nav a .dash-text {
@@ -445,6 +432,33 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			height: 18px;
 			object-fit: contain;
 		}
+
+		/* Sidebar nav: match settings.php colors and remove border/inset line */
+		.dash-float-nav {
+			background: #2596be !important;
+			border: none !important;
+			border-top: none !important; /* in case a top border was set */
+			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important; /* remove inset 1px line */
+		}
+		.dash-float-nav:hover {
+			box-shadow: 0 12px 32px rgba(0,0,0,.28) !important; /* override hover inset shadow */
+			border-top: none !important;
+		}
+		.dash-float-nav a { color: #fff !important; }
+		.dash-float-nav a:hover:not(.active) {
+			background: rgba(255,255,255,.15) !important;
+			color: #fff !important;
+		}
+		.dash-float-nav a.active {
+			background: rgba(255,255,255,.22) !important;
+			color: #fff !important;
+			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
+		}
+		.dash-float-nav a.active::after {
+			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
+			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
+			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
+		}
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -551,31 +565,35 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		<div class="nav-brand">
 			<a href="./home-gawain.php" title="" style="display:block; text-decoration:none;">
 				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
-				<img class="logo-wide" src="../assets/images/bluefont.png" alt="ServisyoHub">
+				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
 			</a>
 		</div>
 
 		<div class="nav-main">
 			<a href="./profile.php" class="active" aria-current="page" aria-label="Profile">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					 stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
 				</svg>
 				<span class="dash-text">Profile</span>
 			</a>
 			<a href="./post.php" aria-label="Post">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					 stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
 				</svg>
 				<span class="dash-text">Post</span>
 			</a>
 			<a href="./my-gawain.php" aria-label="My Gawain">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					 stroke-linecap="round" stroke-linejoin="round">
 					<path d="M4 7h16M4 12h10M4 17h7"/>
 				</svg>
 				<span class="dash-text">My Gawain</span>
 			</a>
 			<a href="./chats.php" aria-label="Chats">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+					 stroke-linecap="round" stroke-linejoin="round">
 					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
 				</svg>
 				<span class="dash-text">Chats</span>
