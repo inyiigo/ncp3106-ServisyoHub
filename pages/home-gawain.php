@@ -98,7 +98,8 @@ ob_end_flush();
 		.svc-cat:hover { background: #f1f5f9; }
 		.svc-cat.active { background:#0078a6; color:#fff; border-color:#0078a6; }
 		.svc-cats-wrap { max-width:1100px; margin:10px auto 8px; padding:0 16px; position:relative; }
-		.svc-cats-wrap .svc-cats { margin:0 !important; padding:0 !important; }
+		/* Ensure pills don't sit under the nav arrows */
+		.svc-cats-wrap .svc-cats { margin:0 !important; padding:0 48px !important; }
 		.cat-nav-btn { position:absolute; top:50%; transform:translateY(-50%); width:34px; height:34px; border-radius:999px; border:2px solid #e2e8f0; background:#fff; color:#0f172a; display:grid; place-items:center; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.08); transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease; z-index:2; }
 		.cat-nav-btn:hover { transform:translateY(-50%) scale(1.05); border-color:#0078a6; background:#f8fafc; }
 		.cat-nav-btn[disabled] { opacity:.35; cursor:default; transform:translateY(-50%); box-shadow:none; }
@@ -126,9 +127,10 @@ ob_end_flush();
 		.svc-price { display:grid; align-content:center; gap:4px; text-align:right; }
 		.svc-price .amt { font-weight:800; color:#0078a6; }
 		.svc-price .note { color:#94a3b8; font-size:.8rem; }
-		/* Search bar: add more breathing room from the very top */
-		.svc-search { max-width: 1100px; margin: clamp(16px, 6vh, 72px) auto 16px; padding: 0 16px; position: relative; }
+		/* Search row: bar on left, bell on right */
+		.svc-search { max-width: 1100px; margin: clamp(16px, 6vh, 72px) auto 16px; padding: 0 16px; position: relative; display:flex; align-items:center; gap:12px; }
 		.svc-search-box { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid #e2e8f0; border-radius: 999px; padding: 10px 12px; box-shadow: 0 4px 12px rgba(0,0,0,.06); transition: box-shadow .15s ease, border-color .15s ease; }
+		.svc-search-box { flex: 1; }
 		.svc-search-box:focus-within { border-color: #0078a6; box-shadow: 0 8px 20px rgba(0,120,166,.12); }
 		.svc-search-icon { width: 20px; height: 20px; color: #64748b; flex-shrink: 0; }
 		.svc-search-input { appearance: none; border: 0; outline: 0; background: transparent; font: inherit; color: #0f172a; flex: 1; font-size: .95rem; }
@@ -273,6 +275,8 @@ ob_end_flush();
 						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 					</svg>
 					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search gawain (e.g., cleaning, plumbing)" aria-label="Search gawain">
+				</div>
+				<div class="notify-wrap">
 					<button type="button" class="svc-notify-btn" aria-label="Notifications" title="Notifications" aria-expanded="false" aria-controls="svcNotifyDrawer">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
 							<path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>
@@ -280,39 +284,37 @@ ob_end_flush();
 						</svg>
 						<span class="svc-badge" data-count="3">3</span>
 					</button>
-				</div>
-				<!-- Notification Drawer and Backdrop -->
-				<div id="svcNotifyDrawer" class="svc-notify-drawer" role="dialog" aria-label="Notifications" hidden>
-					<div class="svc-notify-header">Notifications</div>
-					<div class="svc-tabs" role="tablist" aria-label="Notification role">
-						<button class="svc-tab is-active" id="tabKasangga" role="tab" aria-selected="true" data-role="kasangga">As a Kasangga</button>
-						<button class="svc-tab" id="tabCitizen" role="tab" aria-selected="false" data-role="citizen">As a Citizen</button>
+					<div id="svcNotifyDrawer" class="svc-notify-drawer" role="dialog" aria-label="Notifications" hidden>
+						<div class="svc-notify-header">Notifications</div>
+						<div class="svc-tabs" role="tablist" aria-label="Notification role">
+							<button class="svc-tab is-active" id="tabKasangga" role="tab" aria-selected="true" data-role="kasangga">As a Kasangga</button>
+							<button class="svc-tab" id="tabCitizen" role="tab" aria-selected="false" data-role="citizen">As a Citizen</button>
+						</div>
+						<ul class="svc-notify-list">
+							<li class="svc-notify-item" data-role="kasangga">
+								<div>
+									<p class="title">New job posted near you</p>
+									<p class="meta">Plumbing • ₱1,500 • Today</p>
+								</div>
+								<time class="time">2m ago</time>
+							</li>
+							<li class="svc-notify-item" data-role="citizen">
+								<div>
+									<p class="title">Your post got a reply</p>
+									<p class="meta">Cleaning • 1 offer</p>
+								</div>
+								<time class="time">12m ago</time>
+							</li>
+							<li class="svc-notify-item" data-role="kasangga">
+								<div>
+									<p class="title">Reminder: Job starts tomorrow</p>
+									<p class="meta">Painting • 9:00 AM</p>
+								</div>
+								<time class="time">1h ago</time>
+							</li>
+						</ul>
 					</div>
-					<ul class="svc-notify-list">
-						<li class="svc-notify-item" data-role="kasangga">
-							<div>
-								<p class="title">New job posted near you</p>
-								<p class="meta">Plumbing • ₱1,500 • Today</p>
-							</div>
-							<time class="time">2m ago</time>
-						</li>
-						<li class="svc-notify-item" data-role="citizen">
-							<div>
-								<p class="title">Your post got a reply</p>
-								<p class="meta">Cleaning • 1 offer</p>
-							</div>
-							<time class="time">12m ago</time>
-						</li>
-						<li class="svc-notify-item" data-role="kasangga">
-							<div>
-								<p class="title">Reminder: Job starts tomorrow</p>
-								<p class="meta">Painting • 9:00 AM</p>
-							</div>
-							<time class="time">1h ago</time>
-						</li>
-					</ul>
 				</div>
-				<div class="svc-notify-backdrop" hidden></div>
 			</section>
 
 			<!-- Categories carousel: full list + arrows -->
@@ -352,6 +354,8 @@ ob_end_flush();
 					</a>
 				</div>
 			</div>
+
+			<div class="svc-notify-backdrop" hidden></div>
 
 			<section class="svc-list" aria-label="Nearby posts">
 				<?php if (!$dbAvailable): ?>
