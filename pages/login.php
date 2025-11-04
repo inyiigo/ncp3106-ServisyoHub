@@ -11,19 +11,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mobile = trim($_POST['mobile']);
     $password = trim($_POST['password']);
 
-    $query = "SELECT * FROM users where mobile = '$mobile'";
-	$res = mysqli_query($conn, $query);
-	while($row = mysqli_fetch_assoc($res)){
-		$db_password = $row['password'];
-		if($password == $db_password){
-			$_SESSION['user_id'] = $row['id'];
-			$_SESSION['mobile'] = $row['mobile'];
-			header("Location: home-services.php");
-			exit();
-		} else {
-			$error = "Incorrect password. Please try again.";
-		}
-	}
+    $stmt = $conn->prepare("SELECT id, mobile, password FROM users WHERE mobile = ? LIMIT 1");
+    if ($stmt) {
+        $stmt->bind_param("s", $mobile);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            $dbPassword = $row['password'];
+            $authenticated = false;
+
+            if (password_get_info($dbPassword)['algo']) {
+                if (password_verify($password, $dbPassword)) {
+                    $authenticated = true;
+                    if (password_needs_rehash($dbPassword, PASSWORD_DEFAULT)) {
+                        $newHash = password_hash($password, PASSWORD_DEFAULT);
+                        $rehashStmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                        if ($rehashStmt) {
+                            $rehashStmt->bind_param("si", $newHash, $row['id']);
+                            $rehashStmt->execute();
+                            $rehashStmt->close();
+                        }
+                    }
+                }
+            } elseif (hash_equals($dbPassword, $password)) {
+                $authenticated = true;
+                $newHash = password_hash($password, PASSWORD_DEFAULT);
+                $upgradeStmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                if ($upgradeStmt) {
+                    $upgradeStmt->bind_param("si", $newHash, $row['id']);
+                    $upgradeStmt->execute();
+                    $upgradeStmt->close();
+                }
+            }
+
+            if ($authenticated) {
+                $_SESSION['user_id'] = $row['id'];
+                $_SESSION['mobile'] = $row['mobile'];
+                header("Location: home-services.php");
+                exit();
+            }
+
+            $error = "Incorrect password. Please try again.";
+        } else {
+            $error = "No account found for this mobile number.";
+        }
+        $stmt->close();
+    } else {
+        $error = "Something went wrong. Please try again later.";
+    }
 }
 ?>
 <!DOCTYPE html>
