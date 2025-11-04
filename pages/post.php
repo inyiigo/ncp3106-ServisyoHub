@@ -1,6 +1,12 @@
 <?php
 session_start();
 
+// DEBUG: Log all POST data to see what's being submitted
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    error_log("=== POST RECEIVED ===");
+    error_log(print_r($_POST, true));
+}
+
 /* Safe DB connection */
 $configPath = __DIR__ . '/../config/config.php';
 $mysqli = null;
@@ -26,42 +32,72 @@ foreach ($attempts as $creds) {
 	}
 }
 
+// Ensure jobs table exists
+if ($dbAvailable) {
+	@mysqli_query($mysqli, "
+		CREATE TABLE IF NOT EXISTS jobs (
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			user_id INT NULL,
+			title VARCHAR(150) NOT NULL,
+			category VARCHAR(100) NOT NULL,
+			description TEXT NOT NULL,
+			location VARCHAR(200) NOT NULL,
+			budget DECIMAL(10,2) NULL,
+			date_needed DATE NULL,
+			status VARCHAR(20) NOT NULL DEFAULT 'open',
+			posted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			INDEX idx_jobs_status (status),
+			INDEX idx_jobs_posted_at (posted_at)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+	");
+}
+
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 
 $errors = [];
 $success = '';
 $not_logged_in = empty($_SESSION['user_id']);
-$user_id = $not_logged_in ? 0 : intval($_SESSION['user_id']);
+$user_id = $not_logged_in ? null : intval($_SESSION['user_id']);
 
-/* Handle submit: store in jobs table */
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
-	$category = trim($_POST['category'] ?? '');
+/* Handle submit: store in jobs table - allow posting even if not logged in */
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
+	$category = trim($_POST['category'] ?? 'General');
 	$title = trim($_POST['title'] ?? '');
 	$description = trim($_POST['description'] ?? '');
 	$location = trim($_POST['location'] ?? '');
 	$budget = trim($_POST['budget'] ?? '');
 	$date_needed = trim($_POST['date_needed'] ?? '');
 
-	if ($category === '') $errors[] = 'Please select a service category.';
+	error_log("Attempting to insert: title=$title, desc=$description, loc=$location");
+
 	if ($title === '') $errors[] = 'Title is required.';
 	if ($description === '') $errors[] = 'Description is required.';
 	if ($location === '') $errors[] = 'Location is required.';
 
 	if (empty($errors)) {
-		$sql = "INSERT INTO jobs (user_id, title, category, description, location, budget, date_needed, status, posted_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW())";
+		$sql = "INSERT INTO jobs (user_id, title, category, description, location, budget, date_needed, status, posted_at)
+		        VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW())";
 		if ($stmt = mysqli_prepare($mysqli, $sql)) {
-			mysqli_stmt_bind_param($stmt, 'issssss', $user_id, $title, $category, $description, $location, $budget, $date_needed);
+			$budgetVal = ($budget === '' ? null : floatval($budget));
+			$dateVal = ($date_needed === '' ? null : $date_needed);
+			
+			mysqli_stmt_bind_param($stmt, 'issssds', $user_id, $title, $category, $description, $location, $budgetVal, $dateVal);
+			
 			if (mysqli_stmt_execute($stmt)) {
 				$success = 'Your service request has been posted successfully!';
-				// Clear form
+				error_log("INSERT SUCCESS! ID: " . mysqli_insert_id($mysqli));
 				$_POST = [];
 			} else {
-				$errors[] = 'Unable to publish service request.';
+				$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
+				error_log("INSERT FAILED: " . mysqli_stmt_error($stmt));
 			}
 			mysqli_stmt_close($stmt);
 		} else {
-			$errors[] = 'Database error.';
+			$errors[] = 'Database error: ' . mysqli_error($mysqli);
+			error_log("PREPARE FAILED: " . mysqli_error($mysqli));
 		}
+	} else {
+		error_log("Validation errors: " . print_r($errors, true));
 	}
 }
 
@@ -1946,6 +1982,7 @@ body {
 								type="number" 
 								name="budget" 
 								class="form-input" 
+							 
 								placeholder="1134"
 								id="budgetHeroFeeInput"
 								min="80"
@@ -2059,7 +2096,7 @@ body {
 								<span>Kasangga's fee</span>
 								<span>PHP<span id="breakdownHeroFee_ac">0.00</span></span>
 							</div>
-							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
 								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
 									<button type="button" id="bookingFeeInfoBtn_ac" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
 										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
@@ -2946,7 +2983,7 @@ body {
 		
 		urgentBtn.addEventListener('click', function() {
 			this.classList.add('active');
-			urgentBtn.classList.remove('active');
+			flexibleBtn.classList.remove('active');
 			urgencyInput.value = 'flexible';
 		});
 		
@@ -3372,16 +3409,17 @@ body {
 			cancelFee?.addEventListener('change', updateAgreeState);
 			agreeBtn?.addEventListener('click', function(e){
 				if (this.disabled) return;
-				// Show posted confirmation immediately
-				goToStep(7);
-				// Try to submit in the background so data still saves; ignore result
-				try {
-					if (form) {
-						const fd = new FormData(form);
-						fd.append('ajax', '1');
-						fetch(form.getAttribute('action') || window.location.href, { method: 'POST', body: fd, credentials: 'same-origin' }).catch(()=>{});
-					}
-				} catch(_) { /* ignore */ }
+				e.preventDefault();
+				
+				// Log form data before submitting
+				const fd = new FormData(form);
+				console.log('Form data being submitted:');
+				for (let [key, value] of fd.entries()) {
+					console.log(key + ': ' + value);
+				}
+				
+				// Submit the form normally (not AJAX)
+				form.submit();
 			});
 			editLink?.addEventListener('click', function(){ goToStep(5); });
 		})();
@@ -3680,7 +3718,5 @@ body {
 
 
 	</script>
-</body>
-</html>
 </body>
 </html>

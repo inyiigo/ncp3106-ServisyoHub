@@ -13,16 +13,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     $query = "SELECT * FROM users where mobile = '$mobile'";
     $res = mysqli_query($conn, $query);
-    while($row = mysqli_fetch_assoc($res)){
+    
+    if (mysqli_num_rows($res) > 0) {
+        // Mobile number exists
+        $row = mysqli_fetch_assoc($res);
         $db_password = $row['password'];
+        
         if($password == $db_password){
             $_SESSION['user_id'] = $row['id'];
             $_SESSION['mobile'] = $row['mobile'];
+            $_SESSION['display_name'] = $row['first_name'] ?? 'User';
             header("Location: home-gawain.php");
             exit();
         } else {
             $error = "Incorrect password. Please try again.";
         }
+    } else {
+        // Mobile number not found
+        $error = "No account exists with this mobile number.";
     }
 }
 ?>
@@ -33,6 +41,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Login • Servisyo Hub</title>
     <link rel="stylesheet" href="../assets/css/styles.css" />
+    <style>
+        .text-error {
+            color: #dc2626;
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 500;
+            text-align: center;
+        }
+    </style>
 </head>
 <body class="auth-body theme-profile-bg">
     <main class="form-card narrow">
@@ -40,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <p class="hint">Enter your mobile number and password to sign in.</p>
 
         <?php if (!empty($error)): ?>
-            <p class="text-error text-center"><?php echo htmlspecialchars($error); ?></p>
+            <p class="text-error"><?php echo htmlspecialchars($error); ?></p>
         <?php endif; ?>
 
         <form action="" method="POST" novalidate>
