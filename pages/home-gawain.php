@@ -86,7 +86,8 @@ ob_end_flush();
 		.dash-bottom-nav { position: fixed; left: 50%; right: auto; bottom: 16px; transform: translateX(-50%) scale(0.92); transform-origin: bottom center; margin: 0; width: max-content; transition: transform 180ms ease, box-shadow 180ms ease; border: 3px solid #0078a6; background: transparent; z-index: 999; }
 		.dash-bottom-nav:hover { transform: translateX(-50%) scale(1); box-shadow: 0 12px 28px rgba(2,6,23,.12); }
 		@media (max-width:520px) { .dash-bottom-nav { bottom: 12px; transform: translateX(-50%); } }
-		.dash-content { max-width: 1100px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+		/* Main content wrapper: add responsive top margin for comfortable spacing */
+		.dash-content { max-width: 1100px; margin: clamp(12px, 9vh, 96px) auto 0; padding: 0 16px; position: relative; z-index: 1; }
 		.home-hero { text-align: center; }
 		.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
 		.bg-logo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 25%; max-width: 350px; opacity: 0.15; z-index: 0; pointer-events: none; }
@@ -125,12 +126,43 @@ ob_end_flush();
 		.svc-price { display:grid; align-content:center; gap:4px; text-align:right; }
 		.svc-price .amt { font-weight:800; color:#0078a6; }
 		.svc-price .note { color:#94a3b8; font-size:.8rem; }
-		.svc-search { max-width: 1100px; margin: 8px auto 16px; padding: 0 16px; }
-		.svc-search-box { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 12px rgba(0,0,0,.06); transition: box-shadow .15s ease, border-color .15s ease; }
+		/* Search bar: add more breathing room from the very top */
+		.svc-search { max-width: 1100px; margin: clamp(16px, 6vh, 72px) auto 16px; padding: 0 16px; position: relative; }
+		.svc-search-box { display: flex; align-items: center; gap: 12px; background: #fff; border: 2px solid #e2e8f0; border-radius: 999px; padding: 10px 12px; box-shadow: 0 4px 12px rgba(0,0,0,.06); transition: box-shadow .15s ease, border-color .15s ease; }
 		.svc-search-box:focus-within { border-color: #0078a6; box-shadow: 0 8px 20px rgba(0,120,166,.12); }
 		.svc-search-icon { width: 20px; height: 20px; color: #64748b; flex-shrink: 0; }
 		.svc-search-input { appearance: none; border: 0; outline: 0; background: transparent; font: inherit; color: #0f172a; flex: 1; font-size: .95rem; }
 		.svc-search-input::placeholder { color: #94a3b8; }
+
+		/* Notification button inside search */
+		.svc-notify-btn { appearance:none; border:0; outline:0; background: transparent; display:inline-grid; place-items:center; width: 32px; height: 32px; border-radius: 999px; color:#64748b; cursor:pointer; flex-shrink:0; position: relative; transition: background .15s ease, color .15s ease, transform .15s ease; }
+		.svc-notify-btn:hover { background:#f8fafc; color:#0078a6; transform: translateY(-1px); }
+		.svc-notify-btn:active { transform: translateY(0); }
+		.svc-notify-btn svg { width: 18px; height: 18px; }
+
+		/* Counter badge */
+		.svc-badge { position:absolute; top:-2px; right:-2px; min-width:16px; height:16px; padding:0 4px; border-radius:999px; background:#ef4444; color:#fff; font-weight:800; font-size:10px; line-height:16px; display:inline-grid; place-items:center; box-shadow:0 0 0 2px #fff; }
+		.svc-badge[data-count="0"], .svc-badge[hidden] { display:none; }
+
+		/* Drawer panel */
+		.notify-wrap { position: relative; display: inline-flex; align-items: center; }
+		.svc-notify-drawer { position:absolute; right:0; top: calc(100% + 10px); width: min(92vw, 360px); max-height: 60vh; overflow:auto; background:#fff; border:2px solid #e2e8f0; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,.16); z-index:1100; opacity:0; transform: translateY(-4px); transition: opacity .18s ease, transform .18s ease; }
+		.svc-notify-drawer[hidden] { display:block !important; opacity:0; pointer-events:none; }
+		.svc-notify-drawer.is-open { opacity:1; transform: translateY(0); }
+		.svc-notify-header { position:sticky; top:0; background:#fff; padding:12px 14px; border-bottom:2px solid #e2e8f0; font-weight:800; color:#0f172a; z-index:1; }
+		.svc-tabs { display:flex; gap:8px; padding:8px; border-bottom:2px solid #e2e8f0; background:#fff; position:sticky; top:44px; z-index:1; }
+		.svc-tab { flex:1; appearance:none; border:2px solid #e2e8f0; background:#fff; color:#0f172a; border-radius:999px; padding:8px 12px; font-weight:800; cursor:pointer; transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease; }
+		.svc-tab:hover { background:#f8fafc; transform: translateY(-1px); }
+		.svc-tab[aria-selected="true"], .svc-tab.is-active { background:#0078a6; color:#fff; border-color:#0078a6; box-shadow:0 6px 16px rgba(0,120,166,.22); transform:none; }
+		.svc-notify-list { list-style:none; margin:0; padding:8px; display:grid; gap:8px; }
+		.svc-notify-item { display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:flex-start; padding:10px 12px; border:2px solid #e2e8f0; border-radius:12px; background:#fff; }
+		.svc-notify-item .title { font-weight:800; color:#0f172a; margin:0 0 4px; }
+		.svc-notify-item .meta { color:#64748b; font-size:.85rem; }
+		.svc-notify-item .time { color:#94a3b8; font-size:.8rem; white-space:nowrap; }
+
+		/* Backdrop */
+		.svc-notify-backdrop { position:fixed; inset:0; background: rgba(15,23,42,.28); backdrop-filter: blur(1px); z-index:1090; opacity:0; pointer-events:none; transition: opacity .18s ease; }
+		.svc-notify-backdrop.is-open { opacity:1; pointer-events:auto; }
 		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 		.dash-shell { position: relative; z-index: 1; }
 		.dash-overlay { display: none !important; }
@@ -241,7 +273,46 @@ ob_end_flush();
 						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 					</svg>
 					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search gawain (e.g., cleaning, plumbing)" aria-label="Search gawain">
+					<button type="button" class="svc-notify-btn" aria-label="Notifications" title="Notifications" aria-expanded="false" aria-controls="svcNotifyDrawer">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>
+							<path d="M13.73 21a2 2 0 01-3.46 0"/>
+						</svg>
+						<span class="svc-badge" data-count="3">3</span>
+					</button>
 				</div>
+				<!-- Notification Drawer and Backdrop -->
+				<div id="svcNotifyDrawer" class="svc-notify-drawer" role="dialog" aria-label="Notifications" hidden>
+					<div class="svc-notify-header">Notifications</div>
+					<div class="svc-tabs" role="tablist" aria-label="Notification role">
+						<button class="svc-tab is-active" id="tabKasangga" role="tab" aria-selected="true" data-role="kasangga">As a Kasangga</button>
+						<button class="svc-tab" id="tabCitizen" role="tab" aria-selected="false" data-role="citizen">As a Citizen</button>
+					</div>
+					<ul class="svc-notify-list">
+						<li class="svc-notify-item" data-role="kasangga">
+							<div>
+								<p class="title">New job posted near you</p>
+								<p class="meta">Plumbing • ₱1,500 • Today</p>
+							</div>
+							<time class="time">2m ago</time>
+						</li>
+						<li class="svc-notify-item" data-role="citizen">
+							<div>
+								<p class="title">Your post got a reply</p>
+								<p class="meta">Cleaning • 1 offer</p>
+							</div>
+							<time class="time">12m ago</time>
+						</li>
+						<li class="svc-notify-item" data-role="kasangga">
+							<div>
+								<p class="title">Reminder: Job starts tomorrow</p>
+								<p class="meta">Painting • 9:00 AM</p>
+							</div>
+							<time class="time">1h ago</time>
+						</li>
+					</ul>
+				</div>
+				<div class="svc-notify-backdrop" hidden></div>
 			</section>
 
 			<!-- Categories carousel: full list + arrows -->
@@ -568,6 +639,85 @@ ob_end_flush();
 		}
 
 		updateArrows();
+	})();
+	</script>
+
+	<script>
+	// Notification drawer logic
+	(function(){
+		const btn = document.querySelector('.svc-notify-btn');
+		const drawer = document.getElementById('svcNotifyDrawer');
+		const backdrop = document.querySelector('.svc-notify-backdrop');
+		const tabs = drawer ? drawer.querySelectorAll('.svc-tab') : null;
+		const items = drawer ? drawer.querySelectorAll('.svc-notify-item') : null;
+		if (!btn || !drawer || !backdrop) return;
+
+		function openDrawer(){
+			drawer.hidden = false; // ensure it's in layout for transition
+			requestAnimationFrame(()=>{
+				drawer.classList.add('is-open');
+				backdrop.classList.add('is-open');
+			});
+			btn.setAttribute('aria-expanded','true');
+		}
+
+		function closeDrawer(){
+			drawer.classList.remove('is-open');
+			backdrop.classList.remove('is-open');
+			btn.setAttribute('aria-expanded','false');
+			// Wait for transition to end before hiding
+			setTimeout(()=>{ drawer.hidden = true; }, 180);
+		}
+
+		btn.addEventListener('click', (e)=>{
+			e.stopPropagation();
+			const isOpen = btn.getAttribute('aria-expanded') === 'true';
+			if (isOpen) closeDrawer(); else openDrawer();
+		});
+
+		backdrop.addEventListener('click', closeDrawer);
+
+		document.addEventListener('keydown', (e)=>{
+			if (e.key === 'Escape') closeDrawer();
+		});
+
+		// Close when clicking outside the drawer
+		document.addEventListener('click', (e)=>{
+			if (!drawer.contains(e.target) && !btn.contains(e.target)) {
+				closeDrawer();
+			}
+		});
+
+		// Tabs: filter items by data-role
+		function applyRoleFilter(role){
+			if (!items) return;
+			items.forEach(it => {
+				const r = it.getAttribute('data-role') || 'kasangga';
+				it.style.display = (role === 'all' || r === role) ? '' : 'none';
+			});
+		}
+
+		if (tabs && tabs.length) {
+			// Default to kasangga tab active
+			applyRoleFilter('kasangga');
+			tabs.forEach(tab => {
+				tab.addEventListener('click', () => {
+					const role = tab.getAttribute('data-role') || 'kasangga';
+					tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
+					tab.classList.add('is-active');
+					tab.setAttribute('aria-selected','true');
+					applyRoleFilter(role);
+				});
+			});
+		}
+
+		// Optional: reflect count from data-count attribute
+		const badge = btn.querySelector('.svc-badge');
+		if (badge) {
+			const count = parseInt(badge.getAttribute('data-count')||'0',10);
+			badge.textContent = String(count);
+			if (!count) badge.setAttribute('hidden',''); else badge.removeAttribute('hidden');
+		}
 	})();
 	</script>
 </body>
