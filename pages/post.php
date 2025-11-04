@@ -1308,95 +1308,73 @@ body {
 	background: #1e293b;
 }
 
-/* Bottom navigation */
-.dash-bottom-nav {
-	position: fixed;
-	left: 50%;
-	right: auto;
-	bottom: 16px;
+/* Right-side full-height sidebar nav (from profile.php) */
+.dash-float-nav {
+	position: fixed; top: 0; right: 0; bottom: 0;
 	z-index: 1000;
-	width: max-content;
-	transform: translateX(-50%) scale(0.92);
-	transform-origin: bottom center;
-	transition: transform 180ms ease, box-shadow 180ms ease;
-	border: 3px solid #0078a6;
-	background: #fff;
-	border-radius: 18px;
-	box-shadow: 0 18px 46px rgba(2,6,23,.16);
-	padding: 10px 12px;
-	display: flex;
-	gap: 6px;
-}
-
-.dash-bottom-nav:hover {
-	transform: translateX(-50%) scale(1);
-	box-shadow: 0 12px 28px rgba(2,6,23,.12);
-}
-
-.dash-bottom-nav a {
-	display: inline-flex;
-	align-items: center;
+	display: flex !important; flex-direction: column; justify-content: flex-start;
 	gap: 8px;
-	padding: 10px 16px;
-	border-radius: 12px;
-	color: #0f172a;
-	text-decoration: none;
-	font-weight: 800;
-	transition: background 0.15s ease, color 0.15s ease;
+	padding: 12px 8px 8px 8px;
+	border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
+	border-right: 0;
+	background: rgba(255,255,255,.95);
+	backdrop-filter: saturate(1.15) blur(12px);
+	border-top-left-radius: 16px; border-bottom-left-radius: 16px;
+	border-top-right-radius: 0; border-bottom-right-radius: 0;
+	box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
+	transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
+	width: 56px; overflow: hidden;
 }
+.dash-float-nav:hover { width: 200px; box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset; }
 
-.dash-bottom-nav a.active {
-	background: #0078a6;
-	color: #fff;
+/* Brand at top: job_logo by default, bluefont on hover */
+.dash-float-nav .nav-brand { display: grid; place-items: center; position: relative; height: 56px; padding: 6px 0; }
+.dash-float-nav .nav-brand a { display:block; width:100%; height:100%; position:relative; text-decoration:none; }
+.dash-float-nav .nav-brand img {
+	position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+	display:block; object-fit:contain; pointer-events:none;
+	transition: opacity .25s ease, transform .25s ease, width .3s ease;
 }
+.dash-float-nav .nav-brand .logo-small { width:26px; height:auto; opacity:1; }
+.dash-float-nav .nav-brand .logo-wide { width:160px; height:auto; opacity:0; }
+.dash-float-nav:hover .nav-brand .logo-small { opacity:0; transform:translate(-50%,-50%) scale(.96); }
+.dash-float-nav:hover .nav-brand .logo-wide { opacity:1; transform:translate(-50%,-50%) scale(1); }
 
-.dash-bottom-nav a:hover:not(.active) {
-	background: #f0f9ff;
-}
+/* Groups */
+.dash-float-nav > .nav-main { display:grid; gap:8px; align-content:start; }
+.dash-float-nav > .nav-settings { margin-top:auto; display:grid; gap:8px; }
 
-.dash-bottom-nav .dash-icon {
-	width: 20px;
-	height: 20px;
+/* Links and icons */
+.dash-float-nav a {
+	position: relative;
+	width: 40px; height: 40px;
+	display: grid; grid-template-columns: 40px 1fr; place-items: center; align-items: center;
+	border-radius: 12px; color: #0f172a; text-decoration: none; outline: none; white-space: nowrap;
+	transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4,0,0.2,1);
 }
+.dash-float-nav:hover a { width: 184px; }
+.dash-float-nav a:hover:not(.active) { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); transform: scale(1.05); }
+.dash-float-nav a:focus-visible { box-shadow: 0 0 0 3px rgba(0,120,166,.3); }
+.dash-float-nav a.active { background: linear-gradient(135deg, #0078a6 0%, #006a94 100%); color:#fff; box-shadow: 0 6px 18px rgba(0,120,166,.4); }
+.dash-float-nav a.active::after {
+	content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
+	background: linear-gradient(180deg, #0078a6 0%, #00a8e8 100%); border-radius: 2px;
+	box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
+}
+.dash-float-nav .dash-icon { width:18px; height:18px; justify-self:center; object-fit:contain; transition: transform .2s ease; }
+.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
+.dash-float-nav a .dash-text {
+	opacity:0; transform:translateX(-10px);
+	transition: opacity .3s cubic-bezier(0.4,0,0.2,1) .1s, transform .3s cubic-bezier(0.4,0,0.2,1) .1s;
+	font-weight:800; font-size:.85rem; color:inherit; justify-self:start; padding-left:8px;
+}
+.dash-float-nav:hover a .dash-text { opacity:1; transform:translateX(0); }
 
-/* Summary layout tweaks */
-.summary-container {
-	max-width: 720px; /* a bit wider for readability */
-	margin: 0 auto;   /* center on the page */
-	padding: 0 20px 180px; /* keep consistent bottom space for fixed buttons */
-}
-@media (max-width: 640px) {
-	.summary-container { max-width: 100%; padding: 0 16px 160px; }
-}
+/* Remove top bar on this page */
+.top-bar { display: none !important; }
 
-.link-button {
-	background: none;
-	border: none;
-	color: #0f172a;
-	font-weight: 700;
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-/* Posted confirmation */
-.posted-center {
-	text-align: center;
-	padding-top: 12px;
-}
-.posted-illustration {
-	font-size: 56px;
-	line-height: 1;
-	margin: 12px 0 20px 0;
-}
-.posted-subhead { color:#0f172a; font-weight:700; margin: 18px 0; }
-.next-steps { list-style: none; padding: 0; margin: 0 0 32px 0; max-width: 640px; margin-left: auto; margin-right: auto; text-align: left; }
-.next-steps li { display:flex; align-items:flex-start; gap:12px; margin: 18px 0; }
-.step-badge { width:32px; height:32px; border-radius:50%; background:#0f172a; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0; }
-.pro-tip { text-align:center; color:#64748b; }
-@media (max-width: 480px) {
-	.step-badge { width:28px; height:28px; font-size: 0.9rem; }
-	.next-steps li { gap:10px; }
-}
+/* Hide bottom nav on this page */
+.dash-bottom-nav { display: none !important; }
 </style>
 </head>
 <body>
@@ -1405,7 +1383,8 @@ body {
 		<img src="../assets/images/job_logo.png" alt="" />
 	</div>
 
-	<!-- Top Bar -->
+	<!-- Top Bar (removed) -->
+	<!--
 	<div class="top-bar">
 		<div class="top-bar-content">
 			<a href="./home-gawain.php" class="top-bar-logo">
@@ -1413,6 +1392,7 @@ body {
 			</a>
 		</div>
 	</div>
+	-->
 
 	<!-- Greeting with avatar (left) and text (right) -->
 	<div class="jobs-greeting">
@@ -1510,12 +1490,12 @@ body {
 		</div>
 	</section>
 
-	<!-- Floating bottom navigation -->
+	<!-- Floating bottom navigation (removed) -->
+	<!--
 	<nav class="dash-bottom-nav">
 		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-			</svg>
+				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
 			<span>Browse</span>
 		</a>
 		<a href="./post.php" class="active" aria-label="Post">
@@ -1535,22 +1515,39 @@ body {
 			<span>Profile</span>
 		</a>
 	</nav>
+	-->
 
-	<!-- Post Modal -->
-	<div class="post-modal" id="postModal">
-		<div class="post-modal-header">
-			<button class="modal-back" id="modalBack" aria-label="Back">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M15 18l-6-6 6-6"/>
-				</svg>
-			</button>
-			<button class="modal-close" id="closeModal" aria-label="Close">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M18 6 6 18M6 6l12 12"/>
-				</svg>
-			</button>
+	<!-- Right-side full-height sidebar navigation (copied from profile.php) -->
+	<nav class="dash-float-nav" id="dashNav">
+		<div class="nav-brand">
+			<a href="./home-gawain.php" title="">
+				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub">
+				<img class="logo-wide" src="../assets/images/bluefont.png" alt="ServisyoHub">
+			</a>
 		</div>
 
+		<div class="nav-main">
+			<a href="./profile.php" aria-label="Profile">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+				<span class="dash-text">Profile</span>
+			</a>
+			<a href="./post.php" class="active" aria-current="page" aria-label="Post">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
+				</svg>
+				<span class="dash-text">Post</span>
+			</a>
+			<a href="./my-gawain.php" aria-label="My Gawain">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+				<span class="dash-text">My Gawain</span>
+			</a>
+			<a href="./chats.php" aria-label="Chats">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+				<span class="dash-text">Chats</span>
+			</a>
+		</div>
+
+<<<<<<< HEAD
 		<!-- Step Progress -->
 			<div class="step-progress">
 				<div class="step-item active" data-step="1">
@@ -3720,3 +3717,6 @@ body {
 	</script>
 </body>
 </html>
+=======
+		<div class="nav-settings">
+>>>>>>> f9c2f9fb23f11f0b056debdade9af3c998e0884f
