@@ -116,6 +116,9 @@ ob_end_flush();
 		.toggle-btn:hover { background:#f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
 		.toggle-btn svg, .toggle-btn img { width:18px; height:18px; }
 		.svc-list { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px; }
+		/* Align Recent Posts with above elements */
+		.jobs-feed { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; }
+		.feed-title { font-weight:800; color:#0f172a; margin: 0 0 8px; }
 		.svc-card { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start; background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 		.svc-card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color:#0078a6; }
 		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; }
