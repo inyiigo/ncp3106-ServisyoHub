@@ -11,6 +11,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $mobile = trim($_POST['mobile']);
     $password = trim($_POST['password']);
 
+<<<<<<< HEAD
     $stmt = $conn->prepare("SELECT id, mobile, password FROM users WHERE mobile = ? LIMIT 1");
     if ($stmt) {
         $stmt->bind_param("s", $mobile);
@@ -59,6 +60,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $error = "Something went wrong. Please try again later.";
     }
+=======
+    $query = "SELECT * FROM users where mobile = '$mobile'";
+	$res = mysqli_query($conn, $query);
+	while($row = mysqli_fetch_assoc($res)){
+		$db_password = $row['password'];
+		if($password == $db_password){
+			$_SESSION['user_id'] = $row['id'];
+			$_SESSION['mobile'] = $row['mobile'];
+			header("Location: home-gawain.php");
+			exit();
+		} else {
+			$error = "Incorrect password. Please try again.";
+		}
+	}
+>>>>>>> 36296daeac2a6becfe614ffdf3bd8f605993a44b
 }
 ?>
 <!DOCTYPE html>
