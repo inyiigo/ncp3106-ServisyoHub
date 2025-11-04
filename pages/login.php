@@ -59,13 +59,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<style>
 		/* Screen background and layout: full-height, left-aligned */
-		body.login-bg{ min-height:100dvh; margin:0; display:flex; align-items:center; justify-content:flex-start; padding: clamp(20px, 6vw, 80px); padding-left: clamp(48px, 14vw, 260px); background:
+		body.login-bg{ min-height:100dvh; margin:0; display:flex; align-items:flex-start; justify-content:flex-start; padding: clamp(20px, 6vw, 80px); padding-left: clamp(48px, 14vw, 260px); background:
 			radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%),
 			linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.18)),
 			url('../assets/images/login background.png') center/cover no-repeat fixed;
 		}
 		/* Form wrapper (no card) */
 		.login-panel{ width:min(520px,92vw); min-height:auto; border-radius:0; overflow:visible; display:block; box-shadow:none; background: transparent; position:relative; }
+
+		/* Brand logo */
+		/* Move logo higher and keep placement consistent with signup */
+		.brand-top{ margin:0 0 12px; margin-left: clamp(-16px, -3vw, -40px); margin-top: clamp(-48px, -8vw, -128px); }
+		.brand-top img{ height:clamp(48px, 8vw, 80px); display:block; }
 
 		/* Left white visual */
 		.login-visual{ background:#ffffff; display:grid; align-content:center; justify-items:center; padding:20px; position:relative; }
@@ -84,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.input-with-toggle{ position:relative; }
 		.input-with-toggle .control{ position:relative; }
 		.input-with-toggle .pill{ padding-right:88px; }
-		.toggle-visibility{ position:absolute; top:50%; right:12px; transform:translateY(-50%); height:34px; width:48px; border-radius:999px; border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.18); color:#9de0d5; font-weight:800; cursor:pointer; display:grid; place-items:center; }
+		.toggle-visibility{ position:absolute; top:50%; right:12px; transform:translateY(-50%); height:34px; width:48px; border-radius:999px; border:0; background:transparent; color:#9de0d5; font-weight:800; cursor:pointer; display:grid; place-items:center; }
 		.toggle-visibility svg{ width:18px; height:18px; color:#9de0d5; }
 		.toggle-visibility .eye-closed{ display:none; }
 		.toggle-visibility[aria-pressed="true"] .eye-open{ display:none; }
@@ -93,7 +98,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
 		.toggle-visibility:hover{ filter:brightness(1.05); }
 		.label{ font-weight:800; opacity:.95; }
-		.pill{ width:100%; height:48px; border-radius:999px; border:1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.28); color:#fff; font: inherit; padding:0 16px; }
+		/* Increase selector specificity so it overrides global .field input styles from styles.css */
+		.pill{ width:100%; height:48px; border-radius:999px; border:1.5px solid rgba(255,255,255,.28); background: rgba(0,0,0,.28); color:#fff; font: inherit; padding:0 16px; }
+		.field .pill{ border:1.5px solid rgba(255,255,255,.28); border-radius:999px; }
 		.pill::placeholder{ color: rgba(255,255,255,.65); }
 		.row{ display:flex; align-items:center; justify-content:flex-end; }
 		.link{ color:#9de0d5; text-decoration:none; font-weight:700; }
@@ -102,6 +109,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.meta{ color: rgba(231,245,239,.9); }
 		.error{ background: rgba(239,68,68,.12); color: #fecaca; border:1px solid rgba(239,68,68,.35); padding:10px 12px; border-radius:10px; text-align:center; font-weight:700; }
 		.tight{ max-width:460px; }
+		/* Push everything below the logo down without changing the logo position */
+		/* Nudge higher per request by reducing viewport-based offset */
+		.login-content{ margin-top: clamp(16px, 12vh, 120px); }
 	</style>
 </head>
 <body class="login-bg">
@@ -110,45 +120,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		<!-- Right form area -->
 		<div class="login-form">
 			<div class="tight">
-				<h1 class="login-title">Login</h1>
-				<p class="login-sub">Enter your credentials to continue.</p>
+				<div class="brand-top"><img src="../assets/images/newlogo.png" alt="Servisyo Hub" /></div>
+				<div class="login-content">
+					<h1 class="login-title">Login</h1>
+					<p class="login-sub">Enter your credentials to continue.</p>
 
-				<?php if (!empty($error)): ?>
-				<div class="error"><?php echo htmlspecialchars($error); ?></div>
-				<?php endif; ?>
+					<?php if (!empty($error)): ?>
+					<div class="error"><?php echo htmlspecialchars($error); ?></div>
+					<?php endif; ?>
 
-				<form action="" method="POST" novalidate>
-					<div class="field">
-						<label class="label" for="mobile">Mobile number</label>
-						<input type="tel" id="mobile" name="mobile" class="pill" value="<?php echo htmlspecialchars($mobile); ?>" placeholder="Enter your mobile number" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
-					</div>
-
-					<div class="field input-with-toggle">
-						<label class="label" for="password">Password</label>
-						<div class="control">
-							<input type="password" id="password" name="password" class="pill" placeholder="Enter your password" required />
-							<button type="button" id="togglePassword" class="toggle-visibility" aria-label="Show password" aria-controls="password" aria-pressed="false">
-								<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
-									<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
-								</svg>
-								<svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
-									<path fill="currentColor" fill-opacity=".2" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7z"/>
-									<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-								</svg>
-								<span class="sr-only">Show password</span>
-							</button>
+					<form action="" method="POST" novalidate>
+						<div class="field">
+							<label class="label" for="mobile">Mobile number</label>
+							<input type="tel" id="mobile" name="mobile" class="pill" value="<?php echo htmlspecialchars($mobile); ?>" placeholder="Enter your mobile number" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
 						</div>
-					</div>
 
-					<div class="row" style="margin: 6px 0 10px;">
-						<a class="link" href="./login-password.php">Forgot Password?</a>
-					</div>
+						<div class="field input-with-toggle">
+							<label class="label" for="password">Password</label>
+							<div class="control">
+								<input type="password" id="password" name="password" class="pill" placeholder="Enter your password" required />
+								<button type="button" id="togglePassword" class="toggle-visibility" aria-label="Show password" aria-controls="password" aria-pressed="false">
+									<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
+										<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
+									</svg>
+									<svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
+										<path fill="currentColor" fill-opacity=".2" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7z"/>
+										<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+									</svg>
+									<span class="sr-only">Show password</span>
+								</button>
+							</div>
+						</div>
 
-					<button type="submit" class="cta">Login</button>
+						<div class="row" style="margin: 6px 0 10px;">
+							<a class="link" href="./login-password.php">Forgot Password?</a>
+						</div>
 
-					<p class="meta" style="margin-top:14px;">Don’t have an account? <a class="link" href="./signup.php">Register Now</a></p>
-					<p class="meta" style="margin-top:4px;"><a class="link" href="./terms-and-conditions.php">Terms and Services</a></p>
-				</form>
+						<button type="submit" class="cta">Login</button>
+
+						<p class="meta" style="margin-top:14px;">Don’t have an account? <a class="link" href="./signup.php">Register Now</a></p>
+						<p class="meta" style="margin-top:4px;"><a class="link" href="./terms-and-conditions.php">Terms and Services</a></p>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
