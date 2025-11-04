@@ -359,9 +359,7 @@ ob_end_flush();
 
 			<section class="svc-list" aria-label="Nearby posts">
 				<?php if (!$dbAvailable): ?>
-					<div class="form-card glass-card" style="background:#fff;color:#0f172a;border-color:#e2e8f0">
-						No posts available right now. <?php echo e($lastConnError); ?>
-					</div>
+					<!-- DB unavailable: hide message from UI -->
 				<?php elseif (empty($jobs)): ?>
 					<div class="form-card glass-card" style="background:#fff;color:#0f172a;border-color:#e2e8f0">
 						No posts yet. Be the first to post using the + button.
@@ -406,7 +404,7 @@ ob_end_flush();
 				</div>
 
 				<?php if (!$dbAvailable): ?>
-					<p class="feed-note">Posts are unavailable right now. <?php echo e($lastConnError); ?></p>
+					<!-- Hide DB error details from UI -->
 				<?php elseif (empty($jobs)): ?>
 					<p class="feed-empty">No recent posts yet. Be the first to post using the + button.</p>
 				<?php else: ?>
