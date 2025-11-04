@@ -80,6 +80,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.login-title{ margin:0 0 10px; font-size: clamp(28px, 5vw, 48px); font-weight:800; }
 		.login-sub{ margin:0 0 22px; color: rgba(231,245,239,.88); font-weight:700; }
 		.field{ display:grid; gap:6px; margin:10px 0; }
+		/* Password toggle styles */
+		.input-with-toggle{ position:relative; }
+		.input-with-toggle .control{ position:relative; }
+		.input-with-toggle .pill{ padding-right:88px; }
+		.toggle-visibility{ position:absolute; top:50%; right:12px; transform:translateY(-50%); height:34px; width:48px; border-radius:999px; border:1px solid rgba(255,255,255,.22); background:rgba(0,0,0,.18); color:#9de0d5; font-weight:800; cursor:pointer; display:grid; place-items:center; }
+		.toggle-visibility svg{ width:18px; height:18px; color:#9de0d5; }
+		.toggle-visibility .eye-closed{ display:none; }
+		.toggle-visibility[aria-pressed="true"] .eye-open{ display:none; }
+		.toggle-visibility[aria-pressed="true"] .eye-closed{ display:block; }
+		/* a11y: hide text but keep for screen readers */
+		.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+		.toggle-visibility:hover{ filter:brightness(1.05); }
 		.label{ font-weight:800; opacity:.95; }
 		.pill{ width:100%; height:48px; border-radius:999px; border:1px solid rgba(255,255,255,.22); background: rgba(0,0,0,.28); color:#fff; font: inherit; padding:0 16px; }
 		.pill::placeholder{ color: rgba(255,255,255,.65); }
@@ -111,9 +123,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 						<input type="tel" id="mobile" name="mobile" class="pill" value="<?php echo htmlspecialchars($mobile); ?>" placeholder="Enter your mobile number" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
 					</div>
 
-					<div class="field">
+					<div class="field input-with-toggle">
 						<label class="label" for="password">Password</label>
-						<input type="password" id="password" name="password" class="pill" placeholder="Enter your password" required />
+						<div class="control">
+							<input type="password" id="password" name="password" class="pill" placeholder="Enter your password" required />
+							<button type="button" id="togglePassword" class="toggle-visibility" aria-label="Show password" aria-controls="password" aria-pressed="false">
+								<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
+									<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
+								</svg>
+								<svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
+									<path fill="currentColor" fill-opacity=".2" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7z"/>
+									<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+								</svg>
+								<span class="sr-only">Show password</span>
+							</button>
+						</div>
 					</div>
 
 					<div class="row" style="margin: 6px 0 10px;">
@@ -128,5 +152,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			</div>
 		</div>
 	</div>
+	<script>
+	(function(){
+		var btn = document.getElementById('togglePassword');
+		if(!btn) return;
+		btn.addEventListener('click', function(){
+			var input = document.getElementById('password');
+			if(!input) return;
+			var isHidden = input.getAttribute('type') === 'password';
+			input.setAttribute('type', isHidden ? 'text' : 'password');
+			btn.setAttribute('aria-pressed', String(isHidden));
+			btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+			var sr = btn.querySelector('.sr-only');
+			if(sr) sr.textContent = isHidden ? 'Hide password' : 'Show password';
+		});
+	})();
+	</script>
 </body>
 </html>
