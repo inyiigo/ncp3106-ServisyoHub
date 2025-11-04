@@ -53,6 +53,12 @@
 html, body { height: 100%; margin: 0; }
 body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #0f172a; background:#ffffff; }
 
+/* Page fade-in helper for smoother transitions (respects reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  body.page-fade { opacity: 0; transform: translateY(6px); }
+  body.page-fade.is-ready { transition: opacity 320ms ease, transform 320ms ease; opacity: 1; transform: none; }
+}
+
 /* Splash */
 .splash-body { background: radial-gradient(1200px 600px at 50% -20%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%), linear-gradient(180deg, var(--pal-4) 0%, var(--pal-2) 50%, var(--pal-3) 100%); }
 .splash { position: fixed; inset: 0; display: grid; place-items: center; transform: translateY(0); transition: transform 900ms cubic-bezier(.22,.61,.36,1); padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)); }

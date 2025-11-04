@@ -19,7 +19,7 @@
 		.brand-top{ margin:0 0 12px; margin-left: clamp(-16px, -3vw, -40px); margin-top: clamp(-48px, -8vw, -128px); }
 		.brand-top img{ height:clamp(48px, 8vw, 80px); display:block; }
 		/* Push content block down to achieve vertical centering while keeping logo placement */
-		.signup-content{ margin-top: clamp(16px, 12vh, 120px); }
+		.signup-content{ margin-top: clamp(12px, 9vh, 96px); }
 		.greet-top{ margin:0 0 10px; font-weight:900; font-size: clamp(26px, 4.8vw, 44px); }
 		.greet-sub{ margin:0 0 24px; font-weight:800; color: rgba(231,245,239,.9); font-size: clamp(18px, 3.4vw, 28px); }
 
@@ -74,7 +74,7 @@
 		}
 	</style>
 </head>
-<body class="signup-bg">
+<body class="signup-bg page-fade">
 	<main class="signup-wrap">
 		<div class="brand-top"><img src="../assets/images/newlogo.png" alt="Servisyo Hub" /></div>
 		<div class="signup-content">
@@ -145,6 +145,14 @@
 
 	</main>
 	<script>
+	// Page fade-in for smoother appearance after navigation
+	(function(){
+		if(document.readyState !== 'loading'){
+			document.body.classList.add('is-ready');
+		}else{
+			document.addEventListener('DOMContentLoaded', function(){ document.body.classList.add('is-ready'); });
+		}
+	})();
 	// Small client-side validation for password confirmation + show/hide toggles
 	document.addEventListener('DOMContentLoaded', function(){
 		var form = document.querySelector('.sg-form');

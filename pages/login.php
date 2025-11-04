@@ -114,7 +114,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		.login-content{ margin-top: clamp(16px, 12vh, 120px); }
 	</style>
 </head>
-<body class="login-bg">
+<body class="login-bg page-fade">
 	<div class="login-panel">
 
 		<!-- Right form area -->
@@ -166,6 +166,23 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 		</div>
 	</div>
 	<script>
+	// Page fade-in when coming from landing (session-based); otherwise show immediately
+	(function(){
+		function ready(cb){ if(document.readyState !== 'loading'){ cb(); } else { document.addEventListener('DOMContentLoaded', cb); } }
+		ready(function(){
+			var shouldFade = false;
+			try { shouldFade = sessionStorage.getItem('fromSplash') === '1'; } catch(e) { shouldFade = false; }
+			if(shouldFade){
+				// Play fade-in once, then clear flag
+				document.body.offsetHeight; // force reflow for consistent transition start
+				document.body.classList.add('is-ready');
+				try { sessionStorage.removeItem('fromSplash'); } catch(e){}
+			}else{
+				// Avoid dim appearance when directly landing on login
+				document.body.classList.add('is-ready');
+			}
+		});
+	})();
 	(function(){
 		var btn = document.getElementById('togglePassword');
 		if(!btn) return;
