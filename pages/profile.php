@@ -132,6 +132,11 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			display: block;
 		}
 
+		/* Ensure img logo fits like other icons */
+		.dash-float-nav .dash-icon {
+			object-fit: contain; /* added for img icons */
+		}
+
 		/* Ensure main content is above background */
 		.dash-topbar {
 			position: relative;
@@ -201,23 +206,144 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		/* Small helpers */
 		.sep { height:1px; background:#e2e8f0; margin:8px 0; }
 
-		/* Quick actions in topbar */
-		.top-actions {
-			position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
-			display: flex; gap: 12px; align-items: center;
+		/* Right-side full-height sidebar nav (enhanced, smooth expand) */
+		.dash-float-nav {
+			position: fixed;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			z-index: 1000;
+			display: flex;            /* was grid in some versions */
+			flex-direction: column;
+			justify-content: flex-start;
+			gap: 8px;
+			padding-top: 92px;
+			padding-bottom: 8px;
+			padding-left: 8px;
+			padding-right: 8px;
+			border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
+			border-right: 0;
+			background: rgba(255,255,255,.95);
+			backdrop-filter: saturate(1.15) blur(12px);
+			border-top-left-radius: 16px;
+			border-bottom-left-radius: 16px;
+			border-top-right-radius: 0;
+			border-bottom-right-radius: 0;
+			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
+			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), transform .2s ease, box-shadow .2s ease;
+			width: 56px;
+			overflow: hidden;
 		}
-		.icon-btn {
-			position: relative; width: 34px; height: 34px; border-radius: 999px;
-			display: grid; place-items: center; text-decoration: none;
-			border: 2px solid #e2e8f0; background: #fff; color: #0f172a;
-			transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+		.dash-float-nav:hover {
+			width: 200px;
+			transform: translateY(-2px);
+			box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
 		}
-		.icon-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
-		.icon-btn svg { width: 18px; height: 18px; }
-		.icon-btn .badge {
-			position: absolute; top: -6px; right: -4px; min-width: 16px;
-			height: 16px; padding: 0 4px; border-radius: 999px;
-			background: #ef4444; color: #fff; font-size: 10px; line-height: 16px; font-weight: 900;
+		
+		/* Container for nav items (at top) */
+		.dash-float-nav > div {
+			display: grid;
+			gap: 8px;
+			align-content: start;     /* ensure buttons stick to top */
+		}
+
+		/* Settings container at bottom */
+		.dash-float-nav > .nav-settings {
+			margin-top: auto;         /* pin Settings to bottom */
+		}
+		
+		.dash-float-nav a {
+			position: relative;
+			width: 40px;
+			height: 40px;
+			display: grid;
+			grid-template-columns: 40px 1fr;
+			place-items: center;
+			align-items: center;
+			border-radius: 12px;
+			color: #0f172a;
+			text-decoration: none;
+			transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4, 0, 0.2, 1);
+			outline: none;
+			white-space: nowrap;
+		}
+		.dash-float-nav:hover a {
+			width: 184px;
+		}
+		.dash-float-nav a:hover:not(.active) {
+			background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+			transform: scale(1.05);
+		}
+		.dash-float-nav a:focus-visible {
+			box-shadow: 0 0 0 3px rgba(0,120,166,.3);
+		}
+		.dash-float-nav a.active {
+			background: linear-gradient(135deg, #0078a6 0%, #006a94 100%);
+			color: #fff;
+			box-shadow: 0 6px 18px rgba(0,120,166,.4);
+		}
+		/* active indicator bar with pulse */
+		.dash-float-nav a.active::after {
+			content: "";
+			position: absolute;
+			left: -5px;
+			width: 3px;
+			height: 18px;
+			background: linear-gradient(180deg, #0078a6 0%, #00a8e8 100%);
+			border-radius: 2px;
+			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
+			animation: indicatorPulse 2s ease-in-out infinite;
+		}
+		@keyframes indicatorPulse {
+			0%, 100% { opacity: 1; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6); }
+			50% { opacity: .85; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 18px rgba(0,120,166,.8); }
+		}
+		.dash-float-nav .dash-icon { 
+			width: 18px; 
+			height: 18px; 
+			transition: transform .2s ease;
+			justify-self: center;
+		}
+		.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
+
+		/* Text label (smooth fade and slide in when expanded) */
+		.dash-float-nav a .dash-text {
+			opacity: 0;
+			transform: translateX(-10px);
+			transition: opacity .3s cubic-bezier(0.4, 0, 0.2, 1) .1s, transform .3s cubic-bezier(0.4, 0, 0.2, 1) .1s;
+			font-weight: 800;
+			font-size: .85rem;
+			color: inherit;
+			justify-self: start;
+			padding-left: 8px;
+		}
+		.dash-float-nav:hover a .dash-text {
+			opacity: 1;
+			transform: translateX(0);
+		}
+
+		/* Hide tooltip labels when not expanded */
+		.dash-float-nav a .dash-label {
+			display: none;
+		}
+
+		/* Center the profile container - REMOVED margin-right adjustment */
+		.prof-container {
+			max-width: 480px;
+			margin: 0 auto; /* center horizontally */
+			padding: 0 16px;
+		}
+
+		/* Adjust topbar - REMOVED padding-right */
+		.dash-topbar {
+			position: relative;
+		}
+
+		/* Bigger logo for the first nav item only (Browse -> job_logo.png) */
+		.dash-float-nav a.logo-link .dash-icon {
+			width: 28px;  /* was ~16-22px */
+			height: 28px;
+			object-fit: contain;
 		}
 	</style>
 </head>
@@ -229,19 +355,6 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 	<div class="dash-topbar center">
 		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
-		<div class="top-actions" role="toolbar" aria-label="Quick actions">
-			<a href="javascript:void(0)" class="icon-btn" aria-label="Notifications">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-				</svg>
-			</a>
-			<a href="./settings.php" class="icon-btn" aria-label="Settings">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.806.272 1.204.107.397-.165.71-.505.78-.93l.149-.894z"/>
-				<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-			</svg>
-			</a>
-		</div>
 	</div>
 
 	<div class="profile-bg">
@@ -336,30 +449,48 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		</div>
 	</div>
 
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./home-gawain.php" aria-label="Browse">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-			</svg>
-			<span>Browse</span>
-		</a>
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-			<span>Post</span>
-		</a>
-		<a href="./my-gawain.php" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Gawain</span>
-		</a>
-		<a href="./chats.php" aria-label="Chats">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-			<span>Chats</span>
-		</a>
-		<a href="./profile.php" class="active" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Profile</span>
-		</a>
+	<!-- Right-side full-height sidebar navigation (smooth expand, settings at bottom) -->
+	<nav class="dash-float-nav" id="dashNav">
+		<div>
+			<!-- Browse: logo image, no text, slightly bigger -->
+			<a href="./home-gawain.php" class="logo-link" aria-label="Browse">
+				<img class="dash-icon" src="../assets/images/job_logo.png" alt="ServisyoHub Logo">
+			</a>
+
+			<a href="./profile.php" class="active" aria-current="page" aria-label="Profile">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
+				</svg>
+				<span class="dash-text">Profile</span>
+			</a>
+			<a href="./post.php" aria-label="Post">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
+				</svg>
+				<span class="dash-text">Post</span>
+			</a>
+			<a href="./my-gawain.php" aria-label="My Gawain">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M4 7h16M4 12h10M4 17h7"/>
+				</svg>
+				<span class="dash-text">My Gawain</span>
+			</a>
+			<a href="./chats.php" aria-label="Chats">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+				</svg>
+				<span class="dash-text">Chats</span>
+			</a>
+		</div>
+		<div class="nav-settings">
+			<a href="./settings.php" aria-label="Settings">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.806.272 1.204.107.397-.165.71-.505.78-.93l.149-.894z"/>
+					<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+				</svg>
+				<span class="dash-text">Settings</span>
+			</a>
+		</div>
 	</nav>
 
 	<script>

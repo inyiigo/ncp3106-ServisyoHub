@@ -329,11 +329,11 @@ function isDirty(){
 if (cancelBtn) {
 	cancelBtn.addEventListener('click', function(){
 		if (!isDirty()) {
-			window.location.href = 'clients-profile.php';
+			window.location.href = 'profile.php';
 			return;
 		}
 		if (confirm('Discard changes? Any unsaved edits will be lost. Proceed back to profile?')) {
-			window.location.href = 'clients-profile.php';
+			window.location.href = 'profile.php';
 		}
 	});
 }
