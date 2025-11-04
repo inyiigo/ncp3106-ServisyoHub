@@ -1490,33 +1490,6 @@ body {
 		</div>
 	</section>
 
-	<!-- Floating bottom navigation (removed) -->
-	<!--
-	<nav class="dash-bottom-nav">
-		<a href="./home-gawain.php" aria-label="Browse">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-			<span>Browse</span>
-		</a>
-		<a href="./post.php" class="active" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-			<span>Post</span>
-		</a>
-		<a href="./my-gawain.php" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
-			<span>My Gawain</span>
-		</a>
-		<a href="./chats.php" aria-label="Chats">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-			<span>Chats</span>
-		</a>
-		<a href="./profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
-			<span>Profile</span>
-		</a>
-	</nav>
-	-->
-
 	<!-- Right-side full-height sidebar navigation (copied from profile.php) -->
 	<nav class="dash-float-nav" id="dashNav">
 		<div class="nav-brand">
@@ -1547,26 +1520,54 @@ body {
 			</a>
 		</div>
 
-<<<<<<< HEAD
+		<div class="nav-settings">
+			<a href="./settings.php" aria-label="Settings">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35 .25 .806 .272 1.204 .107 .397 -.165 .71 -.505 .78 -.93l .149 -.894z"/>
+					<path d="M15 12a3 3 0 11-6 0 3 3 0 0 0 6 0z"/>
+				</svg>
+				<span class="dash-text">Settings</span>
+			</a>
+		</div>
+	</nav>
+
+	<!-- Post Modal (Full Screen) -->
+	<div class="post-modal" id="postModal">
+		<div class="post-modal-header">
+			<button type="button" class="modal-back" id="modalBack" aria-label="Go back">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="m15 18-6-6 6-6"/>
+				</svg>
+			</button>
+			<button type="button" class="modal-close" id="closeModal" aria-label="Close">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<line x1="18" y1="6" x2="6" y2="18"></line>
+					<line x1="6" y1="6" x2="18" y2="18"></line>
+				</svg>
+			</button>
+		</div>
+
 		<!-- Step Progress -->
-			<div class="step-progress">
-				<div class="step-item active" data-step="1">
-					<div class="step-circle"></div>
-					<span class="step-label">Title</span>
-				</div>
-				<div class="step-item" data-step="2">
-					<div class="step-circle"></div>
-					<span class="step-label">Description</span>
-				</div>
-				<div class="step-item" data-step="3">
-					<div class="step-circle"></div>
-					<span class="step-label">Details</span>
-				</div>
-				<div class="step-item" data-step="4">
-					<div class="step-circle"></div>
-					<span class="step-label">Budget</span>
-				</div>
-			</div>		<!-- Modal Form -->
+		<div class="step-progress">
+			<div class="step-item active" data-step="1">
+				<div class="step-circle"></div>
+				<span class="step-label">Title</span>
+			</div>
+			<div class="step-item" data-step="2">
+				<div class="step-circle"></div>
+				<span class="step-label">Description</span>
+			</div>
+			<div class="step-item" data-step="3">
+				<div class="step-circle"></div>
+				<span class="step-label">Details</span>
+			</div>
+			<div class="step-item" data-step="4">
+				<div class="step-circle"></div>
+				<span class="step-label">Budget</span>
+			</div>
+		</div>
+
+		<!-- Modal Form -->
 		<form id="postForm" method="POST" action="">
 			<div class="modal-content">
 				<!-- Step 1: Title -->
@@ -1879,7 +1880,7 @@ body {
 									id="timeRangeStartInput"
 									readonly
 									style="background: #f1f5f9; color: #0f172a; cursor: pointer; margin-bottom: 12px;"
-								/>
+															/>
 								<input 
 									type="text" 
 									name="time_range_end" 
@@ -2381,7 +2382,7 @@ body {
 	</div>
 
 	<script>
-	// Post Modal functionality
+	// Post Modal functionality - FIXED to handle missing elements gracefully
 	(function(){
 		const modal = document.getElementById('postModal');
 		const searchInput = document.getElementById('searchInput');
@@ -2391,22 +2392,33 @@ body {
 		const trendingItems = document.querySelectorAll('.service-item');
 		const titleInput = document.getElementById('titleInput');
 		
+		// Guard against missing elements
+		if (!modal || !searchInput || !titleInput) {
+			console.warn('Some modal elements are missing');
+			return;
+		}
+		
 		// Open modal when clicking search bar
-		searchInput.addEventListener('click', function(e) {
-			e.preventDefault();
-			modal.classList.add('active');
-			document.body.style.overflow = 'hidden';
-		});
+		if (searchInput) {
+			searchInput.addEventListener('click', function(e) {
+				e.preventDefault();
+				if (modal) {
+					modal.classList.add('active');
+					document.body.style.overflow = 'hidden';
+				}
+			});
+		}
 		
 		// Open modal when clicking suggestion pills
 		suggestionPills.forEach(pill => {
 			pill.addEventListener('click', function(e) {
 				e.preventDefault();
 				const text = this.textContent;
-				modal.classList.add('active');
-				document.body.style.overflow = 'hidden';
-				// Pre-fill the title with the suggestion
-				titleInput.value = text;
+				if (modal && titleInput) {
+					modal.classList.add('active');
+					document.body.style.overflow = 'hidden';
+					titleInput.value = text;
+				}
 			});
 		});
 		
@@ -2415,22 +2427,27 @@ body {
 			item.addEventListener('click', function(e) {
 				e.preventDefault();
 				const title = this.querySelector('.service-title').textContent;
-				modal.classList.add('active');
-				document.body.style.overflow = 'hidden';
-				// Pre-fill the title with the trending service
-				titleInput.value = title;
+				if (modal && titleInput) {
+					modal.classList.add('active');
+					document.body.style.overflow = 'hidden';
+					titleInput.value = title;
+				}
 			});
 		});
 		
 		// Close modal
-		closeModal.addEventListener('click', function() {
-			modal.classList.remove('active');
-			document.body.style.overflow = '';
-		});
+		if (closeModal) {
+			closeModal.addEventListener('click', function() {
+				if (modal) {
+					modal.classList.remove('active');
+					document.body.style.overflow = '';
+				}
+			});
+		}
 		
 		// Close on escape key
 		document.addEventListener('keydown', function(e) {
-			if (e.key === 'Escape' && modal.classList.contains('active')) {
+			if (e.key === 'Escape' && modal && modal.classList.contains('active')) {
 				modal.classList.remove('active');
 				document.body.style.overflow = '';
 			}
@@ -3717,6 +3734,4 @@ body {
 	</script>
 </body>
 </html>
-=======
-		<div class="nav-settings">
->>>>>>> f9c2f9fb23f11f0b056debdade9af3c998e0884f
+
