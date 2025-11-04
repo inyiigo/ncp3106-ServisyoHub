@@ -206,14 +206,14 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		/* Small helpers */
 		.sep { height:1px; background:#e2e8f0; margin:8px 0; }
 
-		/* Right-side full-height sidebar nav (enhanced, smooth expand) */
+		/* Right-side full-height sidebar nav (smooth expand on hover) */
 		.dash-float-nav {
 			position: fixed;
 			top: 0;
 			right: 0;
 			bottom: 0;
 			z-index: 1000;
-			display: flex;                 /* ensure top stacking */
+			display: flex !important;
 			flex-direction: column;
 			justify-content: flex-start;
 			gap: 8px;
@@ -223,6 +223,7 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			padding-right: 8px;
 			border: 2px solid color-mix(in srgb, #0078a6 75%, #0000);
 			border-right: 0;
+			border-top: 2px solid color-mix(in srgb, #0078a6 75%, #0000); /* explicit top border */
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
 			border-top-left-radius: 16px;
@@ -230,14 +231,15 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			border-top-right-radius: 0;
 			border-bottom-right-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
-			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), transform .2s ease, box-shadow .2s ease;
+			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease; /* removed transform transition */
 			width: 56px;
 			overflow: hidden;
 		}
 		.dash-float-nav:hover {
 			width: 200px;
-			transform: translateY(-2px);
+			/* removed: transform: translateY(-2px); */
 			box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
+			border-top: 2px solid color-mix(in srgb, #0078a6 75%, #0000); /* keep top border on hover */
 		}
 		
 		/* First group (all buttons except settings) sticks to top */
@@ -373,16 +375,82 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			display: grid;
 			gap: 8px;
 		}
+
+		/* Remove top bar on this page */
+		.dash-topbar { display: none !important; }
+		/* Remove any padding added for fixed/sticky topbar */
+		body { padding-top: 0 !important; }
+		/* Make sure the sidebar starts at the very top */
+		.dash-float-nav { top: 0 !important; }
+
+		/* Ensure sidebar stacks from top (brand • main • settings) */
+		.dash-float-nav {
+			/* ...existing code... */
+			display: flex !important;
+			flex-direction: column;
+			justify-content: flex-start;
+		}
+
+		/* Top-centered brand with hover swap (job_logo.png -> bluefont.png) */
+		.dash-float-nav .nav-brand {
+			display: grid;
+			place-items: center;
+			position: relative;
+			height: 56px;            /* reserve space at the very top */
+			padding: 6px 0;
+		}
+		.dash-float-nav .nav-brand img {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+			display: block;
+			object-fit: contain;
+			transition: opacity .25s ease, transform .25s ease, width .3s ease;
+			pointer-events: none;
+		}
+		/* Default: show job_logo.png (small mark) */
+		.dash-float-nav .nav-brand .logo-small {
+			width: 28px; /* was 30px */
+			height: auto;
+			opacity: 1;
+		}
+		/* Hidden wordmark until hover */
+		.dash-float-nav .nav-brand .logo-wide {
+			width: 160px;            /* fits when sidebar expands */
+			height: auto;
+			opacity: 0;
+		}
+		/* On hover: fade small out, wordmark in */
+		.dash-float-nav:hover .nav-brand .logo-small {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(.96);
+		}
+		.dash-float-nav:hover .nav-brand .logo-wide {
+			opacity: 1;
+			transform: translate(-50%, -50%) scale(1);
+		}
+
+		/* Keep main icons at top and settings pinned to bottom */
+		.dash-float-nav > .nav-main { display: grid; gap: 8px; align-content: start; }
+		.dash-float-nav > .nav-settings { margin-top: auto; display: grid; gap: 8px; }
+
+		/* Override: slightly smaller job_logo again */
+		.dash-float-nav .nav-brand .logo-small {
+			width: 26px; /* reduced from 28px */
+			height: auto;
+		}
+		.dash-float-nav a.logo-link .dash-icon {
+			width: 18px; /* reduced from 20px */
+			height: 18px;
+			object-fit: contain;
+		}
 	</style>
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
 	<div class="bg-logo">
 		<img src="../assets/images/job_logo.png" alt="" />
-	</div>
-
-	<div class="dash-topbar center">
-		<div class="dash-brand"><img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo" /></div>
 	</div>
 
 	<div class="profile-bg">
@@ -479,12 +547,15 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 	<!-- Right-side full-height sidebar navigation (smooth expand, settings at bottom) -->
 	<nav class="dash-float-nav" id="dashNav">
-		<div class="nav-main">
-			<!-- Ensure this Browse link has the logo and no text -->
-			<a href="./home-gawain.php" class="logo-link" aria-label="Browse">
-				<img class="dash-icon" src="../assets/images/job_logo.png" alt="ServisyoHub Logo">
+		<!-- Brand section at top (clickable logo) -->
+		<div class="nav-brand">
+			<a href="./home-gawain.php" title="" style="display:block; text-decoration:none;">
+				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
+				<img class="logo-wide" src="../assets/images/bluefont.png" alt="ServisyoHub">
 			</a>
+		</div>
 
+		<div class="nav-main">
 			<a href="./profile.php" class="active" aria-current="page" aria-label="Profile">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
