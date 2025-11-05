@@ -429,7 +429,7 @@ ob_end_flush();
     <div class="footer-inner">
       <div class="footer-actions">
   <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
-        <a class="btn-solid" href="#" role="button">Make offer</a>
+        <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
       </div>
     </div>
   </footer>
