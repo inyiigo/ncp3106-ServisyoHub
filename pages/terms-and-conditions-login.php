@@ -187,7 +187,7 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 
 	<!-- add bottom back button -->
 	<div class="bottom-box" role="navigation" aria-label="Page actions">
-		<a href="" class="back-box" title="Back to ">← Back to </a>
+		<a href="./login.php" class="back-box" title="Back to login">← Back to login</a>
 	</div>
 
 </body>

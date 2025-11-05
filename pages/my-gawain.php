@@ -10,7 +10,10 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
+<<<<<<< HEAD
 
+=======
+>>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 	<style>
 		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
@@ -167,11 +170,22 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			color: #fff !important;
 			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
 		}
-		.dash-float-nav a.active::after {
-			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%);
-			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
-		}
+		.dash-float-nav a.active::after { display: none !important; }
+
+		/* Unbold all texts, except title and nav bar */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+		/* Keep page title bold */
+		.mq-title { font-weight: var(--fw-bold) !important; }
+
+		/* Keep right floating nav labels bold */
+		.dash-float-nav a,
+		.dash-float-nav a .dash-text,
+		.dash-float-nav a span { font-weight: var(--fw-bold) !important; }
+
+		/* Slightly shift content downward for breathing room */
+		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -220,6 +234,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</div>
 		</main>
 	</div>
+<<<<<<< HEAD
 
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav">
@@ -253,6 +268,65 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</svg>
 			<span class="dash-label">Profile</span>
 		</a>
+=======
+	<!-- Floating right-side navigation (replaces bottom nav) -->
+	<nav class="dash-float-nav" id="dashNav">
+		<div class="nav-brand">
+			<a href="./home-gawain.php" title="">
+				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
+				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
+			</a>
+		</div>
+
+		<div class="nav-main">
+			<a href="./profile.php" aria-label="Profile">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
+				</svg>
+				<span class="dash-text">Profile</span>
+			</a>
+			<a href="./post.php" aria-label="Post">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
+				</svg>
+				<span class="dash-text">Post</span>
+			</a>
+			<a href="./my-gawain.php" class="active" aria-current="page" aria-label="My Gawain">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M4 7h16M4 12h10M4 17h7"/>
+				</svg>
+				<span class="dash-text">My Gawain</span>
+			</a>
+			<a href="./chats.php" aria-label="Chats">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+				</svg>
+				<span class="dash-text">Chats</span>
+			</a>
+		</div>
+
+		<div class="nav-settings">
+			<a href="./about-us.php" aria-label="About Us">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+				</svg>
+				<span class="dash-text">About Us</span>
+			</a>
+			<a href="./terms-and-conditions.php" aria-label="Terms & Conditions">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M6 4h12v16H6z"/><path d="M8 8h8M8 12h8M8 16h5"/>
+				</svg>
+				<span class="dash-text">Terms & Conditions</span>
+			</a>
+			<a href="./profile.php?logout=1" aria-label="Log out">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 21V3"/>
+				</svg>
+				<span class="dash-text">Log out</span>
+			</a>
+		</div>
+>>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 	</nav>
+
 </body>
 </html>
