@@ -11,8 +11,37 @@ if ($__logout) {
     header('Location: ./login.php');
     exit;
 }
-$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'Guest');
-$mobile = isset($_SESSION['mobile']) ? $_SESSION['mobile'] : '';
+
+// Ensure 'prof-name' defaults to 'USER' after login until edited
+$mobile = $_SESSION['mobile'] ?? '';
+if ($mobile && (!isset($_SESSION['display_name']) || trim($_SESSION['display_name']) === '' || $_SESSION['display_name'] === 'Guest')) {
+    $_SESSION['display_name'] = 'USER';
+}
+$display = $_SESSION['display_name'] ?? ($mobile ? 'USER' : 'Guest');
+
+// Include DB and normalize handle
+include '../config/db_connect.php';
+if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
+	if (isset($conn) && $conn instanceof mysqli) { $mysqli = $conn; }
+}
+
+// If logged in, always refresh display name from DB username so repeated edits reflect
+$user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+if ($user_id > 0 && isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
+	if ($stmt = $mysqli->prepare("SELECT username FROM users WHERE id = ?")) {
+		$stmt->bind_param('i', $user_id);
+		$stmt->execute();
+		$stmt->bind_result($dbUsername);
+		if ($stmt->fetch() && !empty($dbUsername)) {
+			if (!isset($_SESSION['display_name']) || $_SESSION['display_name'] !== $dbUsername) {
+				$_SESSION['display_name'] = $dbUsername;
+			}
+			$display = $_SESSION['display_name'];
+		}
+		$stmt->close();
+	}
+}
+
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 ?>
 <!DOCTYPE html>

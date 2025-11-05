@@ -1,52 +1,20 @@
 <?php
 session_start();
-// Minimal robust DB connection: try config then fallback (exception-safe)
-$configPath = __DIR__ . '/../includes/config.php';
-$mysqli = null;
+
+// link DB using provided connector and normalize to $mysqli
+$errors = $errors ?? [];
 $dbAvailable = false;
-$errors = $errors ?? []; // ensure $errors exists
+$mysqli = null;
 
-if (file_exists($configPath)) { require_once $configPath; }
+include '../config/db_connect.php';
 
-// build attempts list
-$attempts = [];
-if (isset($db_host, $db_user, $db_pass, $db_name)) {
-    $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
-}
-$attempts[] = ['localhost', 'root', '', 'servisyohub'];
-
-$lastConnError = '';
-foreach ($attempts as $creds) {
-    list($h, $u, $p, $n) = $creds;
-
-    // disable mysqli exceptions for the attempt and catch any thrown exceptions
-    if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
-    try {
-        // suppress PHP warnings from mysqli::__construct when the target refuses connection
-        $tmp = @new mysqli($h, $u, $p, $n);
-        if ($tmp instanceof mysqli && !$tmp->connect_error) {
-            $mysqli = $tmp;
-            $dbAvailable = true;
-        } else {
-            $lastConnError = $tmp->connect_error ?? 'Connection failed';
-            // ensure we don't leave an invalid object
-            if ($tmp instanceof mysqli) { @$tmp->close(); }
-        }
-    } catch (mysqli_sql_exception $ex) {
-        $lastConnError = $ex->getMessage();
-    } catch (Throwable $ex) {
-        $lastConnError = $ex->getMessage();
-    } finally {
-        // restore usual reporting to avoid surprising behavior in other code
-        if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
-    }
-
-    if ($dbAvailable) break;
-}
-
-if (!$dbAvailable) {
-    $mysqli = null;
-    $errors[] = 'Database not available. ' . ($lastConnError ?? '');
+if (isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
+	$dbAvailable = true;
+} elseif (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
+	$mysqli = $conn;
+	$dbAvailable = true;
+} else {
+	$errors[] = 'Database not available.';
 }
 
 // helper
@@ -57,24 +25,24 @@ $user_id = $not_logged_in ? 0 : intval($_SESSION['user_id']);
 $errors = [];
 $success = '';
 // default user values
-$user = ['username'=>'','first_name'=>'','last_name'=>'','email'=>'','phone'=>'','address'=>'','avatar'=>''];
+$user = ['username'=>'','first_name'=>'','last_name'=>'','email'=>'','mobile'=>'','address'=>'','avatar'=>''];
 
 // load user if possible
 if (!$not_logged_in && $dbAvailable) {
-	$stmt = $mysqli->prepare("SELECT username, first_name, last_name, email, phone, address, COALESCE(avatar,'') FROM users WHERE id = ?");
+	$stmt = $mysqli->prepare("SELECT username, first_name, last_name, email, mobile, address, COALESCE(avatar,'') FROM users WHERE id = ?");
 	if ($stmt) {
 		$stmt->bind_param('i',$user_id);
 		$stmt->execute();
 		$stmt->store_result();
 		if ($stmt->num_rows) {
-			$stmt->bind_result($u_username,$u_first,$u_last,$u_email,$u_phone,$u_address,$u_avatar);
+			$stmt->bind_result($u_username,$u_first,$u_last,$u_email,$u_mobile,$u_address,$u_avatar);
 			$stmt->fetch();
 			$user = [
 				'username'=>$u_username,
 				'first_name'=>$u_first,
 				'last_name'=>$u_last,
 				'email'=>$u_email,
-				'phone'=>$u_phone,
+				'mobile'=>$u_mobile,
 				'address'=>$u_address,
 				'avatar'=>$u_avatar
 			];
@@ -96,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 	$first_name = trim($_POST['first_name'] ?? $user['first_name']);
 	$last_name  = trim($_POST['last_name'] ?? $user['last_name']);
 	$email      = trim($_POST['email'] ?? $user['email']);
-	$phone      = trim($_POST['phone'] ?? $user['phone']);
+	$mobile     = trim($_POST['mobile'] ?? $user['mobile']);
 	$address    = trim($_POST['address'] ?? $user['address']);
 	$password   = $_POST['password'] ?? '';
 
@@ -163,19 +131,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 			$pwHash = password_hash($password, PASSWORD_DEFAULT);
 			// include avatar if uploaded
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, phone=?, address=?, password=?, avatar=? WHERE id=?");
-				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$phone,$address,$pwHash,$newAvatarPath,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, avatar=? WHERE id=?");
+				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$newAvatarPath,$user_id);
 			} else {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, phone=?, address=?, password=? WHERE id=?");
-				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$phone,$address,$pwHash,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=? WHERE id=?");
+				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$user_id);
 			}
 		} else {
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, phone=?, address=?, avatar=? WHERE id=?");
-				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$phone,$address,$newAvatarPath,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, avatar=? WHERE id=?");
+				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$newAvatarPath,$user_id);
 			} else {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, phone=?, address=? WHERE id=?");
-				$upd->bind_param('ssssssi',$username,$first_name,$last_name,$email,$phone,$address,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=? WHERE id=?");
+				$upd->bind_param('ssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$user_id);
 			}
 		}
 
@@ -187,9 +155,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 				$user['first_name']=$first_name;
 				$user['last_name']=$last_name;
 				$user['email']=$email;
-				$user['phone']=$phone;
+				$user['mobile']=$mobile;
 				$user['address']=$address;
 				if ($newAvatarPath !== '') $user['avatar']=$newAvatarPath;
+				// keep session in sync for profile page
+				$_SESSION['mobile'] = $mobile;
+				// also update display name so repeated edits reflect immediately
+				$_SESSION['display_name'] = $username;
 			} else {
 				$errors[] = 'Database update failed: '.$mysqli->error;
 			}
@@ -264,8 +236,8 @@ function avatar_url($path){
 					<input id="last_name" name="last_name" type="text" value="<?php echo e($user['last_name']); ?>" <?php echo $disabledAttr; ?>>
 				</div>
 				<div class="field col-6">
-					<label for="phone">Phone</label>
-					<input id="phone" name="phone" type="text" value="<?php echo e($user['phone']); ?>" <?php echo $disabledAttr; ?>>
+					<label for="mobile">Phone</label>
+					<input id="mobile" name="mobile" type="text" value="<?php echo e($user['mobile']); ?>" <?php echo $disabledAttr; ?>>
 				</div>
 				<div class="field col-6">
 					<label for="password">New password (leave blank to keep current)</label>
