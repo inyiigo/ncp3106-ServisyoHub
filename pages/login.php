@@ -11,7 +11,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 	$mobile = trim($_POST['mobile'] ?? '');
 	$password = trim($_POST['password'] ?? '');
 
-<<<<<<< HEAD
     $query = "SELECT * FROM users where mobile = '$mobile'";
     $res = mysqli_query($conn, $query);
     
@@ -33,51 +32,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         // Mobile number not found
         $error = "No account exists with this mobile number.";
     }
-=======
-	if ($mobile !== '' && $password !== '') {
-		// Query all columns to be compatible with schemas that may or may not have password_hash
-		if ($stmt = mysqli_prepare($conn, "SELECT * FROM users WHERE mobile = ? LIMIT 1")) {
-			mysqli_stmt_bind_param($stmt, 's', $mobile);
-			if (mysqli_stmt_execute($stmt)) {
-				$res = mysqli_stmt_get_result($stmt);
-				if ($row = mysqli_fetch_assoc($res)) {
-					$ok = false;
-					// Prefer hashed password when present
-					if (isset($row['password_hash']) && $row['password_hash'] !== '') {
-						$ok = password_verify($password, $row['password_hash']);
-					} else if (isset($row['password'])) {
-						// Legacy plain-text fallback (not recommended in production)
-						$ok = hash_equals((string)$row['password'], (string)$password);
-					}
-
-					if ($ok) {
-						$_SESSION['user_id'] = (int)($row['id'] ?? 0);
-						$_SESSION['mobile'] = (string)($row['mobile'] ?? $mobile);
-						header("Location: home-gawain.php");
-						exit();
-					} else {
-						$error = "Incorrect password. Please try again.";
-					}
-				} else {
-					$error = "Mobile number not found.";
-				}
-			} else {
-				$error = "Login unavailable right now. Please try again later.";
-			}
-			mysqli_stmt_close($stmt);
-		} else {
-			$error = "Login unavailable right now. Please try again later.";
-		}
-	} else {
-		$error = "Please enter your mobile and password.";
-	}
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<<<<<<< HEAD
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Login • Servisyo Hub</title>
@@ -140,152 +99,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <a href="./signup.php">Sign Up</a>
         </p>
     </main>
-=======
-	<meta charset="UTF-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>Login • Servisyo Hub</title>
-	<link rel="stylesheet" href="../assets/css/styles.css" />
-	<style>
-		/* Screen background and layout: full-height, left-aligned */
-		body.login-bg{ min-height:100dvh; margin:0; display:flex; align-items:flex-start; justify-content:flex-start; padding: clamp(20px, 6vw, 80px); padding-left: clamp(48px, 14vw, 260px); background:
-			radial-gradient(1200px 700px at 20% -10%, rgba(255,255,255,.18), rgba(255,255,255,0) 60%),
-			linear-gradient(180deg, rgba(0,0,0,.18), rgba(0,0,0,.18)),
-			url('../assets/images/login background.png') center/cover no-repeat fixed;
-		}
-		/* Form wrapper (no card) */
-		.login-panel{ width:min(520px,92vw); min-height:auto; border-radius:0; overflow:visible; display:block; box-shadow:none; background: transparent; position:relative; }
-
-		/* Brand logo */
-		/* Move logo higher and keep placement consistent with signup */
-		.brand-top{ margin:0 0 12px; margin-left: clamp(-16px, -3vw, -40px); margin-top: clamp(-48px, -8vw, -128px); }
-		.brand-top img{ height:clamp(48px, 8vw, 80px); display:block; }
-
-		/* Left white visual */
-		.login-visual{ background:#ffffff; display:grid; align-content:center; justify-items:center; padding:20px; position:relative; }
-		.login-visual-inner{ width:min(92%, 640px); min-height:420px; border-radius:34px; background:#f7fafc; border:1px solid #eef2f7; box-shadow: inset 0 0 0 1px rgba(2,6,23,.06); position:relative; display:grid; place-items:center; }
-		.login-brand{ position:absolute; top:18px; left:18px; }
-		.login-brand img{ height:44px; }
-		/* Optional decorative blob */
-		.visual-blob{ position:absolute; inset:20px; border-radius:40px; background: radial-gradient(500px 260px at 35% 40%, rgba(14,116,144,.08), rgba(14,116,144,.02)); pointer-events:none; }
-
-		/* Right dark form */
-		.login-form{ padding: 0; color:#e7f5ef; display:grid; align-content:center; }
-		.login-title{ margin:0 0 10px; font-size: clamp(28px, 5vw, 48px); font-weight:800; }
-		.login-sub{ margin:0 0 22px; color: rgba(231,245,239,.88); font-weight:700; }
-		.field{ display:grid; gap:6px; margin:10px 0; }
-		/* Password toggle styles */
-		.input-with-toggle{ position:relative; }
-		.input-with-toggle .control{ position:relative; }
-		.input-with-toggle .pill{ padding-right:88px; }
-		.toggle-visibility{ position:absolute; top:50%; right:12px; transform:translateY(-50%); height:34px; width:48px; border-radius:999px; border:0; background:transparent; color:#9de0d5; font-weight:800; cursor:pointer; display:grid; place-items:center; }
-		.toggle-visibility svg{ width:18px; height:18px; color:#9de0d5; }
-		.toggle-visibility .eye-closed{ display:none; }
-		.toggle-visibility[aria-pressed="true"] .eye-open{ display:none; }
-		.toggle-visibility[aria-pressed="true"] .eye-closed{ display:block; }
-		/* a11y: hide text but keep for screen readers */
-		.sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
-		.toggle-visibility:hover{ filter:brightness(1.05); }
-		.label{ font-weight:800; opacity:.95; }
-		/* Increase selector specificity so it overrides global .field input styles from styles.css */
-		.pill{ width:100%; height:48px; border-radius:999px; border:1.5px solid rgba(255,255,255,.28); background: rgba(0,0,0,.28); color:#fff; font: inherit; padding:0 16px; }
-		.field .pill{ border:1.5px solid rgba(255,255,255,.28); border-radius:999px; }
-		.pill::placeholder{ color: rgba(255,255,255,.65); }
-		.row{ display:flex; align-items:center; justify-content:flex-end; }
-		.link{ color:#9de0d5; text-decoration:none; font-weight:700; }
-		.cta{ margin-top:10px; height:52px; border-radius:999px; border:0; background:#7cd4c4; color:#0b2c24; font-weight:900; cursor:pointer; box-shadow:none; width:100%; }
-		.cta:hover{ filter:brightness(1.03); }
-		.meta{ color: rgba(231,245,239,.9); }
-		.error{ background: rgba(239,68,68,.12); color: #fecaca; border:1px solid rgba(239,68,68,.35); padding:10px 12px; border-radius:10px; text-align:center; font-weight:700; }
-		.tight{ max-width:460px; }
-		/* Push everything below the logo down without changing the logo position */
-		/* Nudge higher per request by reducing viewport-based offset */
-		.login-content{ margin-top: clamp(16px, 12vh, 120px); }
-	</style>
-</head>
-<body class="login-bg page-fade">
-	<div class="login-panel">
-
-		<!-- Right form area -->
-		<div class="login-form">
-			<div class="tight">
-				<div class="brand-top"><img src="../assets/images/newlogo.png" alt="Servisyo Hub" /></div>
-				<div class="login-content">
-					<h1 class="login-title">Login</h1>
-					<p class="login-sub">Enter your credentials to continue.</p>
-
-					<?php if (!empty($error)): ?>
-					<div class="error"><?php echo htmlspecialchars($error); ?></div>
-					<?php endif; ?>
-
-					<form action="" method="POST" novalidate>
-						<div class="field">
-							<label class="label" for="mobile">Mobile number</label>
-							<input type="tel" id="mobile" name="mobile" class="pill" value="<?php echo htmlspecialchars($mobile); ?>" placeholder="Enter your mobile number" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
-						</div>
-
-						<div class="field input-with-toggle">
-							<label class="label" for="password">Password</label>
-							<div class="control">
-								<input type="password" id="password" name="password" class="pill" placeholder="Enter your password" required />
-								<button type="button" id="togglePassword" class="toggle-visibility" aria-label="Show password" aria-controls="password" aria-pressed="false">
-									<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
-										<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
-									</svg>
-									<svg class="eye-closed" viewBox="0 0 24 24" aria-hidden="true">
-										<path fill="currentColor" fill-opacity=".2" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7z"/>
-										<path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-									</svg>
-									<span class="sr-only">Show password</span>
-								</button>
-							</div>
-						</div>
-
-						<div class="row" style="margin: 6px 0 10px;">
-							<a class="link" href="./login-password.php">Forgot Password?</a>
-						</div>
-
-						<button type="submit" class="cta">Login</button>
-
-						<p class="meta" style="margin-top:14px;">Don’t have an account? <a class="link" href="./signup.php">Register Now</a></p>
-						<p class="meta" style="margin-top:4px;"><a class="link" href="./terms-and-conditions.php">Terms and Services</a></p>
-					</form>
-				</div>
-			</div>
-		</div>
-	</div>
-	<script>
-	// Page fade-in when coming from landing (session-based); otherwise show immediately
-	(function(){
-		function ready(cb){ if(document.readyState !== 'loading'){ cb(); } else { document.addEventListener('DOMContentLoaded', cb); } }
-		ready(function(){
-			var shouldFade = false;
-			try { shouldFade = sessionStorage.getItem('fromSplash') === '1'; } catch(e) { shouldFade = false; }
-			if(shouldFade){
-				// Play fade-in once, then clear flag
-				document.body.offsetHeight; // force reflow for consistent transition start
-				document.body.classList.add('is-ready');
-				try { sessionStorage.removeItem('fromSplash'); } catch(e){}
-			}else{
-				// Avoid dim appearance when directly landing on login
-				document.body.classList.add('is-ready');
-			}
-		});
-	})();
-	(function(){
-		var btn = document.getElementById('togglePassword');
-		if(!btn) return;
-		btn.addEventListener('click', function(){
-			var input = document.getElementById('password');
-			if(!input) return;
-			var isHidden = input.getAttribute('type') === 'password';
-			input.setAttribute('type', isHidden ? 'text' : 'password');
-			btn.setAttribute('aria-pressed', String(isHidden));
-			btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-			var sr = btn.querySelector('.sr-only');
-			if(sr) sr.textContent = isHidden ? 'Hide password' : 'Show password';
-		});
-	})();
-	</script>
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
 </body>
 </html>
