@@ -267,6 +267,18 @@ ob_end_flush();
 		}
 		/* Remove the active left strip line */
 		.dash-float-nav a.active::after { display: none !important; }
+
+		/* Unbold all texts sitewide, except nav bars */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+		.dash-aside .dash-nav a,
+		.dash-aside .dash-nav a span,
+		.dash-float-nav a,
+		.dash-float-nav a .dash-text { font-weight: var(--fw-bold) !important; }
+
+		/* Re-bold specific titles (e.g., "Household Cleaning (2-Bedroom)") */
+		.svc-title,
+		.fc-title { font-weight: var(--fw-bold) !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">

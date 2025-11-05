@@ -634,6 +634,26 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 
 		/* Ensure uploaded avatar images fill the circle nicely */
 		.prof-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+
+		/* Unbold all texts sitewide, except nav bars (keep this at the end) */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+		/* Keep navigation labels bold (left aside, right floating, bottom nav) */
+		.dash-aside .dash-nav a,
+		.dash-aside .dash-nav a span,
+		.dash-float-nav a,
+		.dash-float-nav a .dash-text,
+		.dash-bottom-nav a,
+		.dash-bottom-nav a span { font-weight: var(--fw-bold) !important; }
+
+		/* Re-bold page titles and the displayed user name */
+		:root { --fw-bold: 800; }
+		h1, h2, h3, h4, h5, h6 { font-weight: var(--fw-bold) !important; }
+		.prof-name,
+		.page-title,
+		.card > h4,
+		.section-title { font-weight: var(--fw-bold) !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">
