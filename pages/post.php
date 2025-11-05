@@ -15,15 +15,22 @@ $lastConnError = '';
 
 if (file_exists($configPath)) { require_once $configPath; }
 $attempts = [];
+// Prioritize the 'login' database where your jobs table exists
 if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
-$attempts[] = ['localhost', 'root', '', 'servisyohub'];
+$attempts[] = ['localhost', 'root', '', 'login']; // Your existing database
+$attempts[] = ['localhost', 'root', '', 'servisyohub']; // Fallback
 
 foreach ($attempts as $creds) {
 	list($h,$u,$p,$n) = $creds;
 	mysqli_report(MYSQLI_REPORT_OFF);
 	try {
 		$conn = @mysqli_connect($h,$u,$p,$n);
-		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
+		if ($conn && !mysqli_connect_errno()) { 
+			$mysqli = $conn; 
+			$dbAvailable = true; 
+			error_log("Connected to database: $n");
+			break; 
+		}
 		else { $lastConnError = mysqli_connect_error() ?: 'Connection failed'; if ($conn) { @mysqli_close($conn); } }
 	} catch (Throwable $ex) {
 		$lastConnError = $ex->getMessage();
@@ -32,72 +39,140 @@ foreach ($attempts as $creds) {
 	}
 }
 
-// Ensure jobs table exists
-if ($dbAvailable) {
-	@mysqli_query($mysqli, "
-		CREATE TABLE IF NOT EXISTS jobs (
-			id INT AUTO_INCREMENT PRIMARY KEY,
-			user_id INT NULL,
-			title VARCHAR(150) NOT NULL,
-			category VARCHAR(100) NOT NULL,
-			description TEXT NOT NULL,
-			location VARCHAR(200) NOT NULL,
-			budget DECIMAL(10,2) NULL,
-			date_needed DATE NULL,
-			status VARCHAR(20) NOT NULL DEFAULT 'open',
-			posted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			INDEX idx_jobs_status (status),
-			INDEX idx_jobs_posted_at (posted_at)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-	");
+if (!$dbAvailable) {
+	error_log("Database connection failed: $lastConnError");
 }
 
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
-
 $errors = [];
 $success = '';
 $not_logged_in = empty($_SESSION['user_id']);
 $user_id = $not_logged_in ? null : intval($_SESSION['user_id']);
 
-/* Handle submit: store in jobs table - allow posting even if not logged in */
+// Show success only after redirect (PRG)
+$showPosted = false;
+if (!empty($_SESSION['posted_success_once']) || isset($_GET['posted'])) {
+	$showPosted = true;
+	unset($_SESSION['posted_success_once']);
+	// Clear the GET parameter after showing success
+	if (isset($_GET['posted'])) {
+		// Redirect to clean URL after showing success modal
+		echo "<script>
+			if (window.history.replaceState) {
+				window.history.replaceState(null, null, window.location.pathname);
+			}
+		</script>";
+	}
+}
+
+/* Handle submit: store in jobs table with ALL collected fields */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
-	$category = trim($_POST['category'] ?? 'General');
+	// Step 1: Title
 	$title = trim($_POST['title'] ?? '');
+	$category = trim($_POST['category'] ?? 'General');
+	
+	// Step 2: Description & Requirements
 	$description = trim($_POST['description'] ?? '');
+	$helpers_needed = intval($_POST['helpers_needed'] ?? 1);
+	$requirements = trim($_POST['requirements'] ?? '');
+	$make_mandatory = isset($_POST['make_mandatory']) ? 1 : 0;
+	
+	// Screening questions (up to 5)
+	$screening_questions = [];
+	for ($i = 1; $i <= 5; $i++) {
+		$q = trim($_POST["question{$i}"] ?? '');
+		$screening_questions[] = $q;
+	}
+	
+	// Step 3: Location & Date
 	$location = trim($_POST['location'] ?? '');
-	$budget = trim($_POST['budget'] ?? '');
+	$starting_location = trim($_POST['starting_location'] ?? '');
+	$ending_location = trim($_POST['ending_location'] ?? '');
 	$date_needed = trim($_POST['date_needed'] ?? '');
+	$urgency = trim($_POST['urgency'] ?? 'flexible');
+	$time_preference = trim($_POST['time_preference'] ?? 'no-preference');
+	$specific_time = trim($_POST['specific_time'] ?? '');
+	$time_range_start = trim($_POST['time_range_start'] ?? '');
+	$time_range_end = trim($_POST['time_range_end'] ?? '');
+	
+	// Step 4: Budget & Payment
+	$payment_type = trim($_POST['payment_type'] ?? 'one-time');
+	$estimated_hours = floatval($_POST['estimated_hours'] ?? 0);
+	$budget = floatval($_POST['budget'] ?? 0);
+	$additional_cost = floatval($_POST['additional_cost'] ?? 0);
+	
+	// Calculate fees
+	$booking_fee = round($budget * 0.1107, 2);
+	$total_amount = round($budget + $booking_fee + $additional_cost, 2);
 
-	error_log("Attempting to insert: title=$title, desc=$description, loc=$location");
+	error_log("=== FORM SUBMISSION ===");
+	error_log("Title: $title");
+	error_log("Helpers: $helpers_needed");
+	error_log("Location: $location");
+	error_log("Budget: $budget, Booking: $booking_fee, Total: $total_amount");
+	error_log("Estimated hours: $estimated_hours");
+	error_log("Payment type: $payment_type");
 
+	// Validation
 	if ($title === '') $errors[] = 'Title is required.';
 	if ($description === '') $errors[] = 'Description is required.';
-	if ($location === '') $errors[] = 'Location is required.';
+	if ($location === '' && $starting_location !== 'Philippines') $errors[] = 'Location is required.';
+	if ($date_needed === '') $errors[] = 'Date is required.';
+	if ($budget <= 0) $errors[] = 'Budget is required.';
+	if ($estimated_hours <= 0) $errors[] = 'Estimated hours is required.';
 
 	if (empty($errors)) {
-		$sql = "INSERT INTO jobs (user_id, title, category, description, location, budget, date_needed, status, posted_at)
-		        VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW())";
+		$sql = "INSERT INTO jobs (
+			user_id, title, category, description, location, budget, date_needed, status, posted_at,
+			helpers_needed, starting_location, ending_location,
+			urgency, time_preference, specific_time, time_range_start, time_range_end,
+			payment_type, estimated_hours, additional_cost,
+			requirements, make_mandatory
+		) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
 		if ($stmt = mysqli_prepare($mysqli, $sql)) {
-			$budgetVal = ($budget === '' ? null : floatval($budget));
-			$dateVal = ($date_needed === '' ? null : $date_needed);
-			
-			mysqli_stmt_bind_param($stmt, 'issssds', $user_id, $title, $category, $description, $location, $budgetVal, $dateVal);
-			
+			mysqli_stmt_bind_param(
+				$stmt,
+				'issssdsisssssssddssi',  // FIXED: Removed one 's' (was 22, now 21)
+				$user_id,                    // i
+				$title,                      // s
+				$category,                   // s
+				$description,                // s
+				$location,                   // s
+				$budget,                     // d
+				$date_needed,                // s
+				$helpers_needed,             // i
+				$starting_location,          // s
+				$ending_location,            // s
+				$urgency,                    // s
+				$time_preference,            // s
+				$specific_time,              // s
+				$time_range_start,           // s
+				$time_range_end,             // s
+				$payment_type,               // s
+				$estimated_hours,            // d
+				$additional_cost,            // d
+				$requirements,               // s
+				$make_mandatory              // i
+			);
+
 			if (mysqli_stmt_execute($stmt)) {
-				$success = 'Your service request has been posted successfully!';
-				error_log("INSERT SUCCESS! ID: " . mysqli_insert_id($mysqli));
-				$_POST = [];
+				$job_id = mysqli_insert_id($mysqli);
+				error_log("✓ SUCCESS: Job #{$job_id} inserted with all fields");
+				$_SESSION['posted_success_once'] = 1;
+				header('Location: ' . $_SERVER['PHP_SELF'] . '?posted=1');
+				exit;
 			} else {
 				$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
-				error_log("INSERT FAILED: " . mysqli_stmt_error($stmt));
+				error_log("✗ INSERT FAILED: " . mysqli_stmt_error($stmt));
 			}
 			mysqli_stmt_close($stmt);
 		} else {
 			$errors[] = 'Database error: ' . mysqli_error($mysqli);
-			error_log("PREPARE FAILED: " . mysqli_error($mysqli));
+			error_log("✗ PREPARE FAILED: " . mysqli_error($mysqli));
 		}
 	} else {
-		error_log("Validation errors: " . print_r($errors, true));
+		error_log("✗ Validation errors: " . implode(', ', $errors));
 	}
 }
 
@@ -128,6 +203,30 @@ if (empty($recentSearches)) {
 		'Help me with moving',
 		'Helper for an event'
 	];
+}
+
+// TEMPORARY DEBUG: Check database connection and table
+if ($dbAvailable) {
+	error_log("✓ Database connected successfully");
+	
+	// Verify jobs table exists
+	$checkTable = mysqli_query($mysqli, "SHOW TABLES LIKE 'jobs'");
+	if ($checkTable && mysqli_num_rows($checkTable) > 0) {
+		error_log("✓ Jobs table exists");
+		
+		// Show table structure
+		$structure = mysqli_query($mysqli, "DESCRIBE jobs");
+		if ($structure) {
+			error_log("✓ Jobs table structure:");
+			while ($row = mysqli_fetch_assoc($structure)) {
+				error_log("  - " . $row['Field'] . " (" . $row['Type'] . ")");
+			}
+		}
+	} else {
+		error_log("✗ Jobs table NOT found");
+	}
+} else {
+	error_log("✗ Database connection FAILED: $lastConnError");
 }
 ?>
 <!DOCTYPE html>
@@ -684,7 +783,7 @@ body {
 	color: #64748b;
 	font-size: 0.95rem;
 	font-weight: 600;
-	cursor: pointer;
+cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -1102,7 +1201,6 @@ body {
 	align-items: flex-end;
 	justify-content: center;
 }
-.info-overlay.active { display: flex; }
 .info-modal {
 	background: #fff;
 	border-radius: 24px 24px 0 0;
@@ -1360,41 +1458,64 @@ body {
 	background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
 	box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 }
-.dash-float-nav .dash-icon { width:18px; height:18px; justify-self:center; object-fit:contain; transition: transform .2s ease; }
-.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
-.dash-float-nav a .dash-text {
-	opacity:0; transform:translateX(-10px);
-	transition: opacity .3s cubic-bezier(0.4,0,0.2,1) .1s, transform .3s cubic-bezier(0.4,0,0.2,1) .1s;
-	font-weight:800; font-size:.85rem; color:inherit; justify-self:start; padding-left:8px;
-}
-.dash-float-nav:hover a .dash-text { opacity:1; transform:translateX(0); }
 
-/* Remove top bar on this page */
-.top-bar { display: none !important; }
-
-/* Hide bottom nav on this page */
-.dash-bottom-nav { display: none !important; }
-
-/* Sidebar nav: match settings.php colors and remove border/inset line */
-.dash-float-nav {
-	background: #2596be !important;
-	border: none !important;
-	box-shadow: 0 8px 24px rgba(0,0,0,.24) !important; /* remove inset line */
+/* Step 7: Posted confirmation styles */
+.posted-center {
+	text-align: center;
+	padding: 40px 20px;
 }
-.dash-float-nav a { color: #fff !important; }
-.dash-float-nav a:hover:not(.active) {
-	background: rgba(255,255,255,.15) !important;
-	color: #fff !important;
+.posted-illustration {
+	font-size: 5rem;
+	margin: 20px 0;
+	animation: bounce 0.6s ease;
 }
-.dash-float-nav a.active {
-	background: rgba(255,255,255,.22) !important;
-	color: #fff !important;
-	box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
+@keyframes bounce {
+	0%, 100% { transform: translateY(0); }
+	50% { transform: translateY(-20px); }
 }
-.dash-float-nav a.active::after {
-			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
-			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
+.posted-subhead {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 30px 0 20px 0;
+}
+.next-steps {
+	list-style: none;
+	padding: 0;
+	margin: 0 auto 30px;
+	max-width: 400px;
+	text-align: left;
+}
+.next-steps li {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+	margin-bottom: 20px;
+	font-size: 0.95rem;
+	line-height: 1.6;
+	color: #475569;
+}
+.step-badge {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	background: #0f172a;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	flex-shrink: 0;
+}
+.pro-tip {
+	background: #fef3c7;
+	padding: 20px;
+	border-radius: 12px;
+	color: #92400e;
+	font-size: 0.95rem;
+	line-height: 1.6;
+	margin: 30px 0;
 }
 </style>
 </head>
@@ -1433,7 +1554,7 @@ body {
 	<section class="jobs-search-simple" aria-label="Quick search">
 		<div class="jobs-box">
 			<div class="jobs-row">
-				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21-4.3-4.3"/></svg>
 				<div class="jobs-input-wrap">
 					<input class="jobs-input" type="search" id="searchInput" placeholder="" aria-label="Search for a Job" autocomplete="off" />
 				</div>
@@ -1648,6 +1769,7 @@ body {
 								<span class="counter-value" id="helperCount">1</span>
 								<button type="button" class="counter-btn" id="increaseHelper">+</button>
 							</div>
+							<input type="hidden" name="helpers_needed" id="helpersNeededInput" value="1" />
 						</div>
 						
 						<button type="button" class="modal-button next-button" id="nextSubStep2_1">Next</button>
@@ -1801,9 +1923,18 @@ body {
 						
 						<!-- Date Section -->
 						<div style="margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e7eb;">
-							<label class="form-label">Date</label>
-							
+														<label class="form-label">Date</label>
 							<button type="button" class="date-option-btn active" id="todayBtn" data-date="today">
+								<span>Today, <?php echo date('j M'); ?></span>
+							</button>
+							
+							<button type="button" class="date-option-btn" id="specificDateBtn" data-date="specific">
+								<span>On a specific date</span>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
+						<div style="margin-top: 24px; padding-bottom: 24px; border-bottom: 1px solid #e5e7eb;">
+														<label class="form-label">Date</label>
+							<button type="button" class="date-option-btn active" id="todayBtn" data-date="today">
+>
 								<span>Today, <?php echo date('j M'); ?></span>
 							</button>
 							
@@ -1820,7 +1951,7 @@ body {
 							<button type="button" class="date-option-btn" id="beforeDateBtn" data-date="before">
 								<span>Before a specific date</span>
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
-									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+																									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
 									<line x1="16" y1="2" x2="16" y2="6"/>
 									<line x1="8" y1="2" x2="8" y2="6"/>
 									<line x1="3" y1="10" x2="21" y2="10"/>
@@ -1831,9 +1962,9 @@ body {
 								<span>Select a date range</span>
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
 									<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-									<line x1="16" y1="2" x2="16" y2="6"/>
-									<line x1="8" y1="2" x2="8" y2="6"/>
-									<line x1="3" y1="10" x2="21" y2="10"/>
+									<line x="16" y1="2" x2="16" y2="6"/>
+									<line x="8" y1="2" x2="8" y2="6"/>
+									<line x="3" y1="10" x2="21" y2="10"/>
 								</svg>
 							</button>
 							
@@ -1855,6 +1986,7 @@ body {
 							</button>
 							
 							<button type="button" class="date-option-btn active" id="flexibleBtn" data-urgency="flexible">
+
 								<span>No, I'm flexible</span>
 							</button>
 							
@@ -1888,7 +2020,7 @@ body {
 									placeholder="Select a specific time"
 									id="specificTimeInput"
 									readonly
-									style="background: #f1f5f9; color: #0f172a; cursor: pointer;"
+									style="background: #f1f9; color: #0f172a; cursor: pointer;"
 								/>
 							</div>
 							
@@ -1923,7 +2055,7 @@ body {
 
 				<!-- Step 4: Budget -->
 				<div class="modal-step" data-step="4">
-					<p class="step-title" id="step4Title">Step 1 of 4</p>
+					<p class="step-title" id="step4Title">Step 1 of 3</p>
 					<h2 class="step-heading" id="step4Heading">Generate guest budget</h2>
 					
 					<!-- Sub-step 1: Payment Type & Estimated Hours -->
@@ -1992,8 +2124,8 @@ body {
 					<!-- Sub-step 2: Set a budget -->
 					<div class="sub-step" id="subStep4_2" style="display: none;">
 
-						<label class="form-label">Kasangga’s fee</label>
-						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">This is the amount you’ll pay for the Kasangga’s time and gawain.</p>
+						<label class="form-label">Kasangga's fee</label>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">This is the amount you'll pay for the Kasangga's time and gawain.</p>
 
 						<div style="position: relative; margin-bottom: 16px;">
 							<span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-weight: 700;">PHP</span>
@@ -2001,7 +2133,6 @@ body {
 								type="number" 
 								name="budget" 
 								class="form-input" 
-							 
 								placeholder="1134"
 								id="budgetHeroFeeInput"
 								min="80"
@@ -2115,7 +2246,7 @@ body {
 								<span>Kasangga's fee</span>
 								<span>PHP<span id="breakdownHeroFee_ac">0.00</span></span>
 							</div>
-							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+							<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
 								<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
 									<button type="button" id="bookingFeeInfoBtn_ac" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
 										<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
@@ -2134,178 +2265,134 @@ body {
 
 						<div class="button-group">
 							<button type="button" class="modal-button back-button" id="backStep4Sub3">Back</button>
-							<button type="button" class="modal-button next-button" id="nextStep4_3">Next</button>
+							<button type="button" class="modal-button next-button" id="nextStep4">Next</button>
 						</div>
 					</div>
+				</div>
 
-						<!-- Sub-step 4: Review budget -->
-						<div class="sub-step" id="subStep4_4" style="display: none;">
-							<p class="step-subtitle">Please review your budget details before posting.</p>
+				<!-- Step 5: Summary -->
+				<div class="modal-step" data-step="5">
+					<div class="summary-container">
+						<h2 class="step-heading" id="step5Heading">Summary</h2>
 
-							<!-- Totals (review) -->
-							<div style="margin: 20px 0 8px 0; display: flex; justify-content: space-between; align-items: baseline;">
-								<span style="color: #0f172a; font-weight: 700;">Total you'll pay:</span>
-								<span style="color: #0f172a; font-weight: 800; font-size: 1.2rem;">PHP<span id="totalPayText_rv">0.00</span></span>
+						<!-- Title and total -->
+						<h3 id="summaryTitleText" style="margin: 0 0 8px 0; color:#0f172a; font-size:1.3rem; font-weight:800;"></h3>
+						<p id="summaryTotalText" style="margin: 0 0 24px 0; color:#0f172a; font-weight:800;"></p>
+
+						<!-- Key details -->
+						<div style="display:grid; gap:16px; margin-bottom:20px;">
+							<div>
+								<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Location</p>
+								<p id="summaryLocationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
 							</div>
-							<p id="approxHourlyText_rv" style="margin: 0 0 12px 0; color: #64748b; font-size: 0.9rem; text-align: right;">(approx. PHP0.00/hr)</p>
-
-							<button type="button" id="priceBreakdownToggle_rv" class="generate-button" aria-expanded="true" aria-controls="priceBreakdownContent_rv" style="display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 8px 0;">
-								<span>Price breakdown</span>
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 15 12 9 18 15"/></svg>
-							</button>
-							<div id="priceBreakdownContent_rv" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px; margin-bottom: 80px;">
-								<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-									<span>Kasangga's fee</span>
-									<span>PHP<span id="breakdownHeroFee_rv">0.00</span></span>
-								</div>
-								<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
-									<span style="display: inline-flex; align-items: center; gap: 8px;">Estimated booking fee 
-										<button type="button" id="bookingFeeInfoBtn_rv" aria-label="Booking fee details" style="background: none; border: none; cursor: pointer; padding: 0; color: #94a3b8;">
-											<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="1"/></svg>
-										</button>
-									</span>
-									<span>PHP<span id="breakdownBookingFee_rv">0.00</span></span>
-								</div>
-								<div style="display: flex; justify-content: space-between;">
-									<span>Cost of purchases</span>
-									<span>PHP<span id="breakdownAdditionalCost_rv">0.00</span></span>
-								</div>
+							<div>
+								<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Completion Date</p>
+								<p id="summaryCompletionText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
 							</div>
-
-							<div class="button-group">
-								<button type="button" class="modal-button back-button" id="backStep4Sub4">Back</button>
-								<button type="button" class="modal-button next-button" id="postRequestBtn">Next</button>
+							<div>
+								<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Duration</p>
+								<p id="summaryDurationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
 							</div>
 						</div>
 
-					<!-- Step 5: Summary -->
-					<div class="modal-step" data-step="5">
-						<div class="summary-container">
-							<h2 class="step-heading" id="step5Heading">Summary</h2>
+						<!-- Description -->
+						<div style="margin-bottom:20px;">
+							<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Description</p>
+							<p id="summaryDescriptionText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
+						</div>
 
-							<!-- Title and total -->
-							<h3 id="summaryTitleText" style="margin: 0 0 8px 0; color:#0f172a; font-size:1.3rem; font-weight:800;"></h3>
-							<p id="summaryTotalText" style="margin: 0 0 24px 0; color:#0f172a; font-weight:800;"></p>
+						<!-- Skills/Requirements (optional) -->
+						<div id="summaryRequirementsBlock" style="margin-bottom:20px; display:none;">
+							<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Skills and Experience Required</p>
+							<p id="summaryRequirementsText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
+						</div>
 
-							<!-- Key details -->
-							<div style="display:grid; gap:16px; margin-bottom:20px;">
-								<div>
-									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Location</p>
-									<p id="summaryLocationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
-								</div>
-								<div>
-									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Completion Date</p>
-									<p id="summaryCompletionText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
-								</div>
-								<div>
-									<p style="margin:0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Duration</p>
-									<p id="summaryDurationText" style="margin:4px 0 0 0; color:#0f172a; font-weight:700;"></p>
-								</div>
-							</div>
+						<!-- Kasangga required -->
+						<div style="margin-bottom:20px;">
+							<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Kasangga Required</p>
+							<p id="summaryHeroesText" style="margin:0; color:#0f172a; font-weight:700;"></p>
+						</div>
 
-							<!-- Description -->
-							<div style="margin-bottom:20px;">
-								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Description</p>
-								<p id="summaryDescriptionText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
-							</div>
+						<!-- Screening Questions -->
+						<div id="summaryQuestionsBlock" style="margin-bottom:20px; display:none;">
+							<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Screening Questions</p>
+							<ol id="summaryQuestionsList" style="margin:0; padding-left:18px; color:#0f172a; line-height:1.6;"></ol>
+						</div>
 
-							<!-- Skills/Requirements (optional) -->
-							<div id="summaryRequirementsBlock" style="margin-bottom:20px; display:none;">
-								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Skills and Experience Required</p>
-								<p id="summaryRequirementsText" style="margin:0; color:#0f172a; line-height:1.6;"></p>
-							</div>
-
-							<!-- Kasangga required -->
-							<div style="margin-bottom:20px;">
-								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Kasangga Required</p>
-								<p id="summaryHeroesText" style="margin:0; color:#0f172a; font-weight:700;"></p>
-							</div>
-
-							<!-- Screening Questions -->
-							<div id="summaryQuestionsBlock" style="margin-bottom:20px; display:none;">
-								<p style="margin:0 0 6px 0; color:#94a3b8; font-weight:600; font-size:0.9rem;">Screening Questions</p>
-								<ol id="summaryQuestionsList" style="margin:0; padding-left:18px; color:#0f172a; line-height:1.6;"></ol>
-							</div>
-
-							<div class="button-group">
-								<button type="button" class="modal-button back-button" id="summaryEditBtn">Go back and edit</button>
-								<button type="submit" class="modal-button next-button" id="finalPostBtn" style="background:#f87171;">Post request</button>
-							</div>
+						<div class="button-group">
+							<button type="button" class="modal-button back-button" id="summaryEditBtn">Go back and edit</button>
+							<button type="submit" class="modal-button next-button" id="finalPostBtn" style="background:#f87171;">Post request</button>
 						</div>
 					</div>
+				</div>
 
-					<!-- Step 6: Code of Conduct -->
-					<div class="modal-step" data-step="6">
-						<div class="summary-container">
-							<h2 class="step-heading">Code of Conduct</h2>
-							<p class="guidance-text" style="margin-bottom: 12px;">Before you post this quest,</p>
-							<p class="step-subtitle" style="margin-top: 0;">You agree to:</p>
-							<ul class="guidance-list" style="margin-bottom: 16px;">
-								<li>Price quest fairly</li>
-								<li>Remain contactable and keep communications within the Quest app</li>
-								<li>Pay the Kasangga when the quest is completed</li>
-							</ul>
+				<!-- Step 6: Code of Conduct -->
+				<div class="modal-step" data-step="6">
+					<div class="summary-container">
+						<h2 class="step-heading">Code of Conduct</h2>
+						<p class="guidance-text" style="margin-bottom: 12px;">Before you post this quest,</p>
+						<p class="step-subtitle" style="margin-top: 0;">You agree to:</p>
+						<ul class="guidance-list" style="margin-bottom: 16px;">
+							<li>Price quest fairly</li>
+							<li>Remain contactable and keep communications within the Quest app</li>
+							<li>Pay the Kasangga when the quest is completed</li>
+						</ul>
 
-							<p class="step-subtitle">You confirm that this quest is not:</p>
-							<ul class="guidance-list" style="margin-bottom: 20px;">
-								<li>Advertising</li>
-								<li>Contain inaccurate/false information</li>
-								<li>Illegal and inappropriate acts</li>
-								<li>Financial loans</li>
-								<li>Sale of items</li>
-								<li>Listing of gawain</li>
-								<li>Academic deceit</li>
-								<li>Referral posts</li>
-							</ul>
+						<p class="step-subtitle">You confirm that this quest is not:</p>
+						<ul class="guidance-list" style="margin-bottom: 20px;">
+							<li>Advertising</li>
+							<li>Contain inaccurate/false information</li>
+							<li>Illegal and inappropriate acts</li>
+							<li>Financial loans</li>
+							<li>Sale of items</li>
+							<li>Listing of gawain</li>
+							<li>Academic deceit</li>
+							<li>Referral posts</li>
+						</ul>
 
-							<p class="guidance-text" style="font-weight:700; color:#0f172a;">Quests violating the above will be deleted, and your account may be banned. No refunds for paid features if guidelines are violated.</p>
+						<p class="guidance-text" style="font-weight:700; color:#0f172a;">Quests violating the above will be deleted, and your account may be banned. No refunds for paid features if guidelines are violated.</p>
 
-							<label class="checkbox-label" style="margin-top: 20px;">
-								<input type="checkbox" id="agreeCoc" class="checkbox-input" />
-								<span class="checkbox-text">I have read and agree to this code of conduct and Quest's <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">Terms of service</a>.</span>
-							</label>
+						<label class="checkbox-label" style="margin-top: 20px;">
+							<input type="checkbox" id="agreeCoc" class="checkbox-input" />
+							<span class="checkbox-text">I have read and agree to this code of conduct and Quest's <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">Terms of service</a>.</span>
+						</label>
 
-							<label class="checkbox-label" style="margin-top: 0;">
-								<input type="checkbox" id="agreeCancellation" class="checkbox-input" />
-								<span class="checkbox-text">I agree to being charged a <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">cancellation fee</a> if I cause the quest to be cancelled after confirming an offer.</span>
-							</label>
+						<label class="checkbox-label" style="margin-top: 0;">
+							<input type="checkbox" id="agreeCancellation" class="checkbox-input" />
+							<span class="checkbox-text">I agree to being charged a <a href="#" style="color:#0f172a; font-weight:700; text-decoration: underline;">cancellation fee</a> if I cause the quest to be cancelled after confirming an offer.</span>
+						</label>
 
-							<div class="button-group">
-								<button type="button" class="modal-button next-button" id="agreeTermsBtn" disabled>I agree to the terms</button>
-							</div>
-
-							<p style="text-align:center; margin-top: 18px;">
-								<button type="button" class="link-button" id="editQuestLink">Edit my quest</button>
-							</p>
+						<div class="button-group">
+							<button type="button" class="modal-button next-button" id="agreeTermsBtn" disabled>I agree to the terms</button>
 						</div>
 					</div>
+				</div>
 
-					<!-- Step 7: Posted confirmation -->
-					<div class="modal-step" data-step="7">
-						<div class="summary-container posted-center">
-							<h2 class="step-heading" style="text-align:center;">Quest posted!</h2>
-							<div class="posted-illustration">🎉</div>
-							<p class="posted-subhead">Here's what's next:</p>
-							<ul class="next-steps">
-								<li>
-									<span class="step-badge">1</span>
-									<span>Kasangga will make offers to your quest</span>
-								</li>
-								<li>
-									<span class="step-badge">2</span>
-									<span>Compare and accept offers from <strong>My quests</strong></span>
-								</li>
-								<li>
-									<span class="step-badge">3</span>
-									<span>Release the securely held payment to your Kasangga after quest completion & review them</span>
-								</li>
-							</ul>
+				<!-- Step 7: Posted confirmation -->
+				<div class="modal-step" data-step="7">
+					<div class="summary-container posted-center">
+						<h2 class="step-heading" style="text-align:center;">Quest posted!</h2>
+						<div class="posted-illustration">🎉</div>
+						<p class="posted-subhead">Here's what's next:</p>
+						<ul class="next-steps">
+							<li>
+								<span class="step-badge">1</span>
+								<span>Kasangga will make offers to your quest</span>
+							</li>
+							<li>
+								<span class="step-badge">2</span>
+								<span>Compare and accept offers from <strong>My quests</strong></span>
+							</li>
+							<li>
+								<span class="step-badge">3</span>
+								<span>Release the securely held payment to your Kasangga after quest completion & review them</span>
+							</li>
+						</ul>
 
-							<p class="pro-tip">✨ <strong>Pro tip</strong> ✨<br/>Upload a profile picture to stand out! 🪄</p>
+						<p class="pro-tip">✨ <strong>Pro tip</strong> ✨<br/>Upload a profile picture to stand out! 🪄</p>
 
-							<div class="button-group">
-								<a href="./my-jobs.php" class="modal-button next-button" style="display:block; text-align:center; background:#0f172a; color:#fff;">Go to my quest</a>
-							</div>
+						<div class="button-group">
+							<a href="./my-jobs.php" class="modal-button next-button" style="display:block; text-align:center; background:#0f172a; color:#fff;">Go to my quest</a>
 						</div>
 					</div>
 				</div>
@@ -2479,6 +2566,7 @@ body {
 	(function(){
 		let helperCount = 1;
 		const countDisplay = document.getElementById('helperCount');
+		const helpersInput = document.getElementById('helpersNeededInput');
 		const decreaseBtn = document.getElementById('decreaseHelper');
 		const increaseBtn = document.getElementById('increaseHelper');
 		
@@ -2486,12 +2574,14 @@ body {
 			if (helperCount > 1) {
 				helperCount--;
 				countDisplay.textContent = helperCount;
+				if (helpersInput) helpersInput.value = helperCount;
 			}
 		});
 		
 		increaseBtn.addEventListener('click', function() {
 			helperCount++;
 			countDisplay.textContent = helperCount;
+			if (helpersInput) helpersInput.value = helperCount;
 		});
 	})();
 	
@@ -2575,12 +2665,14 @@ body {
 			currentStep = stepNumber;
 		}
 		
+		// Expose goToStep for external calls
+		window.goToStep = goToStep;
+
 		// Header back button
 		// Enhanced: when in Step 4, go back within sub-steps first
 		let currentSubStep4 = 1; // 1: generate, 2: budget, 3: additional cost
 		modalBack.addEventListener('click', function() {
 			if (currentStep === 7) {
-				// After posting, back goes to My quests
 				window.location.href = './my-jobs.php';
 				return;
 			}
@@ -2593,28 +2685,18 @@ body {
 				goToStep(4);
 				document.getElementById('subStep4_1').style.display = 'none';
 				document.getElementById('subStep4_2').style.display = 'none';
-				document.getElementById('subStep4_3').style.display = 'none';
-				document.getElementById('subStep4_4').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 4 of 4';
-				document.getElementById('step4Heading').textContent = 'Review budget';
-				currentSubStep4 = 4;
+				document.getElementById('subStep4_3').style.display = 'block';
+				document.getElementById('step4Title').textContent = 'Step 3 of 3';
+				document.getElementById('step4Heading').textContent = 'Additional cost';
+				currentSubStep4 = 3;
 				return;
 			}
 			if (currentStep === 4) {
-				if (currentSubStep4 === 4) {
-					// Back to Step 4 - Sub-step 3
-					document.getElementById('subStep4_4').style.display = 'none';
-					document.getElementById('subStep4_3').style.display = 'block';
-					document.getElementById('step4Title').textContent = 'Step 3 of 4';
-					document.getElementById('step4Heading').textContent = 'Additional cost';
-					currentSubStep4 = 3;
-					return;
-				}
 				if (currentSubStep4 === 3) {
 					// Back to Step 4 - Sub-step 2
 					document.getElementById('subStep4_3').style.display = 'none';
 					document.getElementById('subStep4_2').style.display = 'block';
-					document.getElementById('step4Title').textContent = 'Step 2 of 4';
+					document.getElementById('step4Title').textContent = 'Step 2 of 3';
 					document.getElementById('step4Heading').textContent = 'Set a budget';
 					currentSubStep4 = 2;
 					return;
@@ -2623,7 +2705,7 @@ body {
 					// Back to Step 4 - Sub-step 1
 					document.getElementById('subStep4_2').style.display = 'none';
 					document.getElementById('subStep4_1').style.display = 'block';
-					document.getElementById('step4Title').textContent = 'Step 1 of 4';
+					document.getElementById('step4Title').textContent = 'Step 1 of 3';
 					document.getElementById('step4Heading').textContent = 'Generate guest budget';
 					currentSubStep4 = 1;
 					return;
@@ -2707,6 +2789,7 @@ body {
 		// Sub-step 2.4 -> Step 3 (Requirements -> Details)
 		document.getElementById('nextStep2').addEventListener('click', function() {
 			goToStep(3);
+			showSubStep(3, 1); // Show first sub-step of Step 3
 		});
 		
 		// Back from sub-step 2.4 to 2.3
@@ -3022,6 +3105,12 @@ body {
 			urgencyInput.value = 'flexible';
 		});
 		
+		flexibleBtn.addEventListener('click', function() {
+			this.classList.add('active');
+			urgentBtn.classList.remove('active');
+			urgencyInput.value = 'flexible';
+		});
+		
 		// Time preference buttons toggle
 		const noPreferenceBtn = document.getElementById('noPreferenceBtn');
 		const specificTimeBtn = document.getElementById('specificTimeBtn');
@@ -3142,7 +3231,7 @@ body {
 				// Show sub-step 2, update titles
 			document.getElementById('subStep4_1').style.display = 'none';
 			document.getElementById('subStep4_2').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 2 of 4';
+				document.getElementById('step4Title').textContent = 'Step 2 of 3';
 			document.getElementById('step4Heading').textContent = 'Set a budget';
 			currentSubStep4 = 2;
 			// Expand price breakdown by default so it's visible immediately
@@ -3164,7 +3253,7 @@ body {
 			const whyContent = document.getElementById('whyPriceContent');
 			const breakdownToggle = document.getElementById('priceBreakdownToggle');
 			const breakdownContent = document.getElementById('priceBreakdownContent');
-			const insightMessage = document.getElementById('insightMessage');
+					const insightMessage = document.getElementById('insightMessage');
 			const insightBar = document.getElementById('insightBar');
 			const hoursEl = document.getElementById('estimatedHoursInput');
 			const infoOverlay = document.getElementById('bookingFeeInfoOverlay');
@@ -3180,6 +3269,7 @@ body {
 				const hours = Math.max(1, parseFloat(hoursEl.value || '1'));
 				const recommended = parseFloat(recommendedText.textContent || '0') || heroFee;
 				const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
+				// Split booking fee for info sheet
 				const processing = Math.round((booking * 0.65) * 100) / 100;
 				const connection = Math.round((booking - processing) * 100) / 100;
 				const total = Math.round((heroFee + booking) * 100) / 100;
@@ -3204,6 +3294,10 @@ body {
 					insightBar.style.width = '60%';
 					insightBar.style.background = '#10b981';
 				} else {
+					
+				
+
+				
 					insightMessage.textContent = 'Above the recommended range';
 					insightBar.style.width = '85%';
 					insightBar.style.background = '#3b82f6';
@@ -3221,12 +3315,14 @@ body {
 			});
 			infoOpenBtn?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
 			infoCloseX?.addEventListener('click', () => { infoOverlay.classList.remove('active'); });
+		
 			infoGotIt?.addEventListener('click', () => { infoOverlay.classList.remove('active'); });
 			infoOverlay?.addEventListener('click', (e) => { if (e.target === infoOverlay) infoOverlay.classList.remove('active'); });
 			document.getElementById('backStep4Sub2')?.addEventListener('click', () => {
+			
 				document.getElementById('subStep4_2').style.display = 'none';
 				document.getElementById('subStep4_1').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 1 of 4';
+				document.getElementById('step4Title').textContent = 'Step 1 of 3';
 				document.getElementById('step4Heading').textContent = 'Generate guest budget';
 				currentSubStep4 = 1;
 			});
@@ -3269,37 +3365,15 @@ body {
 				breakdownContentAC.style.display = expanded ? 'none' : 'block';
 			});
 			infoOpenBtnAC?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
-			addCostEl?.addEventListener('input', recalcAC);
-
-			// (Review step removed)
-
-			// Summary step actions
-			document.getElementById('summaryEditBtn')?.addEventListener('click', () => {
-				// Return to Step 4 - Additional cost
-				goToStep(4);
-				document.getElementById('subStep4_1').style.display = 'none';
-				document.getElementById('subStep4_2').style.display = 'none';
-				document.getElementById('subStep4_3').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 3 of 3';
-				document.getElementById('step4Heading').textContent = 'Additional cost';
-				currentSubStep4 = 3;
-			});
-
-			// Intercept final submit to show Code of Conduct step
-			document.getElementById('finalPostBtn')?.addEventListener('click', (e) => {
-				e.preventDefault();
-				goToStep(6);
-			});
 
 			// Move from Sub-step 2 to Sub-step 3
 			document.getElementById('submitBudgetBtn')?.addEventListener('click', () => {
 				document.getElementById('subStep4_2').style.display = 'none';
 				document.getElementById('subStep4_3').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Title').textContent = 'Step 3 of 3';
 				document.getElementById('step4Heading').textContent = 'Additional cost';
 				currentSubStep4 = 3;
 				recalcAC();
-				// Auto-expand breakdown on entering Sub-step 3 to match Sub-step 2 behavior
 				const bdAC = document.getElementById('priceBreakdownContent_ac');
 				if (bdAC) bdAC.style.display = 'block';
 				try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
@@ -3309,13 +3383,14 @@ body {
 			document.getElementById('backStep4Sub3')?.addEventListener('click', () => {
 				document.getElementById('subStep4_3').style.display = 'none';
 				document.getElementById('subStep4_2').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 2 of 4';
+				document.getElementById('step4Title').textContent = 'Step 2 of 3';
 				document.getElementById('step4Heading').textContent = 'Set a budget';
 				currentSubStep4 = 2;
 			});
 
-			// From Review -> Summary (populate just before navigating)
-			function populateSummary() {
+			// Sub-step 3 -> Summary (not step 4)
+			document.getElementById('nextStep4')?.addEventListener('click', () => {
+				// Populate summary before navigating
 				const title = (document.getElementById('titleInput')?.value || '').trim();
 				const desc = (document.getElementById('descriptionInput')?.value || '').trim();
 				const req = (document.getElementById('requirementsInput')?.value || '').trim();
@@ -3372,104 +3447,59 @@ body {
 					qBlock.style.display = 'block';
 					questions.forEach(q => { const li = document.createElement('li'); li.textContent = q; qList.appendChild(li); });
 				} else if (qBlock) { qBlock.style.display = 'none'; }
-			}
 
-			// Sub-step 3 -> 4 (Additional cost -> Review)
-			document.getElementById('nextStep4_3')?.addEventListener('click', () => {
-				document.getElementById('subStep4_3').style.display = 'none';
-				document.getElementById('subStep4_4').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 4 of 4';
-				document.getElementById('step4Heading').textContent = 'Review budget';
-				currentSubStep4 = 4;
-				// Calculate review values
-				(function recalcRV(){
-					const BOOKING_FEE_RATE = 0.1107;
-					const MIN_FEE = 80;
-					const heroFee = Math.max(MIN_FEE, parseFloat(document.getElementById('budgetHeroFeeInput')?.value || '0'));
-					const addCost = Math.max(0, parseFloat(document.getElementById('additionalCostInput')?.value || '0'));
-					const hours = Math.max(1, parseFloat(document.getElementById('estimatedHoursInput')?.value || '1'));
-					const booking = Math.round((heroFee * BOOKING_FEE_RATE) * 100) / 100;
-					const total = Math.round((heroFee + booking + addCost) * 100) / 100;
-					const bh = document.getElementById('breakdownHeroFee_rv'); if (bh) bh.textContent = heroFee.toFixed(2);
-					const bb = document.getElementById('breakdownBookingFee_rv'); if (bb) bb.textContent = booking.toFixed(2);
-					const ba = document.getElementById('breakdownAdditionalCost_rv'); if (ba) ba.textContent = addCost.toFixed(2);
-					const tp = document.getElementById('totalPayText_rv'); if (tp) tp.textContent = total.toFixed(2);
-					const ah = document.getElementById('approxHourlyText_rv'); if (ah) ah.textContent = `(approx. PHP${(heroFee / hours).toFixed(2)}/hr)`;
-				})();
-				const bdRV = document.getElementById('priceBreakdownContent_rv');
-				if (bdRV) bdRV.style.display = 'block';
-				try { window.scrollTo({ top: 0, behavior: 'instant' }); } catch (_) { window.scrollTo(0,0); }
+				// Go to Summary (step 5)
+				goToStep(5);
 			});
 
-			// Review actions
-			const breakdownToggleRV = document.getElementById('priceBreakdownToggle_rv');
-			const breakdownContentRV = document.getElementById('priceBreakdownContent_rv');
-			const infoOpenBtnRV = document.getElementById('bookingFeeInfoBtn_rv');
-			const backStep4Sub4 = document.getElementById('backStep4Sub4');
-			const postRequestBtn = document.getElementById('postRequestBtn');
-
-			breakdownToggleRV?.addEventListener('click', () => {
-				const expanded = breakdownToggleRV.getAttribute('aria-expanded') === 'true';
-				breakdownToggleRV.setAttribute('aria-expanded', (!expanded).toString());
-				breakdownContentRV.style.display = expanded ? 'none' : 'block';
-			});
-			infoOpenBtnRV?.addEventListener('click', () => { infoOverlay.classList.add('active'); });
-			backStep4Sub4?.addEventListener('click', () => {
-				document.getElementById('subStep4_4').style.display = 'none';
+			// Summary edit button - go back to Additional cost
+			document.getElementById('summaryEditBtn')?.addEventListener('click', () => {
+				goToStep(4);
+				document.getElementById('subStep4_1').style.display = 'none';
+				document.getElementById('subStep4_2').style.display = 'none';
 				document.getElementById('subStep4_3').style.display = 'block';
-				document.getElementById('step4Title').textContent = 'Step 3 of 4';
+				document.getElementById('step4Title').textContent = 'Step 3 of 3';
 				document.getElementById('step4Heading').textContent = 'Additional cost';
 				currentSubStep4 = 3;
 			});
-			postRequestBtn?.addEventListener('click', () => {
-				populateSummary();
-				goToStep(5);
-			});
-		})();
 
-		// Code of Conduct interactions (Step 6)
-		(function(){
-			const coc = document.getElementById('agreeCoc');
-			const cancelFee = document.getElementById('agreeCancellation');
-			const agreeBtn = document.getElementById('agreeTermsBtn');
-			const editLink = document.getElementById('editQuestLink');
-			const form = document.getElementById('postForm');
-
-			function updateAgreeState(){
-				const ok = !!(coc?.checked && cancelFee?.checked);
-				if (agreeBtn){ agreeBtn.disabled = !ok; }
-			}
-
-			coc?.addEventListener('change', updateAgreeState);
-			cancelFee?.addEventListener('change', updateAgreeState);
-			agreeBtn?.addEventListener('click', function(e){
-				if (this.disabled) return;
+			// Intercept final submit to show Code of Conduct step
+			document.getElementById('finalPostBtn')?.addEventListener('click', (e) => {
 				e.preventDefault();
-				
-				// Log form data before submitting
-				const fd = new FormData(form);
-				console.log('Form data being submitted:');
-				for (let [key, value] of fd.entries()) {
-					console.log(key + ': ' + value);
-				}
-				
-				// Submit the form normally (not AJAX)
-				form.submit();
+				goToStep(6);
 			});
-			editLink?.addEventListener('click', function(){ goToStep(5); });
 		})();
 
 		// Auto-open Posted confirmation if the server insert succeeded
+		<?php if ($showPosted) { ?>
+		(function(){
+			try {
+				const modal = document.getElementById('postModal');
+				if (modal) {
+					modal.classList.add('active');
+					document.body.style.overflow = 'hidden';
+					setTimeout(function(){ 
+						if (window.goToStep) window.goToStep(7); 
+					}, 100);
+				}
+			} catch(_) {}
+		})();
+		<?php } ?>
+
+		// REMOVE old $success-based trigger
+		/* 
 		<?php if (!empty($success)) { ?>
 		(function(){
 			try {
 				document.getElementById('postModal').classList.add('active');
 				document.body.style.overflow = 'hidden';
-				goToStep(7);
+				// goToStep is defined in the multi-step scope; defer to ensure it's available
+				setTimeout(function(){ try { window.goToStep ? goToStep(7) : null; } catch(_) {} }, 0);
 			} catch(_) {}
 		})();
 		<?php } ?>
-		
+		*/
+
 		// Time Picker functionality
 		const timePickerOverlay = document.getElementById('timePickerOverlay');
 		const closeTimePicker = document.getElementById('closeTimePicker');
@@ -3701,9 +3731,10 @@ body {
 		});
 	})();
 	
-	// Typing effect for placeholder with rotating phrases
+	// Typing effect for placeholder with rotating phrases (FIXED)
 	(function(){
-		const searchInput = document.getElementById('searchInput');
+		const input = document.getElementById('searchInput');
+		if (!input) return;
 		const phrases = [
 			'Pick up laundry later at 5pm',
 			'Need help with moving furniture',
@@ -3712,47 +3743,82 @@ body {
 			'Assemble IKEA furniture for me',
 			'Walking my dog every morning'
 		];
-		let phraseIndex = 0;
-		let charIndex = 0;
-		let isDeleting = false;
-		
-		function typeEffect() {
-			const currentPhrase = phrases[phraseIndex];
-			
-			if (!isDeleting) {
-				// Typing forward
-				searchInput.setAttribute('placeholder', currentPhrase.substring(0, charIndex + 1));
-				charIndex++;
-				
-				if (charIndex === currentPhrase.length) {
-					// Pause at end of phrase
-					isDeleting = true;
-					setTimeout(typeEffect, 2000); // Wait 2 seconds before deleting
-					return;
+		let i = 0, j = 0, deleting = false;
+
+		function tick() {
+			const text = phrases[i];
+			if (!deleting) {
+				j++;
+				input.setAttribute('placeholder', text.slice(0, j));
+				if (j === text.length) { 
+					deleting = true; 
+					return setTimeout(tick, 2000); 
 				}
-				setTimeout(typeEffect, 80); // Typing speed
+				return setTimeout(tick, 80);
 			} else {
-				// Deleting backward
-				searchInput.setAttribute('placeholder', currentPhrase.substring(0, charIndex - 1));
-				charIndex--;
-				
-				if (charIndex === 0) {
-					// Move to next phrase
-					isDeleting = false;
-					phraseIndex = (phraseIndex + 1) % phrases.length;
-					setTimeout(typeEffect, 500); // Pause before typing next phrase
-					return;
+				j--;
+				input.setAttribute('placeholder', text.slice(0, j));
+				if (j === 0) { 
+					deleting = false; 
+					i = (i + 1) % phrases.length; 
+					return setTimeout(tick, 500); 
 				}
-				setTimeout(typeEffect, 40); // Deleting speed (faster)
+				return setTimeout(tick, 40);
 			}
 		}
-		
-		// Start typing effect after a brief delay
-		setTimeout(typeEffect, 500);
+		setTimeout(tick, 500);
 	})();
 
+	// Code of Conduct interactions (Step 6)
+	(function(){
+		const coc = document.getElementById('agreeCoc');
+		const cancelFee = document.getElementById('agreeCancellation');
+		const agreeBtn = document.getElementById('agreeTermsBtn');
+		const form = document.getElementById('postForm');
 
+		function updateAgreeState(){
+			const ok = !!(coc?.checked && cancelFee?.checked);
+			if (agreeBtn){ 
+				agreeBtn.disabled = !ok;
+				// Change button appearance when enabled
+				if (ok) {
+					agreeBtn.style.background = '#0f172a';
+					agreeBtn.style.color = '#fff';
+					agreeBtn.style.cursor = 'pointer';
+					agreeBtn.style.opacity = '1';
+				} else {
+					agreeBtn.style.background = '#cbd5e1';
+					agreeBtn.style.color = '#64748b';
+					agreeBtn.style.cursor = 'not-allowed';
+					agreeBtn.style.opacity = '0.6';
+				}
+			}
+		}
+
+		// Initialize state on load
+		updateAgreeState();
+
+		coc?.addEventListener('change', updateAgreeState);
+		cancelFee?.addEventListener('change', updateAgreeState);
+		
+		agreeBtn?.addEventListener('click', function(e){
+			if (this.disabled) {
+				e.preventDefault();
+				return;
+			}
+			e.preventDefault();
+			
+			// Log form data before submitting
+			const fd = new FormData(form);
+			console.log('=== Form Submission ===');
+			for (let [key, value] of fd.entries()) {
+				console.log(key + ': ' + value);
+			}
+			
+			// Submit the form normally (POST submission)
+			form.submit();
+		});
+	})();
 	</script>
 </body>
 </html>
-

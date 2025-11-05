@@ -10,11 +10,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
+
 	<style>
 		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
@@ -177,10 +173,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
 	</style>
-<<<<<<< HEAD
-=======
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
@@ -190,26 +182,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 	<div class="dash-shell">
 		<main class="dash-content">
-<<<<<<< HEAD
-			<div class="dash-tagline-wrap"><p class="dash-tagline">Where skilled hands meet local demand.</p></div>
-
-			<!-- Browse CTA card placed above empty state -->
-			<section class="dash-cards" aria-label="Browse gawain">
-				<div class="dash-card blue">
-					<div>
-						<div class="dash-pill">Need to browse gawain?</div>
-						<h3>Find a Provider</h3>
-						<p>Explore verified gawain around you.</p>
-					</div>
-					<a href="./home-gawain.php" class="dash-pill">Browse</a>
-				</div>
-			</section>
-
-			<div class="empty-wrap">
-				<div class="empty-card">
-					<p class="empty-title">No bookings yet</p>
-					<p class="empty-text">When you book a gawain, it will appear here so you can track its progress.</p>
-=======
 			<header class="mq-header">
 				<h1 class="mq-title">My Gawain</h1>
 				<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
@@ -244,42 +216,26 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
 				</div>
 			</div>
 		</main>
 	</div>
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-			<span>Post</span>
-		</a>
-=======
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav">
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 		<a href="./home-gawain.php" aria-label="Browse">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
 			</svg>
 			<span class="dash-label">Browse</span>
 		</a>
-<<<<<<< HEAD
-=======
 		<a href="./post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
 			</svg>
 			<span class="dash-label">Post</span>
 		</a>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
-		<a href="./my-gawain.php" class="active" aria-label="My Gawain">
+		<a href="./my-gawain.php" class="active" aria-current="page" aria-label="My Gawain">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M4 7h16M4 12h10M4 17h7"/>
 			</svg>
@@ -297,57 +253,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</svg>
 			<span class="dash-label">Profile</span>
 		</a>
-=======
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
-	<!-- Replace previous tooltip nav with profile.php sidebar nav -->
-	<nav class="dash-float-nav" id="dashNav">
-		<div class="nav-brand">
-			<a href="./home-gawain.php" title="">
-				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
-				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
-			</a>
-		</div>
-
-		<div class="nav-main">
-			<a href="./profile.php" aria-label="Profile">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
-				</svg>
-				<span class="dash-text">Profile</span>
-			</a>
-			<a href="./post.php" aria-label="Post">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
-				</svg>
-				<span class="dash-text">Post</span>
-			</a>
-			<a href="./my-gawain.php" class="active" aria-current="page" aria-label="My Gawain">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M4 7h16M4 12h10M4 17h7"/>
-				</svg>
-				<span class="dash-text">My Gawain</span>
-			</a>
-			<a href="./chats.php" aria-label="Chats">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-				</svg>
-				<span class="dash-text">Chats</span>
-			</a>
-		</div>
-
-		<div class="nav-settings">
-			<a href="./settings.php" aria-label="Settings">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35 .25 .806 .272 1.204 .107 .397 -.165 .71 -.505 .78 -.93l .149 -.894z"/>
-					<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-				</svg>
-				<span class="dash-text">Settings</span>
-			</a>
-		</div>
-<<<<<<< HEAD
-=======
->>>>>>> a8b4b09a0cd9d44b90e40dd86643fbb2c86524da
->>>>>>> ee6c22d6bcb0be9206fff004cb53fa0421ba67e7
 	</nav>
 </body>
 </html>
