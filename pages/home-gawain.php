@@ -26,13 +26,19 @@ $lastConnError = '';
 if (file_exists($configPath)) { require_once $configPath; }
 $attempts = [];
 if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
-$attempts[] = ['localhost', 'root', '', 'servisyohub'];
+$attempts[] = ['localhost', 'root', '', 'login']; // YOUR JOBS DATABASE - prioritize this!
+$attempts[] = ['localhost', 'root', '', 'servisyohub']; // Fallback
 foreach ($attempts as $creds) {
 	list($h,$u,$p,$n) = $creds;
 	if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
 	try {
 		$conn = @mysqli_connect($h,$u,$p,$n);
-		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
+		if ($conn && !mysqli_connect_errno()) { 
+			$mysqli = $conn; 
+			$dbAvailable = true; 
+			error_log("✓ Connected to database: $n"); // Debug log
+			break; 
+		}
 		else { $lastConnError = mysqli_connect_error() ?: 'Connection failed'; if ($conn) { @mysqli_close($conn); } }
 	} catch (Throwable $ex) {
 		$lastConnError = $ex->getMessage();
@@ -41,19 +47,59 @@ foreach ($attempts as $creds) {
 	}
 }
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
-function time_ago($dt){
-	$t = is_numeric($dt) ? (int)$dt : strtotime((string)$dt);
-	if (!$t) return '';
-	$d = time() - $t;
-	if ($d < 60) return $d.'s ago';
-	if ($d < 3600) return floor($d/60).'m ago';
-	if ($d < 86400) return floor($d/3600).'h ago';
-	if ($d < 604800) return floor($d/86400).'d ago';
-	return date('M j, Y', $t);
+/* Replace time_ago() with a robust implementation */
+function time_ago($dt) {
+	// empty input -> empty output (avoids misleading "just now")
+	if (empty($dt) && $dt !== '0') return '';
+
+	// Parse posted time robustly (handle numeric ts in seconds or milliseconds, and DATETIME strings)
+	try {
+		if (is_numeric($dt)) {
+			$ts = (int)$dt;
+			// if ms timestamp, convert to seconds
+			if ($ts > 9999999999) $ts = (int) floor($ts / 1000);
+			$posted = (new DateTimeImmutable())->setTimestamp($ts);
+		} else {
+			$posted = new DateTimeImmutable($dt);
+		}
+	} catch (Throwable $ex) {
+		// parsing failed — return empty to avoid "just now" being shown incorrectly
+		return '';
+	}
+
+	$nowTs = (new DateTimeImmutable())->getTimestamp();
+	$postedTs = $posted->getTimestamp();
+	$delta = $nowTs - $postedTs;
+	$abs = abs($delta);
+
+	// Very recent
+	if ($abs < 5) return 'just now';
+	if ($abs < 60) return $abs . ' sec' . ($abs > 1 ? 's' : '') . ' ago';
+
+	$mins = (int) floor($abs / 60);
+	if ($mins < 60) return $mins . ' min' . ($mins > 1 ? 's' : '') . ' ago';
+
+	$hours = (int) floor($abs / 3600);
+	if ($hours < 24) return $hours . ' hr' . ($hours > 1 ? 's' : '') . ' ago';
+
+	$days = (int) floor($abs / 86400);
+	if ($days < 7) return $days . ' day' . ($days > 1 ? 's' : '') . ' ago';
+
+	if ($days < 30) {
+		$weeks = (int) floor($days / 7);
+		return $weeks . ' wk' . ($weeks > 1 ? 's' : '') . ' ago';
+	}
+
+	$months = (int) floor($days / 30);
+	if ($months < 12) return $months . ' mo' . ($months > 1 ? 's' : '') . ' ago';
+
+	$years = (int) floor($days / 365);
+	return $years . ' yr' . ($years > 1 ? 's' : '') . ' ago';
 }
 $jobs = [];
 if ($dbAvailable) {
-	$sql = "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, posted_at
+	// add posted_ts to get an epoch seconds value from MySQL (avoids timezone/parsing issues)
+	$sql = "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, posted_at, UNIX_TIMESTAMP(posted_at) AS posted_ts
 	        FROM jobs
 	        WHERE COALESCE(status,'open') IN ('open','pending')
 	        ORDER BY posted_at DESC, id DESC
@@ -61,6 +107,30 @@ if ($dbAvailable) {
 	if ($res = @mysqli_query($mysqli, $sql)) {
 		while ($row = mysqli_fetch_assoc($res)) $jobs[] = $row;
 		@mysqli_free_result($res);
+	}
+}
+
+/* Fetch recent job posts from database */
+$recentPosts = [];
+if ($dbAvailable) {
+	// include epoch seconds posted_ts for accurate time calculations
+	$sql = "SELECT j.*, 'User' AS display_name, '' AS email, UNIX_TIMESTAMP(j.posted_at) AS posted_ts
+	        FROM jobs j 
+	        WHERE j.status = 'open' 
+	        ORDER BY j.posted_at DESC 
+	        LIMIT 10";
+	
+	error_log("✓ Fetching recent posts..."); // Debug log
+	$result = @mysqli_query($mysqli, $sql);
+	
+	if ($result) {
+		while ($row = mysqli_fetch_assoc($result)) {
+			$recentPosts[] = $row;
+		}
+		mysqli_free_result($result);
+		error_log("✓ Found " . count($recentPosts) . " recent posts"); // Debug log
+	} else {
+		error_log("✗ Query failed: " . mysqli_error($mysqli)); // Debug log
 	}
 }
 
@@ -279,6 +349,185 @@ ob_end_flush();
 		/* Re-bold specific titles (e.g., "Household Cleaning (2-Bedroom)") */
 		.svc-title,
 		.fc-title { font-weight: var(--fw-bold) !important; }
+
+		/* Recent Posts Section */
+.recent-posts-section {
+	max-width: 960px;
+	margin: 24px auto 80px;
+	padding: 0 12px;
+	position: relative;
+	z-index: 10;
+}
+
+.section-title {
+	margin: 0 0 20px;
+	font-size: 1.3rem;
+	font-weight: 800;
+	color: #0f172a;
+}
+
+.recent-posts-list {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.post-card {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 16px;
+	padding: 20px;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.post-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	border-color: #0078a6;
+	transform: translateY(-2px);
+}
+
+.post-header {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+
+.post-avatar {
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #e0f2fe;
+	color: #0078a6;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-weight: 700;
+	font-size: 1rem;
+	flex-shrink: 0;
+}
+
+.post-info {
+	flex: 1;
+	min-width: 0;
+}
+
+.post-title {
+	margin: 0 0 6px 0;
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #0f172a;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.post-meta {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.85rem;
+	color: #64748b;
+	flex-wrap: wrap;
+}
+
+.post-icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+}
+
+.post-divider {
+	color: #cbd5e1;
+}
+
+.post-price {
+	font-size: 1.2rem;
+	font-weight: 800;
+	color: #0078a6;
+	flex-shrink: 0;
+}
+
+.post-description {
+	margin: 0 0 12px 0;
+	font-size: 0.95rem;
+	color: #475569;
+	line-height: 1.6;
+}
+
+.post-footer {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-top: 12px;
+	border-top: 1px solid #f1f5f9;
+}
+
+.post-time {
+	font-size: 0.85rem;
+	color: #94a3b8;
+}
+
+.post-status {
+	font-size: 0.85rem;
+	font-weight: 600;
+	padding: 4px 12px;
+	border-radius: 999px;
+	text-transform: capitalize;
+}
+
+.post-status.open {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.post-status.closed {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.post-status.in-progress {
+	background: #fef3c7;
+	color: #92400e;
+}
+
+.no-posts {
+	text-align: center;
+	padding: 60px 20px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+/* show a small dot separator between consecutive meta items (clean inline look) */
+.svc-meta .item + .item::before,
+.post-meta span + span::before {
+	content: "•";
+	display: inline-block;
+	margin: 0 8px;
+	color: #94a3b8;
+}
+
+/* make the meta row slightly smaller and align nicely like the screenshot */
+.svc-meta, .post-meta {
+	font-size: 0.92rem;
+	color: #64748b;
+	align-items: center;
+}
+
+/* tighten posted row */
+.svc-posted, .post-footer .post-time {
+	font-size: 0.9rem;
+	color: #94a3b8;
+}
+
+/* ensure title / price layout (title left, price right) appears compact */
+.svc-card { grid-template-columns: 1fr auto; align-items: start; }
+.post-header { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
+
+/* keep price aligned top-right */
+.post-price, .svc-price { text-align: right; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -408,7 +657,7 @@ ob_end_flush();
 								</div>
 								<div class="svc-posted">
 									<span class="svc-av"><?php echo htmlspecialchars($avatar); ?></span>
-									<span>Posted <?php echo e(time_ago($j['posted_at'])); ?></span>
+									<span>Posted <?php echo e(time_ago($j['posted_ts'] ?? $j['posted_at'])); ?></span>
 								</div>
 							</div>
 							<div class="svc-price">
@@ -420,69 +669,63 @@ ob_end_flush();
 				<?php endif; ?>
 			</section>
 
-			<!-- Recent Posts feed (before gawain) -->
-			<section class="jobs-feed" aria-label="Recent posts">
-				<div class="feed-title">
-					<span>Recent Posts</span>
+			<!-- Recent Posts section -->
+			<section class="recent-posts-section" aria-label="Recent Posts">
+		<h3 class="section-title">Recent Posts</h3>
+		
+		<div class="recent-posts-list">
+			<?php if (!empty($recentPosts)): ?>
+				<?php foreach ($recentPosts as $post): ?>
+					<div class="post-card">
+						<div class="post-header">
+							<div class="post-avatar">
+								<?php 
+								$posterName = htmlspecialchars($post['display_name'] ?? 'User');
+								$posterInitial = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
+								echo $posterInitial;
+								?>
+							</div>
+							<div class="post-info">
+								<h4 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h4>
+								<div class="post-meta">
+									<svg class="post-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+										<circle cx="12" cy="10" r="3"/>
+									</svg>
+									<span><?php echo htmlspecialchars($post['location']); ?></span>
+									<span class="post-divider">•</span>
+									<svg class="post-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+										<line x1="16" y1="2" x2="16" y2="6"/>
+										<line x1="8" y1="2" x2="8" y2="6"/>
+										<line x1="3" y1="10" x2="21" y2="10"/>
+									</svg>
+									<span>On <?php echo date('M j, Y', strtotime($post['date_needed'])); ?></span>
+								</div>
+							</div>
+							<div class="post-price">₱<?php echo number_format($post['budget'], 0); ?></div>
+						</div>
+						<p class="post-description"><?php echo htmlspecialchars(substr($post['description'], 0, 150)); ?><?php echo strlen($post['description']) > 150 ? '...' : ''; ?></p>
+						<div class="post-footer">
+							<span class="post-time">Posted <?php echo e(time_ago($post['posted_ts'] ?? $post['posted_at'])); ?></span>
+							<span class="post-status <?php echo $post['status']; ?>">
+								<?php echo ucfirst($post['status']); ?>
+							</span>
+						</div>
+					</div>
+				<?php endforeach; ?>
+			<?php else: ?>
+				<div class="no-posts">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: #cbd5e1; margin-bottom: 16px;">
+						<circle cx="12" cy="12" r="10"/>
+						<path d="M12 16v-4"/>
+						<circle cx="12" cy="8" r="0.5" fill="currentColor"/>
+					</svg>
+					<p style="color: #64748b; font-size: 0.95rem;">No recent posts yet. Be the first to post a gawain!</p>
 				</div>
-
-				<?php if (!$dbAvailable): ?>
-					<!-- Hide DB error details from UI -->
-				<?php elseif (empty($jobs)): ?>
-					<p class="feed-empty">No recent posts yet. Be the first to post using the + button.</p>
-				<?php else: ?>
-					<div class="feed-grid">
-						<?php foreach ($jobs as $j): ?>
-							<?php $jid = isset($j['id']) ? (int)$j['id'] : 0; ?>
-							<a href="./gawain-detail.php<?php echo $jid ? ('?id=' . $jid) : ''; ?>" class="feed-card" style="text-decoration:none; color:inherit;">
-								<div class="fc-top">
-									<div class="fc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></div>
-									<div class="fc-time"><?php echo e(time_ago($j['posted_at'])); ?></div>
-								</div>
-								<div class="fc-cat"><?php echo e($j['category']); ?></div>
-								<div class="fc-meta">
-									<?php if (!empty($j['location'])): ?>
-										<span class="item" title="<?php echo e($j['location']); ?>">📍 <?php echo e($j['location']); ?></span>
-									<?php endif; ?>
-									<?php if (!empty($j['budget'])): ?>
-										<span class="item">💰 <?php echo e($j['budget']); ?></span>
-									<?php endif; ?>
-									<?php if (!empty($j['date_needed'])): ?>
-										<span class="item">📅 <?php echo e($j['date_needed']); ?></span>
-									<?php endif; ?>
-								</div>
-							</a>
-						<?php endforeach; ?>
-					</div>
-				<?php endif; ?>
-			</section>
-
-			<!-- Sample Post Layout -->
-			<section class="sample-post" aria-label="Sample post layout">
-				<a class="svc-card" href="./gawain-detail.php" aria-label="View sample post">
-					<div>
-						<h3 class="svc-title" title="Household Cleaning (2-Bedroom)">Household Cleaning (2-Bedroom)</h3>
-						<div class="svc-meta">
-							<span class="item" title="Quezon City">
-								<svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/><circle cx="12" cy="12" r="2"/></svg>
-								Quezon City
-							</span>
-							<span class="item">
-								<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-								On Nov 12, 2025
-							</span>
-						</div>
-						<div class="svc-posted">
-							<span class="svc-av">S</span>
-							<span>Posted 1h ago</span>
-						</div>
-					</div>
-					<div class="svc-price">
-						<span class="amt">₱1,800</span>
-						<span class="note">Fixed price</span>
-					</div>
-				</a>
-			</section>
+			<?php endif; ?>
+		</div>
+	</section>
 
 		</main>
 
