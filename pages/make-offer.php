@@ -121,7 +121,7 @@ ob_end_flush();
       const c1 = document.getElementById('c1');
       const c2 = document.getElementById('c2');
       const btn = document.getElementById('offerCta');
-      const nextUrl = './make-offer-tips.php' + <?php echo json_encode($id ? ('?id='.(int)$id) : ''); ?>;
+  const nextUrl = './make-offer-compose.php' + <?php echo json_encode($id ? ('?id='.(int)$id) : ''); ?>;
       function toggle(card){
         const v = card.getAttribute('aria-checked') === 'true';
         card.setAttribute('aria-checked', (!v).toString());
