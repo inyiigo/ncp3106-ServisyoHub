@@ -171,7 +171,11 @@ ob_end_flush();
 		/* Sample post layout container */
 		.sample-post { max-width:1100px; margin:0 auto 24px; padding:0 16px; }
 		.sample-post .sample-title { font-weight:800; color:#0f172a; margin: 0 0 8px; }
-		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
+		/* Page background: use plain white (homebackground asset left intact but not applied) */
+		body.theme-profile-bg {
+			background: #ffffff !important;
+			background-attachment: initial !important;
+		}
 		.dash-shell { position: relative; z-index: 1; }
 		.dash-overlay { display: none !important; }
 
@@ -372,7 +376,8 @@ ob_end_flush();
 					</div>
 				<?php else: ?>
 					<?php foreach ($jobs as $j): ?>
-						<article class="svc-card">
+						<?php $jid = isset($j['id']) ? (int)$j['id'] : 0; ?>
+						<a class="svc-card" href="./gawain-detail.php<?php echo $jid ? ('?id=' . $jid) : ''; ?>" aria-label="View post: <?php echo e($j['title']); ?>">
 							<div>
 								<h3 class="svc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></h3>
 								<div class="svc-meta">
@@ -398,7 +403,7 @@ ob_end_flush();
 								<span class="amt"><?php echo !empty($j['budget']) ? '₱'.e($j['budget']) : 'Negotiable'; ?></span>
 								<?php if (empty($j['budget'])): ?><span class="note">Negotiable</span><?php endif; ?>
 							</div>
-						</article>
+						</a>
 					<?php endforeach; ?>
 				<?php endif; ?>
 			</section>
@@ -416,7 +421,8 @@ ob_end_flush();
 				<?php else: ?>
 					<div class="feed-grid">
 						<?php foreach ($jobs as $j): ?>
-							<article class="feed-card">
+							<?php $jid = isset($j['id']) ? (int)$j['id'] : 0; ?>
+							<a href="./gawain-detail.php<?php echo $jid ? ('?id=' . $jid) : ''; ?>" class="feed-card" style="text-decoration:none; color:inherit;">
 								<div class="fc-top">
 									<div class="fc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></div>
 									<div class="fc-time"><?php echo e(time_ago($j['posted_at'])); ?></div>
@@ -433,7 +439,7 @@ ob_end_flush();
 										<span class="item">📅 <?php echo e($j['date_needed']); ?></span>
 									<?php endif; ?>
 								</div>
-							</article>
+							</a>
 						<?php endforeach; ?>
 					</div>
 				<?php endif; ?>
@@ -441,8 +447,7 @@ ob_end_flush();
 
 			<!-- Sample Post Layout -->
 			<section class="sample-post" aria-label="Sample post layout">
-				<h3 class="sample-title">Sample Post Layout</h3>
-				<article class="svc-card" aria-label="Sample job post">
+				<a class="svc-card" href="./gawain-detail.php" aria-label="View sample post">
 					<div>
 						<h3 class="svc-title" title="Household Cleaning (2-Bedroom)">Household Cleaning (2-Bedroom)</h3>
 						<div class="svc-meta">
@@ -464,7 +469,7 @@ ob_end_flush();
 						<span class="amt">₱1,800</span>
 						<span class="note">Fixed price</span>
 					</div>
-				</article>
+				</a>
 			</section>
 
 		</main>

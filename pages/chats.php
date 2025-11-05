@@ -16,20 +16,6 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 		/* Blue bottom border on topbar */
 		.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
 
-		/* Background logo */
-		.bg-logo {
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 25%;
-			max-width: 350px;
-			opacity: 0.15;
-			z-index: 0;
-			pointer-events: none;
-		}
-		.bg-logo img { width: 100%; height: auto; display: block; }
-
 		/* Empty state container */
 		.chat-empty {
 			position: relative;
@@ -103,29 +89,33 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 			box-shadow: 0 12px 28px rgba(2,6,23,.12);
 		}
 
-		/* Tabs: As a Hero / As a Citizen */
+		/* Tabs: As a Hero / As a Citizen - bigger buttons */
 		.chat-tabs {
 			display: flex;
-			gap: 10px;
+			gap: 10px;               /* was 10px */
 			justify-content: center;
-			margin: 20px auto;
-			max-width: 400px;
+			margin: 20px auto;       /* a bit more breathing room */
+			max-width: 480px;        /* was 400px */
 		}
 		.chat-tab {
 			flex: 1;
-			padding: 10px 20px;
-			border-radius: 12px;
+			padding: 10px 18px;      /* larger click target */
+			border-radius: 12px;     /* slightly rounder */
 			border: 2px solid #e2e8f0;
 			background: #fff;
 			color: #0f172a;
 			font-weight: 700;
 			cursor: pointer;
 			transition: all .15s ease;
+			font-size: .98rem;      /* bigger label */
+			min-height: 44px;        /* ensure visual height */
+			line-height: 1.1;
 		}
 		.chat-tab.active {
 			background: #0078a6;
 			color: #fff;
 			border-color: #0078a6;
+			box-shadow: 0 6px 18px rgba(0,120,166,.24); /* Optional: slightly larger when active for emphasis */
 		}
 
 		/* Right-side floating nav (icon-only, show label on item hover) */
@@ -208,17 +198,33 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 		.dash-topbar { display: none !important; }
 		/* Remove any padding added for fixed/sticky topbar */
 		body { padding-top: 0 !important; }
+
+		/* Background logo (behind UI) */
+		.bg-logo {
+			position: fixed;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			/* make it small */
+			width: 84px;
+			max-width: 200px;
+			min-width: 200px;
+			opacity: .30;
+			z-index: 0;
+			pointer-events: none;
+		}
+		.bg-logo img { width: 100%; height: auto; display: block; }
 	</style>
 </head>
 <body class="theme-profile-bg">
-	<!-- Background Logo -->
+	<!-- Background Logo (defaults to Kasangga) -->
 	<div class="bg-logo">
-		<img src="../assets/images/job_logo.png" alt="" />
+		<img id="bgLogo" src="../assets/images/kasangga.png" alt="" onerror="this.style.display='none'">
 	</div>
 
 	<!-- Tabs -->
 	<div class="chat-tabs">
-		<button type="button" class="chat-tab active" id="heroTab">As a Hero</button>
+		<button type="button" class="chat-tab active" id="heroTab">As a Kasangga</button>
 		<button type="button" class="chat-tab" id="citizenTab">As a Citizen</button>
 	</div>
 
@@ -226,8 +232,7 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 	<div class="chat-empty">
 		<img src="../assets/images/empty-chat.svg" alt="No messages" class="empty-illustration" onerror="this.style.display='none'" />
 		<h2 class="empty-title">It looks pretty empty here...</h2>
-		<p class="empty-text">Why not help some citizens in need?</p>
-		<a href="./home-services.php" class="empty-btn">
+		<a href="./home-gawain.php" class="empty-btn">
 			Get Started
 		</a>
 	</div>
@@ -272,19 +277,27 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 	</nav>
 
 	<script>
-	// Tab switching behavior
+	// Tab switching behavior + background logo swap
 	(function(){
 		const heroTab = document.getElementById('heroTab');
 		const citizenTab = document.getElementById('citizenTab');
+		const bgLogo = document.getElementById('bgLogo');
+
+		function setKasangga(active){
+			if (!bgLogo) return;
+			bgLogo.src = active ? '../assets/images/kasangga.png' : '../assets/images/citizen.png';
+		}
 
 		heroTab.addEventListener('click', function() {
 			heroTab.classList.add('active');
 			citizenTab.classList.remove('active');
+			setKasangga(true);
 		});
 
 		citizenTab.addEventListener('click', function() {
 			citizenTab.classList.add('active');
 			heroTab.classList.remove('active');
+			setKasangga(false);
 		});
 	})();
 	</script>
