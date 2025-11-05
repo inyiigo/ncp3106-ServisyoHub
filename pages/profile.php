@@ -11,9 +11,28 @@ if ($__logout) {
     header('Location: ./login.php');
     exit;
 }
-$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'Guest');
-$mobile = isset($_SESSION['mobile']) ? $_SESSION['mobile'] : '';
-$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+
+// Replace the basic identity setup with a safer version
+$display_name = trim((string)($_SESSION['display_name'] ?? ''));
+$mobile_raw   = trim((string)($_SESSION['mobile'] ?? ''));
+$mobile       = $mobile_raw;
+
+// If a proper name exists, use it; else fall back to mobile, then Guest
+$display = $display_name !== '' ? $display_name : ($mobile !== '' ? $mobile : 'Guest');
+
+// Avatar: prefer first alphabet of name; if none, use 'G'
+$initialSrc = $display_name !== '' ? $display_name : 'Guest';
+$firstAlpha = preg_replace('/[^A-Za-z]/', '', $initialSrc);
+$avatar     = strtoupper(substr($firstAlpha !== '' ? $firstAlpha : 'G', 0, 1));
+
+// About Me data (with safe fallbacks)
+$joined_raw = $_SESSION['joined_at'] ?? null;
+$joined_ts  = is_numeric($joined_raw) ? (int)$joined_raw : ($joined_raw ? strtotime((string)$joined_raw) : time());
+$joined_date = date('m/d/Y', $joined_ts);
+$kasangga_done = (int)($_SESSION['kasangga_completed'] ?? 0);
+$citizen_done = (int)($_SESSION['citizen_completed'] ?? 0);
+$skills = $_SESSION['skills'] ?? ['AI & Machine Learning', 'Frontend Development', 'Software Development'];
+$portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -46,12 +65,47 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 		/* Enhancements: profile header and menu visuals */
 		.prof-container { max-width: 480px; }
 
-		.prof-hero {
+		.prof-kasangga {
+			/* ensure inner spacing from rounded edges */
+			padding: 14px 16px;
+			/* align avatar + details side-by-side */
+			display: grid;
+			grid-template-columns: 56px 1fr;
+			gap: 12px;
+			align-items: center;
+			/* put the blue box back */
 			border-radius: 16px;
-			box-shadow: 0 10px 28px rgba(2,6,23,.18);
 			background: #0078a6;
 			color: #fff;
+			border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+			box-shadow: 0 10px 28px rgba(0,120,166,.24);
 		}
+		.prof-avatar {
+			/* fixed, centered circle */
+			width: 56px;
+			height: 56px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: #e6f2f8; /* light tint for contrast */
+			color: #0f172a;
+			font-weight: 900;
+			font-size: 1rem;
+		}
+		.prof-kasangga .prof-name { margin: 0 0 2px; line-height: 1.2; }
+		.prof-kasangga .prof-meta { margin: 0 0 8px; }
+		.prof-kasangga .prof-edit { margin-top: 2px; }
+
+		@media (max-width:420px){
+			.prof-kasangga {
+				grid-template-columns: 52px 1fr;
+				gap: 10px;
+				padding: 12px 14px;
+			}
+			.prof-avatar { width: 52px; height: 52px; }
+		}
+
 		.prof-name, .prof-meta { color: #fff !important; }
 		.prof-avatar {
 			box-shadow: inset 0 0 0 2px rgba(255,255,255,.85), 0 8px 18px rgba(2,6,23,.14);
@@ -459,6 +513,85 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
 			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
+
+		/* Reviews sub-tabs (Kasangga/Citizen) */
+		.review-tabs {
+			display: flex;
+			gap: 12px;
+			justify-content: center;
+			margin: 10px 0 16px;
+			width: 100%;
+		}
+		.review-tab {
+			appearance: none;
+			border: 2px solid #dbeafe; /* light blue outline */
+			background: #fff;
+			color: #0f172a;
+			padding: 10px 18px;
+			border-radius: 12px;
+			font-weight: 800;
+			cursor: pointer;
+			transition: background .15s ease, color .15s ease, border-color .15s ease, transform .15s ease, box-shadow .15s ease;
+			box-shadow: 0 2px 8px rgba(2,6,23,.06);
+			flex: 1 1 0;           /* equal width for both buttons */
+			text-align: center;    /* center labels */
+			min-width: 0;          /* allow shrink without overflow */
+			box-sizing: border-box;
+		}
+		.review-tab:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(2,6,23,.12); }
+		.review-tab.active {
+			background: #0078a6;
+			color: #fff;
+			border-color: #0078a6;
+			box-shadow: 0 8px 20px rgba(0,120,166,.24);
+		}
+		.review-panel { padding: 4px 2px; }
+
+		/* Optional spacing for unboxed Reviews content */
+		.reviews-title { margin: 0 0 8px; font-weight: 800; color: #0f172a; }
+		#tab-reviews { padding-top: 4px; }
+
+		/* About Me: list rows, chips, and links */
+		.about-verify { margin: 0 0 10px; font-weight: 800; }
+		.about-verify a { color: #0078a6; text-decoration: none; }
+		.about-verify a:hover { text-decoration: underline; }
+		.about-list { list-style: none; margin: 8px 0 14px; padding: 0; display: grid; gap: 10px; }
+		.about-row { display: flex; align-items: center; gap: 10px; color: #0f172a; }
+		.about-row .ico { width: 18px; height: 18px; color: #64748b; flex: 0 0 18px; }
+		.about-label { display: block; font-weight: 800; color: #0f172a; margin: 8px 0 6px; }
+		.skill-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+		.skill-chip { border: 2px solid #e2e8f0; background: #fff; color: #0f172a; border-radius: 999px; padding: 6px 10px; font-weight: 800; font-size: .85rem; box-shadow: 0 2px 8px rgba(2,6,23,.06); }
+		.about-links a { color: #0078a6; font-weight: 700; text-decoration: none; }
+		.about-links a:hover { text-decoration: underline; }
+
+		/* About Me spacing tweaks (scoped to About tab only) */
+		#tab-about .card { padding: 18px 18px; }
+		#tab-about #aboutme-title { margin-bottom: 12px; }
+		#tab-about .muted { margin-bottom: 12px; }
+		#tab-about .wallet-actions { margin: 8px 0 16px; }
+		#tab-about .about-verify { margin: 14px 0; }
+		#tab-about .about-list { margin: 12px 0 18px; gap: 12px; }
+		#tab-about .about-row { line-height: 1.5; }
+		#tab-about .about-label { margin: 16px 0 8px; }
+		#tab-about .skill-chips { gap: 10px; margin-bottom: 18px; }
+		#tab-about .about-links { margin-top: 8px; }
+
+		/* Equal-size review buttons (override) */
+		#tab-reviews .review-tabs {
+			display: grid;                 /* override flex */
+			grid-template-columns: 1fr 1fr;/* two equal columns */
+			gap: 12px;
+			width: 100%;
+			justify-content: stretch;      /* ensure full width */
+		}
+		#tab-reviews .review-tab {
+			display: block;                /* fill grid cell */
+			width: 100%;
+			flex: initial;                 /* neutralize earlier flex */
+			min-width: 0;                  /* prevent overflow */
+			text-align: center;
+			box-sizing: border-box;
+		}
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -470,11 +603,13 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 	<div class="profile-bg">
 		<div class="prof-container">
 			<!-- Profile card -->
-			<section class="prof-hero" aria-label="Account">
+			<section class="prof-kasangga" aria-label="Account">
 				<div class="prof-avatar" aria-hidden="true"><?php echo htmlspecialchars($avatar); ?></div>
 				<div>
 					<p class="prof-name"><?php echo htmlspecialchars($display); ?></p>
-					<?php if ($mobile): ?><p class="prof-meta"><?php echo htmlspecialchars($mobile); ?></p><?php endif; ?>
+					<?php if ($mobile && $display !== $mobile): ?>
+						<p class="prof-meta"><?php echo htmlspecialchars($mobile); ?></p>
+					<?php endif; ?>
 					<a class="prof-edit" href="./edit-profile.php">Edit Profile</a>
 				</div>
 			</section>
@@ -490,9 +625,9 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 				<div class="tab-panels">
 					<!-- Earnings -->
 					<div id="tab-earnings" class="tab-panel" role="tabpanel">
-						<article class="card" aria-labelledby="prefer-hero-title">
-							<h4 id="prefer-hero-title">Become a preferred hero</h4>
-							<p class="muted">Unlock more quests and higher earnings by getting the preferred hero badge.</p>
+						<article class="card" aria-labelledby="prefer-kasangga-title">
+							<h4 id="prefer-kasangga-title">Become a preferred Kasangga</h4>
+							<p class="muted">Unlock more quests and higher earnings by getting the preferred Kasangga badge.</p>
 							<div class="wallet-actions">
 								<a class="btn-chip" href="">Check eligibility</a>
 							</div>
@@ -505,11 +640,11 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 								<strong class="wallet-amt">0.00</strong>
 							</div>
 							<div class="wallet-actions">
-								<a class="btn-chip" href="" aria-label="Insights">
+								<a class="btn-chip" href="insights.php" aria-label="Insights">
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 13l3 3 7-7"/></svg>
 									Insights
 								</a>
-								<a class="btn-chip" href="./manage-payment.php" aria-label="Withdraw">
+								<a class="btn-chip" href="./withdraw.php" aria-label="Withdraw">
 									<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v14"/><path d="M5 10l7 7 7-7"/></svg>
 									Withdraw
 								</a>
@@ -538,10 +673,24 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
 					<!-- Reviews -->
 					<div id="tab-reviews" class="tab-panel" role="tabpanel" hidden>
-						<article class="card" aria-labelledby="reviews-title">
-							<h4 id="reviews-title">Reviews</h4>
-							<p class="muted">You don’t have any reviews yet.</p>
-						</article>
+						<h4 id="reviews-title" class="reviews-title">Reviews</h4>
+
+						<!-- Role toggle now outside the box -->
+						<div class="review-tabs" role="tablist" aria-label="Review role">
+							<!-- add active to default -->
+							<button type="button" id="revKasanggaBtn" class="review-tab active" role="tab" aria-selected="true" aria-controls="revKasanggaPanel">As a Kasangga</button>
+							<button type="button" id="revCitizenBtn" class="review-tab" role="tab" aria-selected="false" aria-controls="revCitizenPanel">As a Citizen</button>
+						</div>
+
+						<!-- Panels outside the box -->
+						<div id="revKasanggaPanel" class="review-panel" role="tabpanel">
+							<p class="review-empty">You don’t have any reviews yet.</p>
+							<!-- ...existing code... -->
+						</div>
+						<div id="revCitizenPanel" class="review-panel" role="tabpanel" hidden>
+							<p class="review-empty">You don’t have any reviews yet.</p>
+							<!-- ...existing code... -->
+						</div>
 					</div>
 
 					<!-- About me -->
@@ -551,6 +700,43 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 							<p class="muted">Add details about yourself in Edit Profile to help clients know you better.</p>
 							<div class="wallet-actions">
 								<a class="btn-chip" href="./edit-profile.php">Edit Profile</a>
+							</div>
+
+							<!-- Verification -->
+							<p class="about-verify"><a href="./verification.php">Verification</a></p>
+
+							<!-- Joined and quest stats -->
+							<ul class="about-list">
+								<li class="about-row">
+									<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+									<span>Joined <?php echo htmlspecialchars($joined_date, ENT_QUOTES, 'UTF-8'); ?></span>
+								</li>
+								<li class="about-row">
+									<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M7 7v10m10-10v10M5 17h14"/></svg>
+									<span><?php echo (int)$kasangga_done; ?> Quest(s) completed as a Kasangga</span>
+								</li>
+								<li class="about-row">
+									<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/></svg>
+									<span><?php echo (int)$citizen_done; ?> Quest(s) completed as a Citizen</span>
+								</li>
+							</ul>
+
+							<!-- Skills -->
+							<label class="about-label">Skills:</label>
+							<div class="skill-chips">
+								<?php foreach ((array)$skills as $sk): ?>
+									<span class="skill-chip"><?php echo htmlspecialchars((string)$sk, ENT_QUOTES, 'UTF-8'); ?></span>
+								<?php endforeach; ?>
+							</div>
+
+							<!-- Links -->
+							<label class="about-label">Links:</label>
+							<div class="about-links">
+								<?php if ($portfolio_url): ?>
+									<a href="<?php echo htmlspecialchars($portfolio_url, ENT_QUOTES, 'UTF-8'); ?>" target="_blank" rel="noopener">Portfolio</a>
+								<?php else: ?>
+									<a href="./edit-profile.php">Add Portfolio Link</a>
+								<?php endif; ?>
 							</div>
 						</article>
 					</div>
@@ -626,6 +812,32 @@ $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 				Object.keys(panels).forEach(k=> panels[k].hidden = (k!==tab));
 			});
 		});
+	})();
+
+	// Reviews role toggle (Kasangga/Citizen)
+	(function(){
+		// support both new (Kasangga) and old (Hero) ids if present
+		const kasBtn   = document.getElementById('revKasanggaBtn') || document.getElementById('revKasanggaBtn');
+		const citBtn   = document.getElementById('revCitizenBtn');
+		const kasPanel = document.getElementById('revKasanggaPanel') || document.getElementById('revKasanggaPanel');
+		const citPanel = document.getElementById('revCitizenPanel');
+		if (!kasBtn || !citBtn || !kasPanel || !citPanel) return;
+
+		function setRole(role){
+			const isKas = role === 'kasangga' || role === 'kasangga';
+			kasBtn.classList.toggle('active', isKas);
+			citBtn.classList.toggle('active', !isKas);
+			kasBtn.setAttribute('aria-selected', isKas ? 'true' : 'false');
+			citBtn.setAttribute('aria-selected', !isKas ? 'true' : 'false');
+			kasPanel.hidden = !isKas;
+			citPanel.hidden = isKas;
+		}
+
+		kasBtn.addEventListener('click', ()=> setRole('kasangga'));
+		citBtn.addEventListener('click', ()=> setRole('citizen'));
+
+		// initialize state based on current visibility (defaults to Kasangga)
+		setRole(!kasPanel.hidden ? 'kasangga' : 'citizen');
 	})();
 	</script>
 </body>

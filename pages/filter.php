@@ -128,7 +128,7 @@ $max      = $_GET['max']      ?? '';
 			border: 0;
 			color: var(--blue); /* was #0078a6 */
 			text-decoration: none;
-			font-weight: 900; /* slightly bolder */
+			font-weight: 400; /* not bold */
 			font-size: 28px;  /* slightly bigger */
 			letter-spacing: .02em;
 			line-height: 1;
