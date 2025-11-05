@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 						<button type="submit" class="cta">Login</button>
 
 						<p class="meta" style="margin-top:14px;">Don’t have an account? <a class="link" href="./signup.php">Register Now</a></p>
-						<p class="meta" style="margin-top:4px;"><a class="link" href="./terms-and-conditions.php">Terms and Services</a></p>
+						<p class="meta" style="margin-top:4px;"><a class="link" href="./terms-and-conditions-login.php">Terms and Services</a></p>
 					</form>
 				</div>
 			</div>
