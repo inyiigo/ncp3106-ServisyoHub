@@ -242,7 +242,7 @@ ob_end_flush();
   .reply-form .ask-av { width:32px; height:32px; }
   /* Make nested reply forms match smaller grid */
   .replies .reply-form { grid-template-columns:28px 1fr; }
-  .ask-link { display:block; text-align:center; margin:10px 0; color:#0f172a; font-weight:800; text-decoration:underline; }
+  
   .ask-input { display:grid; grid-template-columns: 36px 1fr; gap:10px; align-items:center; margin-top:8px; }
   .ask-av { width:36px; height:36px; border-radius:50%; background:#e2e8f0; display:grid; place-items:center; font-weight:900; color:#0f172a; overflow:hidden; }
   .ask-av img { width:100%; height:100%; object-fit:cover; display:block; }
@@ -251,7 +251,13 @@ ob_end_flush();
   /* ask bar variant matching the screenshot */
   .ask-input-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
   .ask-counter { width:36px; height:36px; border-radius:50%; background:#eef2f7; color:#0f172a; display:grid; place-items:center; font-weight:800; border:2px solid #94a3b8; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
-  .ask-form { flex:1; }
+  .ask-form { flex:1; display:flex; align-items:center; gap:8px; }
+  .ask-send { appearance:none; border:0; background:transparent; display:inline-grid; place-items:center; width:32px; height:32px; border-radius:8px; color:#1d4ed8; cursor:pointer; flex-shrink:0; }
+  .ask-send:hover { background:#f1f5f9; }
+  .ask-send:active { transform: translateY(0.5px); }
+  .ask-send svg { width:18px; height:18px; display:block; }
+  /* slightly smaller send button in nested reply forms */
+  .replies .ask-send { width:28px; height:28px; border-radius:6px; }
   /* inset style when ask lives inside the meta-merged card */
   .ask-inset { background: transparent; border: 0; padding: 0; box-shadow: none; }
   .ask-inset .ask-title { margin-top: 6px; }
@@ -376,7 +382,7 @@ ob_end_flush();
                     <div class="bubble">
                       <span class="name">Jericho bien V.</span>
                       <p class="text">location po??</p>
-                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a><?php if ($isOwner): ?> <a href="#" class="delete-link">Delete</a><?php endif; ?></div>
+                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
                     </div>
                     <div class="replies">
                       <div class="comment">
@@ -390,20 +396,23 @@ ob_end_flush();
                         <div class="bubble">
                           <span class="name"><?php echo e($job['user_name']); ?></span>
                           <p class="text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
-                          <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a><?php if ($isOwner): ?> <a href="#" class="delete-link">Delete</a><?php endif; ?></div>
+                          <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
                         </div>
                         <div class="replies"></div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                <a href="#" class="ask-link">View all 2 questions and answers</a>
-
+                
                 <div class="ask-input-row">
                   <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
                   <form class="ask-form" id="askForm" novalidate>
                     <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" required />
+                    <button type="submit" class="ask-send" aria-label="Send question" title="Send">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
+                      </svg>
+                    </button>
                   </form>
                 </div>
               </section>
@@ -452,6 +461,9 @@ ob_end_flush();
         <div class="ask-av"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
         <div style="display:flex; gap:8px; align-items:center; width:100%;">
           <input class="ask-field" type="text" name="reply" placeholder="Reply to ${targetName}" aria-label="Write a reply" required />
+          <button type="submit" class="ask-send" aria-label="Send reply" title="Send">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+          </button>
           <button type="button" class="btn-cancel-reply" style="border:0;background:transparent;color:#64748b;font-weight:800;">Cancel</button>
         </div>
       `;
@@ -476,7 +488,7 @@ ob_end_flush();
           <div class="bubble">
             <span class="name">You</span>
             <p class="text"></p>
-            <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a><?php if ($isOwner): ?> <a href="#" class="delete-link">Delete</a><?php endif; ?></div>
+            <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
           </div>
           <div class="replies"></div>
         `;
@@ -519,7 +531,7 @@ ob_end_flush();
             <div class="bubble">
               <span class="name">You</span>
               <p class="text"></p>
-              <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a><?php if ($isOwner): ?> <a href="#" class="delete-link">Delete</a><?php endif; ?></div>
+              <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
             </div>
             <div class="replies"></div>
           `;
