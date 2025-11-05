@@ -51,7 +51,7 @@
 /* Base reset */
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
-body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #0f172a; background:#ffffff; }
+body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: #0f172a; background: #ffffff; }
 
 /* Page fade-in helper for smoother transitions (respects reduced motion) */
 @media (prefers-reduced-motion: no-preference) {
@@ -117,7 +117,7 @@ body { font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Ar
 .glass-card { background: rgba(255,255,255,.35) !important; border: 2px solid rgba(255,255,255,.6) !important; backdrop-filter: blur(4px); box-shadow: 0 8px 20px rgba(2,6,23,.15) !important; }
 
 /* Theme: page-wide profile gradient */
-.theme-profile-bg { background: radial-gradient(900px 450px at 50% -10%, rgba(255,255,255,.35) 0%, rgba(255,255,255,0) 60%), linear-gradient(180deg, #0ea5e9 0%, #06b6d4 55%, #22d3ee 100%); background-attachment: fixed; background-size: cover; }
+.theme-profile-bg { background: #ffffff; background-attachment: initial; background-size: auto; }
 .theme-profile-bg .dash-shell { background: transparent; }
 .theme-profile-bg .dash-topbar { background: transparent; border-bottom-color: rgba(255,255,255,.18); }
 .theme-profile-bg .dash-bottom-nav { background: rgba(255,255,255,.9); }
@@ -497,6 +497,8 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 .svc-price { display:grid; align-content:center; gap:4px; text-align:right; }
 .svc-price .amt { font-weight:800; color:#0078a6; }
 .svc-price .note { color:#94a3b8; font-size:.8rem; }
+/* Make service cards clickable when used as anchors */
+a.svc-card { text-decoration: none; color: inherit; }
 
 /* Search */
 .svc-search { max-width: 1100px; margin: 8px auto 16px; padding: 0 16px; }
@@ -512,8 +514,6 @@ a.dash-svc-card { text-decoration: none; color: inherit; }
 @media (max-width:640px){ .svc-card { grid-template-columns: 1fr; } .svc-price { text-align:left; } }
 
 /* Filter page styles */
-/* Keep theme-profile-bg white for filter and gawain pages */
-body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 
 /* Stronger topbar divider (scoped) */
 .theme-profile-bg .dash-topbar { border-bottom: 3px solid #0078a6; }
