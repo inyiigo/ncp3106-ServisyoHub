@@ -14,9 +14,8 @@ $max      = $_GET['max']      ?? '';
 	<title>Filter Options • ServisyoHub</title>
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/styles.css">
-	<style>
-		:root { --blue: #0078a6; } /* added */
 
+<<<<<<< HEAD
 		/* page override: white background */
 		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 
@@ -141,6 +140,8 @@ $max      = $_GET['max']      ?? '';
 		.filter-exit:active { transform: scale(0.96); }
 		.filter-exit:focus-visible { outline: 3px solid rgba(14,116,162,.28); outline-offset: 4px; border-radius: 6px; }
 	</style>
+=======
+>>>>>>> 48ca6411e2864e13b36d263402cfad3ba51d0f09
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
