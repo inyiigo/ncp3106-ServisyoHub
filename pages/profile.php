@@ -12,13 +12,6 @@ if ($__logout) {
     exit;
 }
 
-<<<<<<< HEAD
-// Ensure 'prof-name' defaults to 'USER' after login until edited
-$mobile = $_SESSION['mobile'] ?? '';
-if ($mobile && (!isset($_SESSION['display_name']) || trim($_SESSION['display_name']) === '' || $_SESSION['display_name'] === 'Guest')) {
-    $_SESSION['display_name'] = 'USER';
-}
-$display = $_SESSION['display_name'] ?? ($mobile ? 'USER' : 'Guest');
 
 // Include DB and normalize handle
 include '../config/db_connect.php';
@@ -26,25 +19,31 @@ if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
 	if (isset($conn) && $conn instanceof mysqli) { $mysqli = $conn; }
 }
 
-// If logged in, always refresh display name from DB username so repeated edits reflect
+// Ensure 'prof-name' defaults to 'USER' after login until edited
+$mobile = $_SESSION['mobile'] ?? '';
+if ($mobile && (!isset($_SESSION['display_name']) || trim($_SESSION['display_name']) === '' || $_SESSION['display_name'] === 'Guest')) {
+    $_SESSION['display_name'] = 'USER';
+}
+$display = $_SESSION['display_name'] ?? ($mobile ? 'USER' : 'Guest');
+
+// If logged in, always refresh display name and avatar from DB so repeated edits reflect
 $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+$dbAvatarPath = '';
 if ($user_id > 0 && isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
-	if ($stmt = $mysqli->prepare("SELECT username FROM users WHERE id = ?")) {
+	if ($stmt = $mysqli->prepare("SELECT username, COALESCE(avatar,'') FROM users WHERE id = ?")) {
 		$stmt->bind_param('i', $user_id);
 		$stmt->execute();
-		$stmt->bind_result($dbUsername);
-		if ($stmt->fetch() && !empty($dbUsername)) {
-			if (!isset($_SESSION['display_name']) || $_SESSION['display_name'] !== $dbUsername) {
+		$stmt->bind_result($dbUsername, $dbAvatarPath);
+		if ($stmt->fetch()) {
+			if (!empty($dbUsername)) {
 				$_SESSION['display_name'] = $dbUsername;
+				$display = $dbUsername;
 			}
-			$display = $_SESSION['display_name'];
 		}
 		$stmt->close();
 	}
 }
 
-$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
-=======
 // Replace the basic identity setup with a safer version
 $display_name = trim((string)($_SESSION['display_name'] ?? ''));
 $mobile_raw   = trim((string)($_SESSION['mobile'] ?? ''));
@@ -52,6 +51,12 @@ $mobile       = $mobile_raw;
 
 // If a proper name exists, use it; else fall back to mobile, then Guest
 $display = $display_name !== '' ? $display_name : ($mobile !== '' ? $mobile : 'Guest');
+
+// helper: resolve avatar path to URL
+if (!function_exists('avatar_url')) {
+	function avatar_url($path){ return $path ? '../'.ltrim($path,'/') : ''; }
+}
+$avatarUrl = avatar_url($dbAvatarPath ?? '');
 
 // Avatar: prefer first alphabet of name; if none, use 'G'
 $initialSrc = $display_name !== '' ? $display_name : 'Guest';
@@ -66,7 +71,7 @@ $kasangga_done = (int)($_SESSION['kasangga_completed'] ?? 0);
 $citizen_done = (int)($_SESSION['citizen_completed'] ?? 0);
 $skills = $_SESSION['skills'] ?? ['AI & Machine Learning', 'Frontend Development', 'Software Development'];
 $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
->>>>>>> 1f82e01e8c38e3769942fd360e983ed19b4001a0
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -626,6 +631,9 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 			text-align: center;
 			box-sizing: border-box;
 		}
+
+		/* Ensure uploaded avatar images fill the circle nicely */
+		.prof-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -638,7 +646,13 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 		<div class="prof-container">
 			<!-- Profile card -->
 			<section class="prof-kasangga" aria-label="Account">
-				<div class="prof-avatar" aria-hidden="true"><?php echo htmlspecialchars($avatar); ?></div>
+				<div class="prof-avatar" aria-hidden="true">
+					<?php if (!empty($avatarUrl)): ?>
+						<img src="<?php echo htmlspecialchars($avatarUrl, ENT_QUOTES, 'UTF-8'); ?>" alt="">
+					<?php else: ?>
+						<?php echo htmlspecialchars($avatar, ENT_QUOTES, 'UTF-8'); ?>
+					<?php endif; ?>
+				</div>
 				<div>
 					<p class="prof-name"><?php echo htmlspecialchars($display); ?></p>
 					<?php if ($mobile && $display !== $mobile): ?>
