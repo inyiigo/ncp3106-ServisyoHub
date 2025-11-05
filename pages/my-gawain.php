@@ -10,10 +10,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-<<<<<<< HEAD
-
-=======
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 	<style>
 		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
@@ -234,7 +230,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</div>
 		</main>
 	</div>
-<<<<<<< HEAD
 
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav">
@@ -268,7 +263,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</svg>
 			<span class="dash-label">Profile</span>
 		</a>
-=======
+
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav" id="dashNav">
 		<div class="nav-brand">
@@ -325,7 +320,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				<span class="dash-text">Log out</span>
 			</a>
 		</div>
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 	</nav>
 
 </body>

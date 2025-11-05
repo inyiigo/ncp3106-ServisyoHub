@@ -1,26 +1,81 @@
 <?php
-session_start();
-$display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'there');
+// Start output buffering (prevents "headers already sent" warnings)
+ob_start();
+
+// Start session safely before any output
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Capture mobile from POST if present and keep in session for future requests
+if (!empty($_POST['mobile'])) {
+    $_SESSION['mobile'] = trim($_POST['mobile']);
+}
+
+// Determine display name
+$display = $_SESSION['display_name'] ?? $_SESSION['mobile'] ?? 'there';
+
+// Create avatar initial
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+
+// Safe DB connect to fetch recent posts
+$configPath = __DIR__ . '/../includes/config.php';
+$mysqli = null;
+$dbAvailable = false;
+$lastConnError = '';
+if (file_exists($configPath)) { require_once $configPath; }
+$attempts = [];
+if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
+$attempts[] = ['localhost', 'root', '', 'servisyohub'];
+foreach ($attempts as $creds) {
+	list($h,$u,$p,$n) = $creds;
+	if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_OFF);
+	try {
+		$conn = @mysqli_connect($h,$u,$p,$n);
+		if ($conn && !mysqli_connect_errno()) { $mysqli = $conn; $dbAvailable = true; break; }
+		else { $lastConnError = mysqli_connect_error() ?: 'Connection failed'; if ($conn) { @mysqli_close($conn); } }
+	} catch (Throwable $ex) {
+		$lastConnError = $ex->getMessage();
+	} finally {
+		if (function_exists('mysqli_report')) mysqli_report(MYSQLI_REPORT_STRICT | MYSQLI_REPORT_ERROR);
+	}
+}
+function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
+function time_ago($dt){
+	$t = is_numeric($dt) ? (int)$dt : strtotime((string)$dt);
+	if (!$t) return '';
+	$d = time() - $t;
+	if ($d < 60) return $d.'s ago';
+	if ($d < 3600) return floor($d/60).'m ago';
+	if ($d < 86400) return floor($d/3600).'h ago';
+	if ($d < 604800) return floor($d/86400).'d ago';
+	return date('M j, Y', $t);
+}
+$jobs = [];
+if ($dbAvailable) {
+	$sql = "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, posted_at
+	        FROM jobs
+	        WHERE COALESCE(status,'open') IN ('open','pending')
+	        ORDER BY posted_at DESC, id DESC
+	        LIMIT 10";
+	if ($res = @mysqli_query($mysqli, $sql)) {
+		while ($row = mysqli_fetch_assoc($res)) $jobs[] = $row;
+		@mysqli_free_result($res);
+	}
+}
+
+// End buffering (send output)
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="UTF-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>My Gawain • Servisyo Hub</title>
+	<title>Home • Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-<<<<<<< HEAD
-=======
 	<style>
-<<<<<<< HEAD
-		/* Match bottom nav behavior from home-gawain.php and center at bottom */
-		.dash-bottom-nav {
-			position: fixed;
-			left: 50%;
-			right: auto;
-			bottom: 16px;
-=======
 		/* Side nav: compact by default, expand on hover */
 		.dash-aside { width: 64px; transition: width 200ms ease, box-shadow 180ms ease; overflow: hidden; }
 		.dash-aside:hover { width: 240px; box-shadow: 0 12px 28px rgba(2,6,23,.12); }
@@ -127,138 +182,69 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		/* Right-side full-height sidebar nav (from profile.php) */
 		.dash-float-nav {
 			position: fixed; top: 0; right: 0; bottom: 0;
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 			z-index: 1000;
-			width: max-content;
-			transform: translateX(-50%) scale(0.92);
-			transform-origin: bottom center;
-			transition: transform 180ms ease, box-shadow 180ms ease;
-			border: 3px solid #0078a6;
-			background: transparent;
-		}
-		.dash-bottom-nav:hover {
-			transform: translateX(-50%) scale(1);
-			box-shadow: 0 12px 28px rgba(2,6,23,.12);
-		}
-
-		/* page override: white background */
-		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
-
-		/* Blue bottom border on topbar */
-		.dash-topbar { border-bottom: 3px solid #0078a6; position: relative; z-index: 1; }
-
-		/* Background logo - transparent and behind UI */
-		.bg-logo {
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 25%;
-			max-width: 350px;
-			opacity: 0.15;
-			z-index: 0;
-			pointer-events: none;
-		}
-		.bg-logo img {
-			width: 100%;
-			height: auto;
-			display: block;
-		}
-
-		/* Ensure main content is above background */
-		.dash-shell {
-			position: relative;
-			z-index: 1;
-		}
-
-		/* Replace old tooltip nav with profile.php sidebar nav */
-		.dash-float-nav {
-			position: fixed;
-			top: 0;
-			right: 0;
-			bottom: 0;
-			z-index: 1000;
-			display: flex !important;
-			flex-direction: column;
-			justify-content: flex-start;
+			display: flex !important; flex-direction: column; justify-content: flex-start;
 			gap: 8px;
 			padding: 12px 8px 8px 8px;
 			border-right: 0;
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px;
-			border-bottom-left-radius: 16px;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+			border-top-left-radius: 16px; border-bottom-left-radius: 16px;
+			border-top-right-radius: 0; border-bottom-right-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
-			width: 56px;
-			overflow: hidden;
+			width: 56px; overflow: hidden;
 		}
-		.dash-float-nav:hover {
-			width: 200px;
-			box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset;
-		}
+		.dash-float-nav:hover { width: 200px; box-shadow: 0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset; }
 
-		/* Brand (top-centered) with hover swap: job_logo -> bluefont */
-		.dash-float-nav .nav-brand {
-			display: grid;
-			place-items: center;
-			position: relative;
-			height: 56px;
-			padding: 6px 0;
-		}
-		.dash-float-nav .nav-brand a {
-			display: block; width: 100%; height: 100%; position: relative; text-decoration: none;
-		}
+		/* Brand at top: job_logo by default, bluefont on hover */
+		.dash-float-nav .nav-brand { display: grid; place-items: center; position: relative; height: 56px; padding: 6px 0; }
+		.dash-float-nav .nav-brand a { display:block; width:100%; height:100%; position:relative; text-decoration:none; }
 		.dash-float-nav .nav-brand img {
-			position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-			display: block; object-fit: contain; pointer-events: none;
+			position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+			display:block; object-fit:contain; pointer-events:none;
 			transition: opacity .25s ease, transform .25s ease, width .3s ease;
 		}
-		.dash-float-nav .nav-brand .logo-small { width: 26px; height: auto; opacity: 1; }
-		.dash-float-nav .nav-brand .logo-wide { width: 160px; height: auto; opacity: 0; }
-		.dash-float-nav:hover .nav-brand .logo-small { opacity: 0; transform: translate(-50%, -50%) scale(.96); }
-		.dash-float-nav:hover .nav-brand .logo-wide { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+		.dash-float-nav .nav-brand .logo-small { width:26px; height:auto; opacity:1; }
+		.dash-float-nav .nav-brand .logo-wide { width:160px; height:auto; opacity:0; }
+		.dash-float-nav:hover .nav-brand .logo-small { opacity:0; transform:translate(-50%,-50%) scale(.96); }
+		.dash-float-nav:hover .nav-brand .logo-wide { opacity:1; transform:translate(-50%,-50%) scale(1); }
 
 		/* Groups */
-		.dash-float-nav > .nav-main { display: grid; gap: 8px; align-content: start; }
-		.dash-float-nav > .nav-settings { margin-top: auto; display: grid; gap: 8px; }
+		.dash-float-nav > .nav-main { display:grid; gap:8px; align-content:start; }
+		.dash-float-nav > .nav-settings { margin-top:auto; display:grid; gap:8px; }
 
 		/* Links and icons */
 		.dash-float-nav a {
 			position: relative;
 			width: 40px; height: 40px;
-			display: grid; grid-template-columns: 40px 1fr;
-			place-items: center; align-items: center;
-			border-radius: 12px; color: #0f172a; text-decoration: none;
+			display: grid; grid-template-columns: 40px 1fr; place-items: center; align-items: center;
+			border-radius: 12px; color: #0f172a; text-decoration: none; outline: none; white-space: nowrap;
 			transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4,0,0.2,1);
-			outline: none; white-space: nowrap;
 		}
 		.dash-float-nav:hover a { width: 184px; }
-		.dash-float-nav a:hover:not(.active) {
-			background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-			transform: scale(1.05);
-		}
+		.dash-float-nav a:hover:not(.active) { background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); transform: scale(1.05); }
 		.dash-float-nav a:focus-visible { box-shadow: 0 0 0 3px rgba(0,120,166,.3); }
-		.dash-float-nav a.active {
-			background: linear-gradient(135deg, #0078a6 0%, #006a94 100%);
-			color: #fff; box-shadow: 0 6px 18px rgba(0,120,166,.4);
+		.dash-float-nav a.active { background: linear-gradient(135deg, #0078a6 0%, #006a94 100%); color:#fff; box-shadow: 0 6px 18px rgba(0,120,166,.4); }
+		.dash-float-nav a.active::after {
+			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
+			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%); border-radius: 2px;
+			box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
-		.dash-float-nav .dash-icon {
-			width: 18px; height: 18px; justify-self: center; object-fit: contain; transition: transform .2s ease;
-		}
+		.dash-float-nav .dash-icon { width:18px; height:18px; justify-self:center; object-fit:contain; transition: transform .2s ease; }
 		.dash-float-nav a:hover .dash-icon { transform: scale(1.1); }
-		/* Browse uses the logo image and no text */
 		.dash-float-nav a .dash-text {
-			opacity: 0; transform: translateX(-10px);
+			opacity:0; transform:translateX(-10px);
 			transition: opacity .3s cubic-bezier(0.4,0,0.2,1) .1s, transform .3s cubic-bezier(0.4,0,0.2,1) .1s;
-			font-weight: 800; font-size: .85rem; color: inherit; justify-self: start; padding-left: 8px;
+			font-weight:800; font-size:.85rem; color:inherit; justify-self:start; padding-left:8px;
 		}
-		.dash-float-nav:hover a .dash-text { opacity: 1; transform: translateX(0); }
+		.dash-float-nav:hover a .dash-text { opacity:1; transform:translateX(0); }
 
 		/* Remove top bar on this page */
 		.dash-topbar { display: none !important; }
+
+		/* Remove bottom nav on this page */
+		.dash-bottom-nav { display: none !important; }
 
 		/* Sidebar nav: match settings.php colors and remove border/inset line */
 		.dash-float-nav {
@@ -266,24 +252,19 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			border: none !important;
 			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important; /* no inset line */
 		}
+		.dash-float-nav:hover {
+			box-shadow: 0 12px 32px rgba(0,0,0,.28) !important; /* override hover inset shadow */
+		}
 		.dash-float-nav a { color: #fff !important; }
 		.dash-float-nav a:hover:not(.active) {
 			background: rgba(255,255,255,.15) !important;
 			color: #fff !important;
 		}
-		/* Active state readable on blue background */
 		.dash-float-nav a.active {
 			background: rgba(255,255,255,.22) !important;
 			color: #fff !important;
 			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
 		}
-<<<<<<< HEAD
-		.dash-float-nav a.active::after {
-			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%);
-			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
-		}
-=======
 		/* Remove the active left strip line */
 		.dash-float-nav a.active::after { display: none !important; }
 
@@ -298,9 +279,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		/* Re-bold specific titles (e.g., "Household Cleaning (2-Bedroom)") */
 		.svc-title,
 		.fc-title { font-weight: var(--fw-bold) !important; }
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 	</style>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
@@ -308,46 +287,95 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		<img src="../assets/images/job_logo.png" alt="" />
 	</div>
 
+	<div class="dash-overlay"></div>
 	<div class="dash-shell">
 		<main class="dash-content">
-			<header class="mq-header">
-				<h1 class="mq-title">My Gawain</h1>
-				<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
-					<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
-					<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
-					<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
-				</nav>
-				<div class="mq-filter-row">
-					<button class="mq-filter" id="mqFilterBtn" type="button" aria-haspopup="dialog" aria-controls="mqFilterModal" aria-expanded="false">Filter: <strong id="mqFilterLabel">All</strong></button>
+			<!-- NEW: search bar below hero -->
+			<section class="svc-search" aria-label="Search gawain">
+				<div class="svc-search-box">
+					<svg class="svc-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+					</svg>
+					<input class="svc-search-input" type="search" name="svc-search" placeholder="Search gawain (e.g., cleaning, plumbing)" aria-label="Search gawain">
 				</div>
-			</header>
-
-			<section class="mq-empty" aria-label="Empty state">
-				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
-				<a class="btn mq-browse" href="./home-gawain.php">Browse gawain</a>
+				<div class="notify-wrap">
+					<button type="button" class="svc-notify-btn" aria-label="Notifications" title="Notifications" aria-expanded="false" aria-controls="svcNotifyDrawer">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>
+							<path d="M13.73 21a2 2 0 01-3.46 0"/>
+						</svg>
+						<span class="svc-badge" data-count="3">3</span>
+					</button>
+					<div id="svcNotifyDrawer" class="svc-notify-drawer" role="dialog" aria-label="Notifications" hidden>
+						<div class="svc-notify-header">Notifications</div>
+						<div class="svc-tabs" role="tablist" aria-label="Notification role">
+							<button class="svc-tab is-active" id="tabKasangga" role="tab" aria-selected="true" data-role="kasangga">As a Kasangga</button>
+							<button class="svc-tab" id="tabCitizen" role="tab" aria-selected="false" data-role="citizen">As a Citizen</button>
+						</div>
+						<ul class="svc-notify-list">
+							<li class="svc-notify-item" data-role="kasangga">
+								<div>
+									<p class="title">New job posted near you</p>
+									<p class="meta">Plumbing • ₱1,500 • Today</p>
+								</div>
+								<time class="time">2m ago</time>
+							</li>
+							<li class="svc-notify-item" data-role="citizen">
+								<div>
+									<p class="title">Your post got a reply</p>
+									<p class="meta">Cleaning • 1 offer</p>
+								</div>
+								<time class="time">12m ago</time>
+							</li>
+							<li class="svc-notify-item" data-role="kasangga">
+								<div>
+									<p class="title">Reminder: Job starts tomorrow</p>
+									<p class="meta">Painting • 9:00 AM</p>
+								</div>
+								<time class="time">1h ago</time>
+							</li>
+						</ul>
+					</div>
+				</div>
 			</section>
 
-			<!-- Filter Bottom Sheet Modal -->
-			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true">
-				<div class="mq-filter-backdrop" data-filter-close></div>
-				<div class="mq-filter-sheet" role="document">
-					<div class="mq-filter-header">
-						<button class="mq-filter-reset" id="mqFilterReset" type="button">Reset</button>
-						<h3 class="mq-filter-title" id="mqFilterTitle">Apply filters</h3>
-						<button class="mq-filter-close" type="button" aria-label="Close" data-filter-close>&times;</button>
-					</div>
-					<form class="mq-filter-form" id="mqFilterForm">
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
+			<!-- Categories carousel: full list + arrows -->
+			<div class="svc-cats-wrap" aria-label="Categories carousel">
+				<button type="button" class="cat-nav-btn prev" id="catPrev" aria-label="Previous categories">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+				</button>
+				<nav id="svcCats" class="svc-cats" aria-label="Categories">
+					<button type="button" class="svc-cat active" data-cat="All">All</button>
+					<button type="button" class="svc-cat" data-cat="Business & admin">Business &amp; admin</button>
+					<button type="button" class="svc-cat" data-cat="Care services">Care services</button>
+					<button type="button" class="svc-cat" data-cat="Creative">Creative</button>
+					<button type="button" class="svc-cat" data-cat="Household">Household</button>
+					<button type="button" class="svc-cat" data-cat="Part-time">Part-time</button>
+					<button type="button" class="svc-cat" data-cat="Research">Research</button>
+					<button type="button" class="svc-cat" data-cat="Social media">Social media</button>
+					<button type="button" class="svc-cat" data-cat="Talents">Talents</button>
+					<button type="button" class="svc-cat" data-cat="Teach me">Teach me</button>
+					<button type="button" class="svc-cat" data-cat="Tech & IT">Tech &amp; IT</button>
+					<button type="button" class="svc-cat" data-cat="Others">Others</button>
+				</nav>
+				<button type="button" class="cat-nav-btn next" id="catNext" aria-label="Next categories">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+				</button>
+			</div>
 
-						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
-					</form>
+			<div class="results-bar">
+				<div class="results-left">
+					<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+					<span><?php echo (int)count($jobs); ?> results</span>
+				</div>
+				<div class="results-right">
+					<a href="./filter.php" class="toggle-btn" aria-label="Filter">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M3 5h18l-7 8v6l-4 2v-8L3 5z"/>
+						</svg>
+					</a>
 				</div>
 			</div>
-<<<<<<< HEAD
-=======
 
 			<div class="svc-notify-backdrop" hidden></div>
 
@@ -456,70 +484,68 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				</a>
 			</section>
 
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 		</main>
+
+		<aside class="dash-aside">
+			<nav class="dash-nav" aria-label="Main navigation">
+				<a href="./home-gawain.php" class="active" aria-label="Browse">
+					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+					</svg>
+					<span>Browse</span>
+				</a>
+				<a href="./my-gawain.php" aria-label="My Gawain">
+					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+					<span>My Gawain</span>
+				</a>
+				<a href="./clients-profile.php" aria-label="Profile">
+					<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+					<span>Profile</span>
+				</a>
+			</nav>
+		</aside>
 	</div>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-	<!-- Floating bottom navigation -->
+	<!-- Floating bottom navigation (removed) -->
+	<!--
 	<nav class="dash-bottom-nav">
+		<a href="./home-gawain.php" class="active" aria-label="Browse">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
+			</svg>
+			<span>Browse</span>
+		</a>
 		<a href="./post.php" aria-label="Post">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
 			<span>Post</span>
 		</a>
-=======
-	<!-- Floating right-side navigation (replaces bottom nav) -->
-	<nav class="dash-float-nav">
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
-		<a href="./home-gawain.php" aria-label="Browse">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-			</svg>
-			<span class="dash-label">Browse</span>
-		</a>
-<<<<<<< HEAD
-=======
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
-			</svg>
-			<span class="dash-label">Post</span>
-		</a>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
-		<a href="./my-gawain.php" class="active" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M4 7h16M4 12h10M4 17h7"/>
-			</svg>
-			<span class="dash-label">My Gawain</span>
+		<a href="./my-gawain.php" aria-label="My Gawain">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
+			<span>My Gawain</span>
 		</a>
 		<a href="./chats.php" aria-label="Chats">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-			</svg>
-			<span class="dash-label">Chats</span>
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+			<span>Chats</span>
 		</a>
 		<a href="./profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
-			</svg>
-			<span class="dash-label">Profile</span>
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
+			<span>Profile</span>
 		</a>
-=======
-	<!-- Replace previous tooltip nav with profile.php sidebar nav -->
+	</nav>
+	-->
+
+	<!-- Right-side full-height sidebar navigation (copied from profile.php) -->
 	<nav class="dash-float-nav" id="dashNav">
 		<div class="nav-brand">
 			<a href="./home-gawain.php" title="">
-				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub logo">
+				<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub">
 				<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
 			</a>
 		</div>
 
 		<div class="nav-main">
 			<a href="./profile.php" aria-label="Profile">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
-				</svg>
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
 				<span class="dash-text">Profile</span>
 			</a>
 			<a href="./post.php" aria-label="Post">
@@ -528,31 +554,20 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				</svg>
 				<span class="dash-text">Post</span>
 			</a>
-			<a href="./my-gawain.php" class="active" aria-current="page" aria-label="My Gawain">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M4 7h16M4 12h10M4 17h7"/>
-				</svg>
+			<a href="./my-gawain.php" aria-label="My Gawain">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h7"/></svg>
 				<span class="dash-text">My Gawain</span>
 			</a>
 			<a href="./chats.php" aria-label="Chats">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-				</svg>
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 				<span class="dash-text">Chats</span>
 			</a>
 		</div>
 
 		<div class="nav-settings">
-<<<<<<< HEAD
-			<a href="./settings.php" aria-label="Settings">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35 .25 .806 .272 1.204 .107 .397 -.165 .71 -.505 .78 -.93l .149 -.894z"/>
-					<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-=======
 			<a href="./about-us.php" aria-label="About Us">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
 				</svg>
 				<span class="dash-text">About Us</span>
 			</a>
@@ -569,7 +584,205 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				<span class="dash-text">Log out</span>
 			</a>
 		</div>
-
 	</nav>
+
+	<script>
+	// Categories carousel + search + filter logic
+	(function(){
+		const row = document.getElementById('svcCats');
+		const prev = document.getElementById('catPrev');
+		const next = document.getElementById('catNext');
+		const search = document.querySelector('.svc-search-input');
+		const feedCards = document.querySelectorAll('.feed-card');
+		const svcCards = document.querySelectorAll('.svc-card');
+		
+		if (!row || !prev || !next) return;
+
+		let activeCategory = 'All';
+
+		function updateArrows(){
+			const max = row.scrollWidth - row.clientWidth - 1;
+			prev.disabled = row.scrollLeft <= 0;
+			next.disabled = row.scrollLeft >= max;
+		}
+		
+		function scrollByStep(dir){
+			const step = Math.max(160, Math.floor(row.clientWidth * 0.9));
+			row.scrollBy({ left: dir * step, behavior: 'smooth' });
+			setTimeout(updateArrows, 250);
+		}
+		
+		prev.addEventListener('click', ()=> scrollByStep(-1));
+		next.addEventListener('click', ()=> scrollByStep(1));
+		row.addEventListener('scroll', updateArrows, { passive: true });
+		window.addEventListener('resize', updateArrows);
+
+		// Category click: activate, fill search, filter posts
+		row.addEventListener('click', (e)=>{
+			const btn = e.target.closest('.svc-cat');
+			if (!btn) return;
+			
+			// Update active state
+			row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+			btn.classList.add('active');
+			
+			activeCategory = btn.getAttribute('data-cat') || 'All';
+			
+			// Fill/clear search box
+			if (search) {
+				if (activeCategory === 'All') {
+					search.value = '';
+				} else {
+					search.value = activeCategory;
+				}
+			}
+			
+			// Filter Recent Posts by category
+			filterPosts(activeCategory);
+		});
+
+		function filterPosts(category){
+			// Filter feed cards (Recent Posts)
+			feedCards.forEach(card => {
+				const cardCat = card.querySelector('.fc-cat')?.textContent.trim() || '';
+				if (category === 'All' || cardCat === category) {
+					card.style.display = '';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+
+			// Filter service list cards
+			svcCards.forEach(card => {
+				const cardTitle = card.querySelector('.svc-title')?.textContent.trim().toLowerCase() || '';
+				if (category === 'All' || cardTitle.includes(category.toLowerCase())) {
+					card.style.display = '';
+				} else {
+					card.style.display = 'none';
+				}
+			});
+		}
+
+		// Search box typing also filters
+		if (search) {
+			search.addEventListener('input', ()=>{
+				const term = search.value.trim().toLowerCase();
+				
+				// If search matches a category, activate it
+				const matchBtn = Array.from(row.querySelectorAll('.svc-cat')).find(b => {
+					const cat = (b.getAttribute('data-cat') || '').toLowerCase();
+					return cat === term;
+				});
+				
+				if (matchBtn) {
+					row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+					matchBtn.classList.add('active');
+					activeCategory = matchBtn.getAttribute('data-cat') || 'All';
+					filterPosts(activeCategory);
+				} else if (term === '') {
+					// Empty search = All
+					const allBtn = row.querySelector('.svc-cat[data-cat="All"]');
+					if (allBtn) {
+						row.querySelectorAll('.svc-cat').forEach(b=>b.classList.remove('active'));
+						allBtn.classList.add('active');
+						activeCategory = 'All';
+						filterPosts('All');
+					}
+				} else {
+					// Free-text search: show all that match
+					feedCards.forEach(card => {
+						const text = card.textContent.toLowerCase();
+						card.style.display = text.includes(term) ? '' : 'none';
+					});
+					svcCards.forEach(card => {
+						const text = card.textContent.toLowerCase();
+						card.style.display = text.includes(term) ? '' : 'none';
+					});
+				}
+			});
+		}
+
+		updateArrows();
+	})();
+	</script>
+
+	<script>
+	// Notification drawer logic
+	(function(){
+		const btn = document.querySelector('.svc-notify-btn');
+		const drawer = document.getElementById('svcNotifyDrawer');
+		const backdrop = document.querySelector('.svc-notify-backdrop');
+		const tabs = drawer ? drawer.querySelectorAll('.svc-tab') : null;
+		const items = drawer ? drawer.querySelectorAll('.svc-notify-item') : null;
+		if (!btn || !drawer || !backdrop) return;
+
+		function openDrawer(){
+			drawer.hidden = false; // ensure it's in layout for transition
+			requestAnimationFrame(()=>{
+				drawer.classList.add('is-open');
+				backdrop.classList.add('is-open');
+			});
+			btn.setAttribute('aria-expanded','true');
+		}
+
+		function closeDrawer(){
+			drawer.classList.remove('is-open');
+			backdrop.classList.remove('is-open');
+			btn.setAttribute('aria-expanded','false');
+			// Wait for transition to end before hiding
+			setTimeout(()=>{ drawer.hidden = true; }, 180);
+		}
+
+		btn.addEventListener('click', (e)=>{
+			e.stopPropagation();
+			const isOpen = btn.getAttribute('aria-expanded') === 'true';
+			if (isOpen) closeDrawer(); else openDrawer();
+		});
+
+		backdrop.addEventListener('click', closeDrawer);
+
+		document.addEventListener('keydown', (e)=>{
+			if (e.key === 'Escape') closeDrawer();
+		});
+
+		// Close when clicking outside the drawer
+		document.addEventListener('click', (e)=>{
+			if (!drawer.contains(e.target) && !btn.contains(e.target)) {
+				closeDrawer();
+			}
+		});
+
+		// Tabs: filter items by data-role
+		function applyRoleFilter(role){
+			if (!items) return;
+			items.forEach(it => {
+				const r = it.getAttribute('data-role') || 'kasangga';
+				it.style.display = (role === 'all' || r === role) ? '' : 'none';
+			});
+		}
+
+		if (tabs && tabs.length) {
+			// Default to kasangga tab active
+			applyRoleFilter('kasangga');
+			tabs.forEach(tab => {
+				tab.addEventListener('click', () => {
+					const role = tab.getAttribute('data-role') || 'kasangga';
+					tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
+					tab.classList.add('is-active');
+					tab.setAttribute('aria-selected','true');
+					applyRoleFilter(role);
+				});
+			});
+		}
+
+		// Optional: reflect count from data-count attribute
+		const badge = btn.querySelector('.svc-badge');
+		if (badge) {
+			const count = parseInt(badge.getAttribute('data-count')||'0',10);
+			badge.textContent = String(count);
+			if (!count) badge.setAttribute('hidden',''); else badge.removeAttribute('hidden');
+		}
+	})();
+	</script>
 </body>
 </html>
