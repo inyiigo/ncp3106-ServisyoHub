@@ -158,7 +158,9 @@ ob_end_flush();
   <style>
     .detail-wrap { max-width: 980px; margin: clamp(16px, 6vh, 80px) auto 24px; padding: 0 16px; }
     .detail-header { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom: 8px; }
-    .detail-back { display:inline-flex; align-items:center; gap:8px; color:#0f172a; text-decoration:none; font-weight:800; }
+    /* Back button style copied from make-offer */
+    .back-btn { display:inline-grid; place-items:center; width:38px; height:38px; border-radius:10px; border:2px solid #e2e8f0; color:#0f172a; text-decoration:none; }
+    .back-btn:hover { background:#f8fafc; }
     .detail-title { margin: 6px 0 0; font-weight: 900; font-size: clamp(22px, 5vw, 32px); }
 
     .price-row { display:flex; align-items:center; gap:12px; margin: 8px 0 12px; }
@@ -277,9 +279,8 @@ ob_end_flush();
 </head>
 <body class="theme-profile-bg page-fade is-ready">
   <header class="dash-topbar detail-topbar">
-    <a class="detail-back" href="./home-gawain.php" aria-label="Back to posts">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-      <span class="sr-only">Back</span>
+    <a class="back-btn" href="./home-gawain.php" aria-label="Back to posts">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
     </a>
   </header>
 
