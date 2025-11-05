@@ -157,14 +157,41 @@ ob_end_flush();
     .detail-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     @media (min-width: 980px){ .detail-grid { grid-template-columns: 1fr 360px; align-items: start; } }
     .detail-aside { position: sticky; top: 80px; align-self: start; }
+    /* Make the main details card span full width to align with the Ask box margins */
+    @media (min-width: 980px){
+      .detail-main { grid-column: 1 / -1; }
+      .detail-aside { grid-column: 1 / -1; position: static; top: auto; }
+    }
 
   .meta-grid { display:grid; grid-template-columns: 1fr; gap: 12px; margin: 14px 0; }
   .meta-card { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:12px; display:grid; gap:6px; }
   /* Single-box meta layout */
-  .meta-merged { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:12px; margin: 14px 0; }
+  .meta-merged { background:#f8fafc; border:2px solid #e2e8f0; border-radius:12px; padding:12px; margin: 14px 0; }
   .meta-merged .meta-grid2 { display:grid; grid-template-columns: 1fr; gap: 12px; }
   @media (min-width:720px){ .meta-merged .meta-grid2 { grid-template-columns: 1fr 1fr; } }
   .meta-item { display:grid; gap:6px; }
+  /* subtle separators to visually unify as one box */
+  .meta-merged .meta-item { padding: 4px 2px; }
+  .meta-merged .meta-item:not(:nth-child(1)) { border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  @media (min-width:720px){
+    .meta-merged .meta-item { border-top: 0; }
+    .meta-merged .meta-item:nth-child(n+3) { border-top: 1px solid #e2e8f0; padding-top: 10px; }
+  }
+  /* compact single-box list layout */
+  .info-list { display:grid; gap:10px; margin-top:8px; position: relative; }
+  @media (min-width:720px){
+    .info-list { grid-template-columns: 1fr 1fr; column-gap: 24px; row-gap: 12px; }
+    .info-list::after { content:""; position:absolute; top:0; bottom:0; left:50%; width:1px; background:#e2e8f0; transform: translateX(-0.5px); }
+  }
+  .info-row { display:grid; gap:4px; }
+  .info-row .label { font-weight:600; font-size:.9rem; color:#64748b; display:inline-flex; align-items:center; gap:6px; }
+  .info-row .label .ico { width:14px; height:14px; color:#64748b; }
+  .info-row .value { font-weight:800; font-size:1.05rem; color:#0f172a; }
+  .meta-divider { height:1px; background:#e2e8f0; margin:10px 0; }
+  /* description inside the unified box */
+  .merged-desc { display:grid; gap:6px; }
+  .merged-desc h3 { margin:0; font-size:.95rem; font-weight:600; color:#64748b; }
+  .merged-desc pre { margin:0; white-space: pre-wrap; font-family: inherit; color:#0f172a; }
     .meta-title { font-weight:600; font-size:.9rem; color:#64748b; margin:0; }
     .meta-item .value { font-weight:800; font-size:1.05rem; color:#0f172a; }
     .poster { display:grid; grid-template-columns: 42px 1fr; gap:10px; align-items:center; }
@@ -178,20 +205,29 @@ ob_end_flush();
   .ask-panel { background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px; box-shadow: 0 6px 16px rgba(2,6,23,.04); }
   .ask-title { margin:0 0 4px; font-weight:900; font-size:1.05rem; display:flex; align-items:center; gap:8px; }
   .ask-sub { margin:0 0 10px; color:#64748b; font-size:.92rem; }
-  .qa-preview { border:2px solid #e2e8f0; border-radius:12px; padding:10px; display:grid; gap:10px; }
-  .qa-item { display:grid; gap:6px; }
-  .qa-head { display:flex; align-items:center; gap:8px; }
-  .qa-avatar { width:32px; height:32px; border-radius:50%; background:#e2e8f0; color:#0f172a; display:grid; place-items:center; font-weight:900; overflow:hidden; }
-  .qa-avatar img { width:100%; height:100%; object-fit:cover; display:block; }
-  .qa-user { font-weight:800; }
-  .qa-time { color:#94a3b8; font-size:.85rem; }
-  .qa-text { margin:0; color:#0f172a; }
+  /* Comment-style thread */
+  .comment-list { display:grid; gap:10px; }
+  .comment { display:grid; grid-template-columns: 36px 1fr; gap:10px; align-items:flex-start; }
+  .comment .avatar { width:36px; height:36px; border-radius:50%; overflow:hidden; background:#e2e8f0; display:grid; place-items:center; font-weight:900; color:#0f172a; }
+  .comment .avatar img { width:100%; height:100%; object-fit:cover; display:block; }
+  .bubble { background:#fff; border:2px solid #e2e8f0; border-radius:18px; padding:10px 12px; box-shadow: 0 1px 0 rgba(2,6,23,.02); }
+  .bubble .name { font-weight:900; color:#0f172a; display:block; }
+  .bubble .text { margin:4px 0 6px; color:#0f172a; }
+  .bubble .meta { color:#94a3b8; font-size:.85rem; display:flex; gap:10px; }
+  .bubble .meta a { color:#64748b; text-decoration:none; font-weight:800; }
+  .bubble .meta a:hover { text-decoration:underline; }
+  .comment .replies { margin-left:46px; display:grid; gap:8px; }
+  .reply-form { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:center; margin-top:6px; }
+  .reply-form .ask-av { width:32px; height:32px; }
   .ask-link { display:block; text-align:center; margin:10px 0; color:#0f172a; font-weight:800; text-decoration:underline; }
   .ask-input { display:grid; grid-template-columns: 36px 1fr; gap:10px; align-items:center; margin-top:8px; }
   .ask-av { width:36px; height:36px; border-radius:50%; background:#e2e8f0; display:grid; place-items:center; font-weight:900; color:#0f172a; overflow:hidden; }
   .ask-av img { width:100%; height:100%; object-fit:cover; display:block; }
-  .ask-field { width:100%; border:1px solid #e2e8f0; border-radius:12px; padding:12px; background:#f8fafc; color:#0f172a; }
+  .ask-field { width:100%; border:2px solid #e2e8f0; border-radius:999px; padding:10px 14px; background:#fff; color:#0f172a; }
   .ask-field::placeholder { color:#94a3b8; }
+  /* inset style when ask lives inside the meta-merged card */
+  .ask-inset { background: transparent; border: 0; padding: 0; box-shadow: none; }
+  .ask-inset .ask-title { margin-top: 6px; }
     .desc-card pre { margin: 0; white-space: pre-wrap; font-family: inherit; color:#0f172a; }
 
   .footer-bar { position: sticky; bottom: 0; background: rgba(255,255,255,.96); border-top: 0; backdrop-filter: saturate(110%) blur(6px); }
@@ -241,95 +277,118 @@ ob_end_flush();
                   <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
                 </div>
               </div>
-            </div>
-            </div>
+              <div class="meta-divider" role="presentation"></div>
 
-            <div class="meta-item">
-              <h3 class="meta-title">Location</h3>
-              <div class="value"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></div>
-            </div>
+              <div class="info-list">
+                <div class="info-row">
+                  <div class="label">
+                    <span class="ico" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                    </span>
+                    <span>Location</span>
+                  </div>
+                  <div class="value"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></div>
+                </div>
+                <div class="info-row">
+                  <div class="label">
+                    <span class="ico" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                    </span>
+                    <span>Completion Date</span>
+                  </div>
+                  <div class="value"><?php echo $job['date_needed'] ? e($job['date_needed']) : 'Anytime'; ?></div>
+                </div>
+                <div class="info-row">
+                  <div class="label">
+                    <span class="ico" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </span>
+                    <span>Duration</span>
+                  </div>
+                  <div class="value"><?php echo e($durationLabel); ?></div>
+                </div>
+                <div class="info-row">
+                  <div class="label">
+                    <span class="ico" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H7l-4 2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/></svg>
+                    </span>
+                    <span>Offers Received</span>
+                  </div>
+                  <div class="value"><?php echo e($offers); ?></div>
+                </div>
+                <div class="info-row">
+                  <div class="label">
+                    <span class="ico" aria-hidden="true">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </span>
+                    <span>Heroes Required</span>
+                  </div>
+                  <div class="value"><?php echo (int)($job['workers_required'] ?? 1); ?></div>
+                </div>
+              </div>
 
-            <div class="meta-item">
-              <h3 class="meta-title">Completion Date</h3>
-              <div class="value"><?php echo $job['date_needed'] ? e($job['date_needed']) : 'Anytime'; ?></div>
-            </div>
+              <div class="meta-divider" role="presentation"></div>
+              <div class="merged-desc" aria-label="Description">
+                <h3>Description</h3>
+                <pre><?php echo e($job['description']); ?></pre>
+              </div>
 
-            <div class="meta-item">
-              <h3 class="meta-title">Duration</h3>
-              <div class="value"><?php echo e($durationLabel); ?></div>
-            </div>
+              <div class="meta-divider" role="presentation"></div>
+              <section class="ask-panel ask-inset" id="ask-box" aria-label="Ask a question">
+                <h3 class="ask-title">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
+                  Ask a question
+                </h3>
+                <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
 
-            <div class="meta-item">
-              <h3 class="meta-title">Offers Received</h3>
-              <div class="value"><?php echo e($offers); ?></div>
-            </div>
+                <div class="comment-list" aria-label="Recent Q&A">
+                  <div class="comment">
+                    <div class="avatar">
+                      <img src="../assets/images/avatar-placeholder.png" alt="Jericho bien V." onerror="this.style.display='none'" />
+                    </div>
+                    <div class="bubble">
+                      <span class="name">Jericho bien V.</span>
+                      <p class="text">location po??</p>
+                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a></div>
+                    </div>
+                    <div class="replies"></div>
+                  </div>
+                  <div class="comment">
+                    <div class="avatar">
+                      <?php if (!empty($clientAvatarUrl)) : ?>
+                        <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
+                      <?php else: ?>
+                        <?php echo e(strtoupper($avatar)); ?>
+                      <?php endif; ?>
+                    </div>
+                    <div class="bubble">
+                      <span class="name"><?php echo e($job['user_name']); ?></span>
+                      <p class="text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
+                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a></div>
+                    </div>
+                    <div class="replies"></div>
+                  </div>
+                </div>
 
-            <div class="meta-item">
-              <h3 class="meta-title">Heroes Required</h3>
-              <div class="value"><?php echo (int)($job['workers_required'] ?? 1); ?></div>
+                <a href="#" class="ask-link">View all 2 questions and answers</a>
+
+                <div class="ask-input">
+                  <div class="ask-av">
+                    <?php if (!empty($askerAvatarUrl)) : ?>
+                      <img src="<?php echo e($askerAvatarUrl); ?>" alt="You" />
+                    <?php else: ?>
+                      <?php echo e($askerInitial); ?>
+                    <?php endif; ?>
+                  </div>
+                  <input class="ask-field" type="text" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" />
+                </div>
+              </section>
             </div>
           </div>
         </div>
-
-        <section class="desc-card" aria-label="Description">
-          <h3>Description</h3>
-          <pre><?php echo e($job['description']); ?></pre>
-        </section>
       </div>
 
-      <aside class="detail-aside" id="ask-box" aria-label="Ask a question">
-        <div class="ask-panel">
-          <h3 class="ask-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
-            Ask a question
-          </h3>
-          <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
-
-          <div class="qa-preview" aria-label="Recent Q&A">
-            <div class="qa-item">
-              <div class="qa-head">
-                <div class="qa-avatar">
-                  <img src="../assets/images/avatar-placeholder.png" alt="Jericho bien V." onerror="this.style.display='none'" />
-                </div>
-                <div>
-                  <div class="qa-user">Jericho bien V.</div>
-                  <div class="qa-time">4m ago</div>
-                </div>
-              </div>
-              <p class="qa-text">location po??</p>
-            </div>
-            <div class="qa-item">
-              <div class="qa-head">
-                <div class="qa-avatar">
-                  <?php if (!empty($clientAvatarUrl)) : ?>
-                    <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
-                  <?php else: ?>
-                    <?php echo e(strtoupper($avatar)); ?>
-                  <?php endif; ?>
-                </div>
-                <div>
-                  <div class="qa-user"><?php echo e($job['user_name']); ?></div>
-                  <div class="qa-time">4m ago</div>
-                </div>
-              </div>
-              <p class="qa-text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
-            </div>
-          </div>
-
-          <a href="#" class="ask-link">View all 2 questions and answers</a>
-
-          <div class="ask-input">
-            <div class="ask-av">
-              <?php if (!empty($askerAvatarUrl)) : ?>
-                <img src="<?php echo e($askerAvatarUrl); ?>" alt="You" />
-              <?php else: ?>
-                <?php echo e($askerInitial); ?>
-              <?php endif; ?>
-            </div>
-            <input class="ask-field" type="text" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" />
-          </div>
-        </div>
-      </aside>
+      
     </div>
   </main>
 
