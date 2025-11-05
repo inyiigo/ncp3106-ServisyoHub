@@ -10,8 +10,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 	<title>My Gawain • Servisyo Hub</title>
 	<link rel="stylesheet" href="../assets/css/styles.css" />
 	<script defer src="../assets/js/script.js"></script>
-<<<<<<< HEAD
-=======
 	<style>
 		/* Match bottom nav behavior from home-gawain.php and center at bottom */
 		.dash-bottom-nav {
@@ -174,7 +172,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
 		}
 	</style>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
@@ -222,54 +219,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</div>
 		</main>
 	</div>
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-	<!-- Floating bottom navigation -->
-	<nav class="dash-bottom-nav">
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/></svg>
-			<span>Post</span>
-		</a>
-=======
 	<!-- Floating right-side navigation (replaces bottom nav) -->
-	<nav class="dash-float-nav">
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
-		<a href="./home-gawain.php" aria-label="Browse">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-			</svg>
-			<span class="dash-label">Browse</span>
-		</a>
-<<<<<<< HEAD
-=======
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
-			</svg>
-			<span class="dash-label">Post</span>
-		</a>
->>>>>>> 1501966ac8735e5c32a1fc11945ef6cd1f34443d
-		<a href="./my-gawain.php" class="active" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M4 7h16M4 12h10M4 17h7"/>
-			</svg>
-			<span class="dash-label">My Gawain</span>
-		</a>
-		<a href="./chats.php" aria-label="Chats">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-			</svg>
-			<span class="dash-label">Chats</span>
-		</a>
-		<a href="./profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
-			</svg>
-			<span class="dash-label">Profile</span>
-		</a>
-=======
-	<!-- Replace previous tooltip nav with profile.php sidebar nav -->
 	<nav class="dash-float-nav" id="dashNav">
 		<div class="nav-brand">
 			<a href="./home-gawain.php" title="">
@@ -314,7 +264,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				<span class="dash-text">Settings</span>
 			</a>
 		</div>
->>>>>>> a8b4b09a0cd9d44b90e40dd86643fbb2c86524da
 	</nav>
+
 </body>
 </html>
