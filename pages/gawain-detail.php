@@ -70,6 +70,7 @@ function url_from_path($p){
 }
 
 $clientAvatarUrl = '';
+$jobOwnerId = 0;
 // Best-effort: try jobs.user_id -> users.avatar
 if ($id > 0 && isset($conn) && $conn) {
   // 1) try via user_id column
@@ -79,6 +80,7 @@ if ($id > 0 && isset($conn) && $conn) {
       $res = @mysqli_stmt_get_result($stmt);
       if ($res && ($row = @mysqli_fetch_assoc($res)) && !empty($row['user_id'])) {
         $uid = (int)$row['user_id'];
+        $jobOwnerId = $uid;
         if ($u = @mysqli_prepare($conn, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
           mysqli_stmt_bind_param($u, 'i', $uid);
           if (@mysqli_stmt_execute($u)) {
@@ -132,6 +134,16 @@ if (!empty($_SESSION['user_id']) && isset($conn) && $conn) {
     }
     @mysqli_stmt_close($s4);
   }
+}
+
+// Determine if current viewer is the owner of this post
+$isOwner = false;
+if (!empty($_SESSION['user_id']) && $jobOwnerId) {
+  $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
+} elseif ($jobOwnerId === 0) {
+  // Fallback: compare display name and job user_name if user_id isn't available
+  $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
+  $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)$job['user_name'])));
 }
 
 ob_end_flush();
@@ -216,15 +228,36 @@ ob_end_flush();
   .bubble .meta { color:#94a3b8; font-size:.85rem; display:flex; gap:10px; }
   .bubble .meta a { color:#64748b; text-decoration:none; font-weight:800; }
   .bubble .meta a:hover { text-decoration:underline; }
-  .comment .replies { margin-left:46px; display:grid; gap:8px; }
+  .bubble .meta a.delete-link { color:#ef4444; }
+  /* Place replies in the text column so right edges align with parent bubble */
+  .comment .replies { grid-column: 2 / -1; margin-left:0; padding-left:0; width: 100%; display:grid; gap:8px; }
+  /* Smaller look for sub-comments */
+  .replies .comment { grid-template-columns: 28px 1fr; gap:8px; }
+  .replies .comment .avatar { width:28px; height:28px; }
+  .replies .comment .bubble { border-radius:14px; padding:8px 10px; }
+  .replies .comment .bubble .name { font-size:.92rem; }
+  .replies .comment .bubble .text { font-size:.95rem; }
+  .replies .comment .bubble .meta { font-size:.8rem; }
   .reply-form { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:center; margin-top:6px; }
   .reply-form .ask-av { width:32px; height:32px; }
-  .ask-link { display:block; text-align:center; margin:10px 0; color:#0f172a; font-weight:800; text-decoration:underline; }
+  /* Make nested reply forms match smaller grid */
+  .replies .reply-form { grid-template-columns:28px 1fr; }
+  
   .ask-input { display:grid; grid-template-columns: 36px 1fr; gap:10px; align-items:center; margin-top:8px; }
   .ask-av { width:36px; height:36px; border-radius:50%; background:#e2e8f0; display:grid; place-items:center; font-weight:900; color:#0f172a; overflow:hidden; }
   .ask-av img { width:100%; height:100%; object-fit:cover; display:block; }
   .ask-field { width:100%; border:2px solid #e2e8f0; border-radius:999px; padding:10px 14px; background:#fff; color:#0f172a; }
   .ask-field::placeholder { color:#94a3b8; }
+  /* ask bar variant matching the screenshot */
+  .ask-input-row { display:flex; align-items:center; gap:10px; margin-top:8px; }
+  .ask-counter { width:36px; height:36px; border-radius:50%; background:#eef2f7; color:#0f172a; display:grid; place-items:center; font-weight:800; border:2px solid #94a3b8; box-shadow: inset 0 1px 0 rgba(255,255,255,.5); }
+  .ask-form { flex:1; display:flex; align-items:center; gap:8px; }
+  .ask-send { appearance:none; border:0; background:transparent; display:inline-grid; place-items:center; width:32px; height:32px; border-radius:8px; color:#1d4ed8; cursor:pointer; flex-shrink:0; }
+  .ask-send:hover { background:#f1f5f9; }
+  .ask-send:active { transform: translateY(0.5px); }
+  .ask-send svg { width:18px; height:18px; display:block; }
+  /* slightly smaller send button in nested reply forms */
+  .replies .ask-send { width:28px; height:28px; border-radius:6px; }
   /* inset style when ask lives inside the meta-merged card */
   .ask-inset { background: transparent; border: 0; padding: 0; box-shadow: none; }
   .ask-inset .ask-title { margin-top: 6px; }
@@ -349,38 +382,38 @@ ob_end_flush();
                     <div class="bubble">
                       <span class="name">Jericho bien V.</span>
                       <p class="text">location po??</p>
-                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a></div>
+                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
                     </div>
-                    <div class="replies"></div>
-                  </div>
-                  <div class="comment">
-                    <div class="avatar">
-                      <?php if (!empty($clientAvatarUrl)) : ?>
-                        <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
-                      <?php else: ?>
-                        <?php echo e(strtoupper($avatar)); ?>
-                      <?php endif; ?>
+                    <div class="replies">
+                      <div class="comment">
+                        <div class="avatar">
+                          <?php if (!empty($clientAvatarUrl)) : ?>
+                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
+                          <?php else: ?>
+                            <?php echo e(strtoupper($avatar)); ?>
+                          <?php endif; ?>
+                        </div>
+                        <div class="bubble">
+                          <span class="name"><?php echo e($job['user_name']); ?></span>
+                          <p class="text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
+                          <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
+                        </div>
+                        <div class="replies"></div>
+                      </div>
                     </div>
-                    <div class="bubble">
-                      <span class="name"><?php echo e($job['user_name']); ?></span>
-                      <p class="text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
-                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a></div>
-                    </div>
-                    <div class="replies"></div>
                   </div>
                 </div>
-
-                <a href="#" class="ask-link">View all 2 questions and answers</a>
-
-                <div class="ask-input">
-                  <div class="ask-av">
-                    <?php if (!empty($askerAvatarUrl)) : ?>
-                      <img src="<?php echo e($askerAvatarUrl); ?>" alt="You" />
-                    <?php else: ?>
-                      <?php echo e($askerInitial); ?>
-                    <?php endif; ?>
-                  </div>
-                  <input class="ask-field" type="text" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" />
+                
+                <div class="ask-input-row">
+                  <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
+                  <form class="ask-form" id="askForm" novalidate>
+                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" required />
+                    <button type="submit" class="ask-send" aria-label="Send question" title="Send">
+                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
+                      </svg>
+                    </button>
+                  </form>
                 </div>
               </section>
             </div>
@@ -396,9 +429,149 @@ ob_end_flush();
     <div class="footer-inner">
       <div class="footer-actions">
   <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
-        <a class="btn-solid" href="#" role="button">Make offer</a>
+        <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
       </div>
     </div>
   </footer>
+  <script>
+    // Lightweight reply interaction inside the embedded ask section
+    document.addEventListener('click', function(evt){
+      const a = evt.target.closest('.reply-link');
+      if (!a) return;
+      evt.preventDefault();
+      const comment = a.closest('.comment');
+      if (!comment) return;
+      // Prefer the direct replies child, not a deeper descendant
+      let replies = comment.querySelector(':scope > .replies');
+      if (!replies) {
+        replies = document.createElement('div');
+        replies.className = 'replies';
+        comment.appendChild(replies);
+      }
+      // If a form already exists under this specific comment, focus it
+      let form = replies.querySelector(':scope > .reply-form');
+      if (form) { const input = form.querySelector('input'); if (input) input.focus(); return; }
+
+      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($job['user_name']); ?>';
+
+      // Build a small reply form with contextual placeholder and a Cancel link
+      form = document.createElement('form');
+      form.className = 'reply-form';
+      form.innerHTML = `
+        <div class="ask-av"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
+        <div style="display:flex; gap:8px; align-items:center; width:100%;">
+          <input class="ask-field" type="text" name="reply" placeholder="Reply to ${targetName}" aria-label="Write a reply" required />
+          <button type="submit" class="ask-send" aria-label="Send reply" title="Send">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+          </button>
+          <button type="button" class="btn-cancel-reply" style="border:0;background:transparent;color:#64748b;font-weight:800;">Cancel</button>
+        </div>
+      `;
+      replies.appendChild(form);
+      const input = form.querySelector('input');
+      if (input) input.focus();
+
+      const cancel = form.querySelector('.btn-cancel-reply');
+      if (cancel) {
+        cancel.addEventListener('click', function(){ form.remove(); });
+      }
+
+      form.addEventListener('submit', function(e){
+        e.preventDefault();
+        const text = input.value.trim();
+        if (!text) return;
+        // Render a new nested comment bubble
+        const wrap = document.createElement('div');
+        wrap.className = 'comment';
+        wrap.innerHTML = `
+          <div class="avatar"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
+          <div class="bubble">
+            <span class="name">You</span>
+            <p class="text"></p>
+            <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
+          </div>
+          <div class="replies"></div>
+        `;
+        wrap.querySelector('.text').textContent = text;
+        replies.appendChild(wrap);
+        input.value = '';
+        // Optionally remove the form after submit
+        form.remove();
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+    // Ask bar submit -> post into comments list
+    (function(){
+      const form = document.getElementById('askForm');
+      const input = form ? form.querySelector('input[name="question"]') : null;
+      const list = document.querySelector('.comment-list');
+      const counter = document.getElementById('askCount');
+
+      function topLevelCount(){
+        if (!list) return 0;
+        // count only direct children with class comment
+        return Array.from(list.children).filter(el => el.classList && el.classList.contains('comment')).length;
+      }
+
+      function refreshCount(){
+        if (counter) counter.textContent = String(topLevelCount());
+      }
+
+      refreshCount();
+
+      if (form && input && list) {
+        form.addEventListener('submit', function(e){
+          e.preventDefault();
+          const text = (input.value || '').trim();
+          if (!text) { input.focus(); return; }
+          const wrap = document.createElement('div');
+          wrap.className = 'comment';
+          wrap.innerHTML = `
+            <div class="avatar"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
+            <div class="bubble">
+              <span class="name">You</span>
+              <p class="text"></p>
+              <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
+            </div>
+            <div class="replies"></div>
+          `;
+          wrap.querySelector('.text').textContent = text;
+          list.appendChild(wrap);
+          input.value = '';
+          refreshCount();
+          // Optional: scroll new comment into view
+          wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+        // Submit on Enter when focused
+        input.addEventListener('keydown', function(e){
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            form.requestSubmit();
+          }
+        });
+      }
+    })();
+
+    // Owner-only delete: remove a comment (top-level or nested)
+    document.addEventListener('click', function(evt){
+      const del = evt.target.closest('.delete-link');
+      if (!del) return;
+      evt.preventDefault();
+      // Guard in UI only; real enforcement needs server-side auth
+      const comment = del.closest('.comment');
+      if (!comment) return;
+      const ok = confirm('Delete this comment?');
+      if (!ok) return;
+      const parent = comment.parentElement;
+      comment.remove();
+      // Update counter if a top-level comment was removed
+      const list = document.querySelector('.comment-list');
+      const counter = document.getElementById('askCount');
+      if (parent && list && parent === list && counter) {
+        const cnt = Array.from(list.children).filter(el => el.classList && el.classList.contains('comment')).length;
+        counter.textContent = String(cnt);
+      }
+    });
+  </script>
 </body>
 </html>
