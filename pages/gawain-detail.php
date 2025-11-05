@@ -275,6 +275,14 @@ ob_end_flush();
     @media (min-width:720px){ .meta-grid { grid-template-columns: 1fr 1fr; } }
     /* Detail page header: no bottom border, align left */
     .detail-topbar { border-bottom: 0 !important; justify-content: flex-start; }
+
+    /* Unbold all texts on this page */
+    :root { --fw-normal: 400; }
+    body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+    /* Re-bold only the job title */
+    :root { --fw-bold: 800; }
+    body.theme-profile-bg .detail-title { font-weight: var(--fw-bold) !important; }
   </style>
 </head>
 <body class="theme-profile-bg page-fade is-ready">

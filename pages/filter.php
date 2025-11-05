@@ -15,7 +15,7 @@ $max      = $_GET['max']      ?? '';
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/styles.css">
 
-<<<<<<< HEAD
+    <style>
 		/* page override: white background */
 		body.theme-profile-bg { background: #ffffff !important; background-attachment: initial !important; }
 
@@ -139,9 +139,14 @@ $max      = $_GET['max']      ?? '';
 		.filter-exit:hover{ color:#006a94; transform: scale(1.08); }
 		.filter-exit:active { transform: scale(0.96); }
 		.filter-exit:focus-visible { outline: 3px solid rgba(14,116,162,.28); outline-offset: 4px; border-radius: 6px; }
+
+		/* Unbold everything by default */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+		/* Keep only the “Filter Options” title bold */
+		#filterTitle, .filter-title { font-weight: var(--fw-bold) !important; }
 	</style>
-=======
->>>>>>> 48ca6411e2864e13b36d263402cfad3ba51d0f09
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
@@ -181,11 +186,17 @@ $max      = $_GET['max']      ?? '';
 						<label for="cat">Pick a category</label>
 						<select id="cat" name="cat">
 							<option value="" <?php echo $cat===''?'selected':''; ?>>All</option>
-							<option value="Errands" <?php echo $cat==='Errands'?'selected':''; ?>>Errands</option>
-							<option value="Part-time" <?php echo $cat==='Part-time'?'selected':''; ?>>Part-time</option>
-							<option value="Household" <?php echo $cat==='Household'?'selected':''; ?>>Household</option>
+							<option value="Business &amp; admin" <?php echo $cat==='Business &amp; admin'?'selected':''; ?>>Business &amp; admin</option>
+							<option value="Care services" <?php echo $cat==='Care services'?'selected':''; ?>>Care services</option>
 							<option value="Creative" <?php echo $cat==='Creative'?'selected':''; ?>>Creative</option>
-							<option value="Tech" <?php echo $cat==='Tech'?'selected':''; ?>>Tech</option>
+							<option value="Household" <?php echo $cat==='Household'?'selected':''; ?>>Household</option>
+							<option value="Part-time" <?php echo $cat==='Part-time'?'selected':''; ?>>Part-time</option>
+							<option value="Research" <?php echo $cat==='Research'?'selected':''; ?>>Research</option>
+							<option value="Social media" <?php echo $cat==='Social media'?'selected':''; ?>>Social media</option>
+							<option value="Talents" <?php echo $cat==='Talents'?'selected':''; ?>>Talents</option>
+							<option value="Teach me" <?php echo $cat==='Teach me'?'selected':''; ?>>Teach me</option>
+							<option value="Tech &amp; IT" <?php echo $cat==='Tech &amp; IT'?'selected':''; ?>>Tech &amp; IT</option>
+							<option value="Others" <?php echo $cat==='Others'?'selected':''; ?>>Others</option>
 						</select>
 					</fieldset>
 
@@ -223,5 +234,17 @@ $max      = $_GET['max']      ?? '';
 
 	<!-- Removed floating bottom navigation -->
 	<!-- <nav class="dash-bottom-nav"> ... </nav> -->
+
+	<script>
+	// Ensure the Filter Options heading is bold even if markup lacks an id/class
+	(function(){
+		var cand = Array.from(document.querySelectorAll('h1,h2,h3,h4,h5,h6,.title,.page-title'))
+			.find(el => (el.textContent || '').trim().toLowerCase() === 'filter options');
+		if (cand) {
+			cand.classList.add('filter-title');
+			if (!cand.id) cand.id = 'filterTitle';
+		}
+	})();
+	</script>
 </body>
 </html>

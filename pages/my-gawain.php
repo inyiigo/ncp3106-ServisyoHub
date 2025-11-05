@@ -166,11 +166,22 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			color: #fff !important;
 			box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
 		}
-		.dash-float-nav a.active::after {
-			content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-			background: linear-gradient(180deg, #0078a6 0%, #0078a6 100%);
-			border-radius: 2px; box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(0,120,166,.6);
-		}
+		.dash-float-nav a.active::after { display: none !important; }
+
+		/* Unbold all texts, except title and nav bar */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+		/* Keep page title bold */
+		.mq-title { font-weight: var(--fw-bold) !important; }
+
+		/* Keep right floating nav labels bold */
+		.dash-float-nav a,
+		.dash-float-nav a .dash-text,
+		.dash-float-nav a span { font-weight: var(--fw-bold) !important; }
+
+		/* Slightly shift content downward for breathing room */
+		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -256,12 +267,23 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		</div>
 
 		<div class="nav-settings">
-			<a href="./settings.php" aria-label="Settings">
-				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-					<path d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527c.45-.322 1.07-.26 1.45.12l.773.774c.38.38.442 1 .12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.322.45.26 1.07-.12 1.45l-.774.773c-.38.38-1 .442-1.45.12l-.737-.527c-.35-.25-.806-.272-1.204-.107-.397.165-.71.505-.78.93l-.15.893c-.09.542-.56.94-1.109.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.893c-.071-.425-.384-.765-.781-.93-.398-.165-.854-.143-1.204.107l-.738.527c-.45.322-1.07.26-1.45-.12l-.773-.774c-.38-.38-.442-1-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15C3.4 13.02 3 12.55 3 12V10.906c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.764-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35 .25 .806 .272 1.204 .107 .397 -.165 .71 -.505 .78 -.93l .149 -.894z"/>
-					<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+			<a href="./about-us.php" aria-label="About Us">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
 				</svg>
-				<span class="dash-text">Settings</span>
+				<span class="dash-text">About Us</span>
+			</a>
+			<a href="./terms-and-conditions.php" aria-label="Terms & Conditions">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M6 4h12v16H6z"/><path d="M8 8h8M8 12h8M8 16h5"/>
+				</svg>
+				<span class="dash-text">Terms & Conditions</span>
+			</a>
+			<a href="./profile.php?logout=1" aria-label="Log out">
+				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M21 21V3"/>
+				</svg>
+				<span class="dash-text">Log out</span>
 			</a>
 		</div>
 	</nav>
