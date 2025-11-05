@@ -69,7 +69,7 @@ ob_end_flush();
     <header class="offer-header">
       <div class="offer-top">
         <a class="back-btn" href="<?php echo e($backHref); ?>" aria-label="Back">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
         </a>
         <h1 class="offer-title">Make an offer</h1>
         <span style="width:38px; height:38px;"></span>
@@ -121,6 +121,7 @@ ob_end_flush();
       const c1 = document.getElementById('c1');
       const c2 = document.getElementById('c2');
       const btn = document.getElementById('offerCta');
+      const nextUrl = './make-offer-tips.php' + <?php echo json_encode($id ? ('?id='.(int)$id) : ''); ?>;
       function toggle(card){
         const v = card.getAttribute('aria-checked') === 'true';
         card.setAttribute('aria-checked', (!v).toString());
@@ -134,10 +135,7 @@ ob_end_flush();
         card.addEventListener('click', ()=> toggle(card));
         card.addEventListener('keydown', (e)=>{ if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(card); } });
       });
-      btn.addEventListener('click', ()=>{
-        // UI-only placeholder
-        alert('Thanks! UI-only: proceed to compose your offer.');
-      });
+      btn.addEventListener('click', ()=>{ window.location.href = nextUrl; });
     })();
   </script>
 </body>
