@@ -183,6 +183,30 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		/* Slightly shift content downward for breathing room */
 		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
 
+		/* Empty state: center and push below the fold so background art shows above */
+		.mq-empty {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			gap: 12px;
+			/* push lower on larger screens, keep reasonable on small */
+			margin-top: clamp(18vh, 22vh, 30vh) !important;
+			padding: 0 18px;
+		}
+
+		/* Browse button styling to match mock */
+		.mq-browse {
+			display: inline-block;
+			background: #7cd4c4;
+			color: #0b2c24;
+			padding: 12px 20px;
+			border-radius: 12px;
+			font-weight: 800;
+			text-decoration: none;
+			box-shadow: 0 6px 18px rgba(11,44,36,0.12);
+		}
+
 		/* Filter modal / bottom-sheet styles (page-scoped) */
 		.mq-filter-modal { position: fixed; inset: 0; display: none; z-index: 1200; }
 		.mq-filter-modal[aria-hidden="false"] { display: block; }
