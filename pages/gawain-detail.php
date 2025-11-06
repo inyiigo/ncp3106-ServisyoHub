@@ -66,13 +66,16 @@ if (!$jobs) {
 // (now using $jobs everywhere)
 
 // Ensure the page uses the DB title when available
-$avatar = strtoupper(substr(preg_replace('/\s+/', '', ($jobs['user_name'] ?? '')), 0, 1));
 $pageTitle = isset($jobs['title']) ? trim((string)$jobs['title']) : '';
 // budget/status/duration/offers are not part of the minimal schema you listed;
 // keep safe fallbacks — price will show "Negotiable" when budget missing
 $priceLabel = fmt_money($jobs['budget'] ?? '');
-$status = 'Open'; // default to Open (adjust if your table has a status column)
-$durationLabel = '—';
+// use DB status with nice casing
+$status = ucfirst(strtolower((string)($jobs['status'] ?? 'open')));
+// duration from estimated_hours (jobs schema)
+$durationLabel = (!empty($jobs['estimated_hours']))
+	? (rtrim(rtrim(number_format((float)$jobs['estimated_hours'], 2, '.', ''), '0'), '.') . ' hr' . (((float)$jobs['estimated_hours'] == 1.0) ? '' : 's'))
+	: '—';
 $offers = 0;
 
 // helpers_needed from your schema -> displayable helpers count
@@ -88,57 +91,69 @@ function url_from_path($p){
   return '../' . ltrim($p, '/');
 }
 
+// Fetch poster identity from users via jobs.user_id
 $clientAvatarUrl = '';
-$jobOwnerId = 0;
-// Best-effort: try jobs.user_id -> users.avatar
-if ($id > 0 && $db) {
-  // 1) try via user_id column
-  if ($stmt = @mysqli_prepare($db, "SELECT user_id FROM {$table} WHERE id = ? LIMIT 1")) {
-    mysqli_stmt_bind_param($stmt, 'i', $id);
-    if (@mysqli_stmt_execute($stmt)) {
-      $res = @mysqli_stmt_get_result($stmt);
-      if ($res && ($row = @mysqli_fetch_assoc($res)) && !empty($row['user_id'])) {
-        $uid = (int)$row['user_id'];
-        $jobOwnerId = $uid;
-        if ($u = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
-          mysqli_stmt_bind_param($u, 'i', $uid);
-          if (@mysqli_stmt_execute($u)) {
-            $ur = @mysqli_stmt_get_result($u);
-            if ($ur && ($urw = @mysqli_fetch_assoc($ur))) {
-              $clientAvatarUrl = url_from_path($urw['avatar'] ?? '');
-            }
-          }
-          @mysqli_stmt_close($u);
-        }
-      }
-    }
-    @mysqli_stmt_close($stmt);
-  }
-  // 2) try jobs.user_avatar column (if exists)
-  if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user_avatar,'') AS ua FROM {$table} WHERE id = ? LIMIT 1"))) {
-    mysqli_stmt_bind_param($s2, 'i', $id);
-    if (@mysqli_stmt_execute($s2)) {
-      $r2 = @mysqli_stmt_get_result($s2);
-      if ($r2 && ($w2 = @mysqli_fetch_assoc($r2))) {
-        $clientAvatarUrl = url_from_path($w2['ua'] ?? '');
-      }
-    }
-    @mysqli_stmt_close($s2);
-  }
-  // 3) match by name (username or first+last)
-  if ($clientAvatarUrl === '' && !empty($jobs['user_name'])) {
-    $name = (string)$jobs['user_name'];
-    if ($s3 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
-      mysqli_stmt_bind_param($s3, 'ss', $name, $name);
-      if (@mysqli_stmt_execute($s3)) {
-        $r3 = @mysqli_stmt_get_result($s3);
-        if ($r3 && ($w3 = @mysqli_fetch_assoc($r3))) {
-          $clientAvatarUrl = url_from_path($w3['avatar'] ?? '');
-        }
-      }
-      @mysqli_stmt_close($s3);
-    }
-  }
+$jobOwnerId = (int)($jobs['user_id'] ?? 0);
+$posterUsername = '';
+$posterFirst = '';
+$posterLast  = '';
+$posterName  = '';
+
+if ($jobOwnerId > 0 && $db) {
+	if ($u = @mysqli_prepare(
+		$db,
+		"SELECT 
+			COALESCE(username,'')     AS username,
+			COALESCE(first_name,'')   AS first_name,
+			COALESCE(last_name,'')    AS last_name,
+			COALESCE(avatar,'')       AS avatar
+		 FROM users WHERE id = ? LIMIT 1"
+	)) {
+		mysqli_stmt_bind_param($u, 'i', $jobOwnerId);
+		if (@mysqli_stmt_execute($u)) {
+			$ur = @mysqli_stmt_get_result($u);
+			if ($ur && ($row = @mysqli_fetch_assoc($ur))) {
+				$posterUsername  = (string)($row['username'] ?? '');
+				$posterFirst     = (string)($row['first_name'] ?? '');
+				$posterLast      = (string)($row['last_name'] ?? '');
+				$clientAvatarUrl = url_from_path($row['avatar'] ?? '');
+			}
+		}
+		@mysqli_stmt_close($u);
+	}
+}
+
+// Build display name preference: username > "First Last" > Citizen
+$posterName = trim($posterUsername !== '' ? $posterUsername : trim($posterFirst . ' ' . $posterLast));
+if ($posterName === '') $posterName = 'Citizen';
+
+// Avatar initial from poster name (overrides earlier fallback)
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
+
+// Fallbacks to find avatar if not found above
+// 2) try jobs.user_avatar column (if exists)
+if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user_avatar,'') AS ua FROM {$table} WHERE id = ? LIMIT 1"))) {
+	mysqli_stmt_bind_param($s2, 'i', $id);
+	if (@mysqli_stmt_execute($s2)) {
+		$r2 = @mysqli_stmt_get_result($s2);
+		if ($r2 && ($w2 = @mysqli_fetch_assoc($r2))) {
+			$clientAvatarUrl = url_from_path($w2['ua'] ?? '');
+		}
+	}
+	@mysqli_stmt_close($s2);
+}
+// 3) match by name (username or first+last) if we at least have a name
+if ($clientAvatarUrl === '' && $posterName !== '') {
+	if ($s3 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
+		mysqli_stmt_bind_param($s3, 'ss', $posterName, $posterName);
+		if (@mysqli_stmt_execute($s3)) {
+			$r3 = @mysqli_stmt_get_result($s3);
+			if ($r3 && ($w3 = @mysqli_fetch_assoc($r3))) {
+				$clientAvatarUrl = url_from_path($w3['avatar'] ?? '');
+			}
+		}
+		@mysqli_stmt_close($s3);
+	}
 }
 
 // Current logged-in user avatar (for ask input)
@@ -328,25 +343,17 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
               <div class="poster">
                 <div class="avatar">
                   <?php
-                  // Show user avatar if available, else show attached photo (your-photo.png)
                   // Make avatar clickable and link to user-detail.php
-                  $userDetailUrl = '';
-                  if (!empty($jobOwnerId)) {
-                    $userDetailUrl = './user-detail.php?id=' . (int)$jobOwnerId;
-                  } elseif (!empty($jobs['user_name'])) {
-                    $userDetailUrl = './user-detail.php?name=' . urlencode($jobs['user_name']);
-                  } else {
-                    $userDetailUrl = '#';
-                  }
+                  $userDetailUrl = $jobOwnerId ? ('./user-detail.php?id=' . (int)$jobOwnerId) : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#');
                   if (!empty($clientAvatarUrl)) {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($jobs['user_name'] ?? '') . '" /></a>';
+                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($posterName) . '" /></a>';
                   } else {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="User Photo" style="object-fit:cover;" /></a>';
+                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="' . e($posterName) . '" style="object-fit:cover;" /></a>';
                   }
                   ?>
                 </div>
                 <div>
-                  <div style="font-weight:800;"><?php echo e($jobs['user_name'] ?? ''); ?></div>
+                  <div style="font-weight:800;"><?php echo e($posterName); ?></div>
                   <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
                 </div>
               </div>
@@ -428,13 +435,13 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
                       <div class="comment">
                         <div class="avatar">
                           <?php if (!empty($clientAvatarUrl)) : ?>
-                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($jobs['user_name'] ?? ''); ?>" />
+                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($posterName); ?>" />
                           <?php else: ?>
                             <?php echo e(strtoupper($avatar)); ?>
                           <?php endif; ?>
                         </div>
                         <div class="bubble">
-                          <span class="name"><?php echo e($jobs['user_name'] ?? ''); ?></span>
+                          <span class="name"><?php echo e($posterName); ?></span>
                           <p class="text"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></p>
                           <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
                         </div>
@@ -447,7 +454,7 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
                 <div class="ask-input-row">
                   <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
                   <form class="ask-form" id="askForm" novalidate>
-                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($jobs['user_name'] ?? ''); ?> a question" aria-label="Ask a question" required />
+                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($posterName); ?> a question" aria-label="Ask a question" required />
                     <button type="submit" class="ask-send" aria-label="Send question" title="Send">
                       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
@@ -492,7 +499,7 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
       let form = replies.querySelector(':scope > .reply-form');
       if (form) { const input = form.querySelector('input'); if (input) input.focus(); return; }
 
-      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($jobs['user_name'] ?? ''); ?>';
+      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($posterName); ?>';
 
       // Build a small reply form with contextual placeholder and a Cancel link
       form = document.createElement('form');
