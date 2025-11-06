@@ -19,38 +19,33 @@ if (!isset($mysqli) || !($mysqli instanceof mysqli)) {
 	if (isset($conn) && $conn instanceof mysqli) { $mysqli = $conn; }
 }
 
-// Ensure 'prof-name' defaults to 'USER' after login until edited
-$mobile = $_SESSION['mobile'] ?? '';
-if ($mobile && (!isset($_SESSION['display_name']) || trim($_SESSION['display_name']) === '' || $_SESSION['display_name'] === 'Guest')) {
-    $_SESSION['display_name'] = 'USER';
-}
-$display = $_SESSION['display_name'] ?? ($mobile ? 'USER' : 'Guest');
+// Determine viewer and viewed accounts
+$self_user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+$view_user_id = isset($_GET['id']) ? (int)$_GET['id'] : $self_user_id;
 
-// If logged in, always refresh display name and avatar from DB so repeated edits reflect
-$user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
-$dbAvatarPath = '';
-if ($user_id > 0 && isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
-	if ($stmt = $mysqli->prepare("SELECT username, COALESCE(avatar,'') FROM users WHERE id = ?")) {
-		$stmt->bind_param('i', $user_id);
+// Initialize target user fields
+$first_name = ''; $last_name = ''; $dbAvatarPath = ''; $dbSkillsStr = ''; $skills = []; $target_username = ''; $target_mobile = '';
+
+// Fetch target account (by ?id=...) and do NOT overwrite session names
+if ($view_user_id > 0 && isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
+	if ($stmt = $mysqli->prepare("SELECT COALESCE(username,''), COALESCE(avatar,''), COALESCE(skills,''), COALESCE(first_name,''), COALESCE(last_name,''), COALESCE(mobile,'') FROM users WHERE id = ?")) {
+		$stmt->bind_param('i', $view_user_id);
 		$stmt->execute();
-		$stmt->bind_result($dbUsername, $dbAvatarPath);
+		$stmt->bind_result($dbUsername, $dbAvatarPath, $dbSkillsStr, $dbFirstName, $dbLastName, $dbMobile);
 		if ($stmt->fetch()) {
-			if (!empty($dbUsername)) {
-				$_SESSION['display_name'] = $dbUsername;
-				$display = $dbUsername;
-			}
+			$target_username = $dbUsername;
+			$first_name = $dbFirstName;
+			$last_name  = $dbLastName;
+			$target_mobile = $dbMobile;
+			$skills = array_values(array_filter(array_map('trim', explode(',', (string)$dbSkillsStr)), fn($s)=>$s!==''));
 		}
 		$stmt->close();
 	}
 }
 
-// Replace the basic identity setup with a safer version
-$display_name = trim((string)($_SESSION['display_name'] ?? ''));
-$mobile_raw   = trim((string)($_SESSION['mobile'] ?? ''));
-$mobile       = $mobile_raw;
-
-// If a proper name exists, use it; else fall back to mobile, then Guest
-$display = $display_name !== '' ? $display_name : ($mobile !== '' ? $mobile : 'Guest');
+// Build display identity for the viewed account
+$display = ($target_username !== '') ? $target_username : (trim($first_name.' '.$last_name) !== '' ? trim($first_name.' '.$last_name) : 'USER');
+$mobile  = $target_mobile; // show target user's mobile on their profile
 
 // helper: resolve avatar path to URL
 if (!function_exists('avatar_url')) {
@@ -58,19 +53,21 @@ if (!function_exists('avatar_url')) {
 }
 $avatarUrl = avatar_url($dbAvatarPath ?? '');
 
-// Avatar: prefer first alphabet of name; if none, use 'G'
-$initialSrc = $display_name !== '' ? $display_name : 'Guest';
+// Avatar initial from viewed account
+$initialSrc = $display !== '' ? $display : 'Guest';
 $firstAlpha = preg_replace('/[^A-Za-z]/', '', $initialSrc);
 $avatar     = strtoupper(substr($firstAlpha !== '' ? $firstAlpha : 'G', 0, 1));
 
-// About Me data (with safe fallbacks)
+// About Me data (keep existing fallbacks)
 $joined_raw = $_SESSION['joined_at'] ?? null;
 $joined_ts  = is_numeric($joined_raw) ? (int)$joined_raw : ($joined_raw ? strtotime((string)$joined_raw) : time());
 $joined_date = date('m/d/Y', $joined_ts);
 $kasangga_done = (int)($_SESSION['kasangga_completed'] ?? 0);
 $citizen_done = (int)($_SESSION['citizen_completed'] ?? 0);
-$skills = $_SESSION['skills'] ?? ['AI & Machine Learning', 'Frontend Development', 'Software Development'];
 $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
+
+// Full name for About Me section
+$full_name = trim(($first_name ?? '') . ' ' . ($last_name ?? ''));
 
 ?>
 <!DOCTYPE html>
@@ -600,16 +597,9 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 		.about-links a:hover { text-decoration: underline; }
 
 		/* About Me spacing tweaks (scoped to About tab only) */
-		#tab-about .card { padding: 18px 18px; }
-		#tab-about #aboutme-title { margin-bottom: 12px; }
-		#tab-about .muted { margin-bottom: 12px; }
-		#tab-about .wallet-actions { margin: 8px 0 16px; }
-		#tab-about .about-verify { margin: 14px 0; }
-		#tab-about .about-list { margin: 12px 0 18px; gap: 12px; }
-		#tab-about .about-row { line-height: 1.5; }
-		#tab-about .about-label { margin: 16px 0 8px; }
-		#tab-about .skill-chips { gap: 10px; margin-bottom: 18px; }
-		#tab-about .about-links { margin-top: 8px; }
+		#tab-about .card { padding: 24px 24px; } /* more inner space */
+		#tab-about #aboutme-title { margin-bottom: 16px; }
+		#tab-about .muted { margin-bottom: 16px; }
 
 		/* Equal-size review buttons (override) */
 		#tab-reviews .review-tabs {
@@ -719,6 +709,10 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 						<article class="card" aria-labelledby="aboutme-title">
 							<h4 id="aboutme-title">About me</h4>
 
+							<?php if ($full_name !== ''): ?>
+								<p class="muted" style="margin:0 0 12px 0;"><?php echo htmlspecialchars($full_name, ENT_QUOTES, 'UTF-8'); ?></p>
+							<?php endif; ?>
+
 							<!-- Joined and quest stats -->
 							<ul class="about-list">
 								<li class="about-row">
@@ -737,11 +731,13 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 
 							<!-- Skills -->
 							<label class="about-label">Skills:</label>
+							<?php if (!empty($skills)): ?>
 							<div class="skill-chips">
-								<?php foreach ((array)$skills as $sk): ?>
+								<?php foreach ($skills as $sk): ?>
 									<span class="skill-chip"><?php echo htmlspecialchars((string)$sk, ENT_QUOTES, 'UTF-8'); ?></span>
 								<?php endforeach; ?>
 							</div>
+							<?php endif; ?>
 						</article>
 					</div>
 				</div>
@@ -760,7 +756,7 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 		</div>
 
 		<div class="nav-main">
-			<a href="./profile.php" aria-label="Profile">
+			<a href="./user-detail.php<?php echo $self_user_id ? ('?id='.$self_user_id) : ''; ?>" aria-label="Profile">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
 					 stroke-linecap="round" stroke-linejoin="round">
 					<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
