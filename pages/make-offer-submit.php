@@ -2,73 +2,54 @@
 ob_start();
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../config/db_connect.php';
+
 $db = $conn ?? $mysqli ?? null;
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
 
-$currentUserId = (int)($_SESSION['user_id'] ?? 0);
-if ($currentUserId <= 0) {
-  header('Location: ./login.php');
-  exit;
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
+    $jobId  = (int)($_POST['job_id'] ?? 0);
+    $amount = isset($_POST['amount']) && trim($_POST['amount']) !== '' ? (float)$_POST['amount'] : null;
+    
+    if ($jobId > 0 && $amount !== null && $amount > 0) {
+        // Insert offer with amount
+        $sql = "INSERT INTO offers (job_id, user_id, amount, created_at) VALUES (?, ?, ?, NOW())";
+        if ($stmt = @mysqli_prepare($db, $sql)) {
+            mysqli_stmt_bind_param($stmt, 'iid', $jobId, $viewerId, $amount);
+            if (@mysqli_stmt_execute($stmt)) {
+                $offerId = (int)@mysqli_insert_id($db);
+                @mysqli_stmt_close($stmt);
+                
+                // Notify job owner
+                if ($offerId > 0) {
+                    $jobOwnerId = 0;
+                    if ($g = @mysqli_prepare($db, "SELECT user_id FROM jobs WHERE id = ? LIMIT 1")) {
+                        mysqli_stmt_bind_param($g, 'i', $jobId);
+                        if (@mysqli_stmt_execute($g)) {
+                            $gr = @mysqli_stmt_get_result($g);
+                            if ($gr && ($grow = @mysqli_fetch_assoc($gr))) {
+                                $jobOwnerId = (int)($grow['user_id'] ?? 0);
+                            }
+                        }
+                        @mysqli_stmt_close($g);
+                    }
+                    if ($jobOwnerId > 0 && $jobOwnerId !== $viewerId) {
+                        if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id, actor_id, job_id, offer_id, created_at) VALUES (?, ?, ?, ?, NOW())")) {
+                            mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $jobId, $offerId);
+                            @mysqli_stmt_execute($nst);
+                            @mysqli_stmt_close($nst);
+                        }
+                    }
+                }
+                
+                // Redirect to My Gawain Offered tab
+                header('Location: ./my-gawain.php?tab=offered');
+                exit;
+            }
+            @mysqli_stmt_close($stmt);
+        }
+    }
 }
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-  http_response_code(405);
-  exit('Method Not Allowed');
-}
-
-$job_id = (int)($_POST['job_id'] ?? 0);
-$amount_raw = trim((string)($_POST['amount'] ?? ''));
-$message = trim((string)($_POST['message'] ?? ''));
-$amount = ($amount_raw === '') ? null : (float)$amount_raw;
-
-if ($job_id <= 0 || !$db) {
-  $_SESSION['offer_error'] = 'Invalid request.';
-  header('Location: ./gawain-detail.php?id=' . $job_id);
-  exit;
-}
-
-// Prevent owner from offering on own post
-$ownerId = 0;
-if ($st = @mysqli_prepare($db, "SELECT user_id FROM jobs WHERE id=? LIMIT 1")) {
-  mysqli_stmt_bind_param($st, 'i', $job_id);
-  if (@mysqli_stmt_execute($st)) {
-    $rs = @mysqli_stmt_get_result($st);
-    if ($rs && ($rw = @mysqli_fetch_assoc($rs))) $ownerId = (int)$rw['user_id'];
-  }
-  @mysqli_stmt_close($st);
-}
-if ($ownerId !== 0 && $ownerId === $currentUserId) {
-  $_SESSION['offer_error'] = 'You cannot offer on your own post.';
-  header('Location: ./gawain-detail.php?id=' . $job_id);
-  exit;
-}
-
-// Insert offer into database
-$now = date('Y-m-d H:i:s');
-$ok = false;
-
-if ($amount === null) {
-  $sql = "INSERT INTO offers (job_id, user_id, amount, message, status, created_at) VALUES (?, ?, NULL, ?, 'pending', ?)";
-  if ($st = @mysqli_prepare($db, $sql)) {
-    mysqli_stmt_bind_param($st, 'iiss', $job_id, $currentUserId, $message, $now);
-    $ok = @mysqli_stmt_execute($st);
-    @mysqli_stmt_close($st);
-  }
-} else {
-  $sql = "INSERT INTO offers (job_id, user_id, amount, message, status, created_at) VALUES (?, ?, ?, ?, 'pending', ?)";
-  if ($st = @mysqli_prepare($db, $sql)) {
-    mysqli_stmt_bind_param($st, 'iidss', $job_id, $currentUserId, $amount, $message, $now);
-    $ok = @mysqli_stmt_execute($st);
-    @mysqli_stmt_close($st);
-  }
-}
-
-if ($ok) {
-  $_SESSION['offer_success'] = 'Your offer has been sent to the job owner!';
-} else {
-  $_SESSION['offer_error'] = 'Failed to submit offer. Please try again.';
-}
-
-// Redirect back to job detail
-// Owner will see updated "Offers Received (N)" and "View offers (N)" when they refresh
-header('Location: ./gawain-detail.php?id=' . (int)$job_id);
+// Fallback redirect on error
+header('Location: ./home-gawain.php');
 exit;

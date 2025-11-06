@@ -60,6 +60,13 @@ ob_end_flush();
     .policy a { color:#ef4444; font-weight:800; text-decoration:underline; }
 
     .offer-footer { position: fixed; left:50%; transform:translateX(-50%); bottom: 14px; width: min(100% - 24px, 640px); display:grid; gap:12px; background:transparent; }
+
+    .amount-box { margin:18px 0 4px; display:grid; gap:8px; }
+    .amount-box label { font-weight:700; color:#0f172a; }
+    .offer-field { width:100%; border:2px solid #e2e8f0; border-radius:12px; padding:12px 14px; font-size:1rem; }
+    .offer-field:focus { outline:none; border-color:#0f172a; }
+    .offer-hint { font-size:.75rem; color:#64748b; margin-top:4px; }
+
     .cta { appearance:none; border:0; border-radius:12px; padding:14px 16px; font-weight:900; color:#fff; background:#111827; cursor:pointer; box-shadow: 0 8px 20px rgba(0,0,0,.12); }
     .cta[disabled] { background:#cbd5e1; color:#fff; cursor:default; box-shadow:none; }
   </style>
@@ -101,6 +108,22 @@ ob_end_flush();
         </div>
       </div>
 
+      <div class="amount-box">
+        <label for="offerAmount">Offer amount (₱)</label>
+        <input
+          type="number"
+          id="offerAmount"
+          name="amount"
+          form="offerForm"
+          class="offer-field"
+          min="1"
+          step="0.01"
+          placeholder="e.g. 1500.00"
+          required
+        />
+        <div class="offer-hint">Enter a fair amount you are willing to be paid for this quest.</div>
+      </div>
+
       <div style="height:16px"></div>
       <div class="policy">
         <svg class="ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 14h-2v-2h2v2zm0-4h-2V6h2v6z"/></svg>
@@ -112,9 +135,9 @@ ob_end_flush();
     </main>
 
     <div class="offer-footer">
-      <form method="POST" action="./make-offer-submit.php">
+      <form method="POST" action="./make-offer-submit.php" id="offerForm">
         <input type="hidden" name="job_id" value="<?php echo $id; ?>" />
-        <button class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
+        <button type="submit" class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
       </form>
     </div>
   </div>
@@ -130,15 +153,26 @@ ob_end_flush();
         card.setAttribute('aria-checked', (!v).toString());
         update();
       }
+      function amountValid(){
+        const amt = document.getElementById('offerAmount');
+        if (!amt) return false;
+        const v = parseFloat(amt.value);
+        return !isNaN(v) && v > 0;
+      }
       function update(){
-        const ok = c1.getAttribute('aria-checked') === 'true' && c2.getAttribute('aria-checked') === 'true';
-        btn.disabled = !ok;
+        const c1ok = c1.getAttribute('aria-checked') === 'true';
+        const c2ok = c2.getAttribute('aria-checked') === 'true';
+        const amtok = amountValid();
+        btn.disabled = !(c1ok && c2ok && amtok);
       }
       [c1,c2].forEach(card => {
         card.addEventListener('click', ()=> toggle(card));
         card.addEventListener('keydown', (e)=>{ if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(card); } });
       });
       btn.addEventListener('click', ()=>{ window.location.href = nextUrl; });
+      const amt = document.getElementById('offerAmount');
+    amt.addEventListener('input', update);
+    update();
     })();
   </script>
 </body>

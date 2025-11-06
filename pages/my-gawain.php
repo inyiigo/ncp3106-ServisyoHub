@@ -1,6 +1,74 @@
 <?php
 session_start();
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset($_SESSION['mobile']) ? $_SESSION['mobile'] : 'there');
+
+// --- Fetch "Offered" data: only offers received on MY posts ---
+require_once __DIR__ . '/../config/db_connect.php';
+$db = $conn ?? $mysqli ?? null;
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered';
+
+function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+function peso($v){ return '₱' . number_format((float)($v ?? 0), 2); }
+
+// Helper to build offerer display name
+function offerer_name(array $r): string {
+	$n = trim($r['offerer_username'] ?? '');
+	if ($n === '') {
+		$f = trim($r['offerer_first'] ?? '');
+		$l = trim($r['offerer_last'] ?? '');
+		$n = trim($f . ' ' . $l);
+	}
+	return $n !== '' ? $n : 'User';
+}
+
+$offered_list = [];
+if ($tab === 'offered' && $viewerId && $db) {
+	// Only offers received on jobs owned by the current user
+	$sql = "SELECT 
+	            o.id            AS offer_id,
+	            o.job_id        AS job_id,
+	            o.user_id       AS offerer_id,
+	            o.amount        AS amount,
+	            o.status        AS status,
+	            o.created_at    AS created_at,
+	            j.title         AS job_title,
+	            COALESCE(j.location,'Online')     AS location,
+	            COALESCE(j.date_needed,'Anytime') AS date_needed,
+	            COALESCE(u.username,'')   AS offerer_username,
+	            COALESCE(u.first_name,'') AS offerer_first,
+	            COALESCE(u.last_name,'')  AS offerer_last,
+	            COALESCE(u.avatar,'')     AS offerer_avatar
+	        FROM offers o
+	        JOIN jobs j  ON j.id = o.job_id
+	        LEFT JOIN users u ON u.id = o.user_id
+	        WHERE j.user_id = ?
+	        ORDER BY o.created_at DESC, o.id DESC";
+	if ($st = @mysqli_prepare($db, $sql)) {
+		mysqli_stmt_bind_param($st, 'i', $viewerId);
+		if (@mysqli_stmt_execute($st)) {
+			$res = @mysqli_stmt_get_result($st);
+			while ($row = @mysqli_fetch_assoc($res)) $offered_list[] = $row;
+		}
+		@mysqli_stmt_close($st);
+	}
+}
+
+$posted_list = [];
+if ($tab === 'posted' && $viewerId && $db) {
+	$psql = "SELECT id, title, COALESCE(location,'Online') AS location,
+	         COALESCE(date_needed,'Anytime') AS date_needed,
+	         COALESCE(status,'pending') AS status, posted_at
+	         FROM jobs WHERE user_id = ? ORDER BY posted_at DESC, id DESC";
+	if ($pst = @mysqli_prepare($db, $psql)) {
+		mysqli_stmt_bind_param($pst, 'i', $viewerId);
+		if (@mysqli_stmt_execute($pst)) {
+			$pr = @mysqli_stmt_get_result($pst);
+			while ($row = @mysqli_fetch_assoc($pr)) $posted_list[] = $row;
+		}
+		@mysqli_stmt_close($pst);
+	}
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -182,6 +250,42 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 		/* Slightly shift content downward for breathing room */
 		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
+
+		/* NEW: simple list styling for Offered cards */
+		.mg-list { max-width: 980px; margin: 12px auto; padding: 0 16px; display: grid; gap: 10px; }
+		.mg-item { background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:12px; }
+		.mg-top { display:flex; align-items:center; gap:12px; }
+		.mg-title { font-weight:800; margin:0; color:#0f172a; flex:1; }
+		.mg-amt { margin-left:auto; font-weight:900; color:#0078a6; white-space:nowrap; }
+		.mg-sub { display:flex; align-items:center; gap:10px; margin-top:6px; color:#64748b; font-size:.95rem; }
+		.mg-dot { width:6px; height:6px; background:#0f172a; border-radius:999px; display:inline-block; }
+		.mg-meta { margin-top:6px; color:#94a3b8; font-size:.9rem; }
+		.mg-link { text-decoration:none; color:inherit; display:block; }
+		/* tiny avatar in meta */
+		.mg-av { width:20px; height:20px; border-radius:50%; object-fit:cover; display:inline-block; vertical-align:middle; }
+
+		/* Status badge styling */
+		.mg-badge {
+			display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px;
+			font-size: .8rem; font-weight: 700; white-space: nowrap; margin-left: 8px;
+		}
+		.mg-badge.pending { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+		.mg-badge.accepted { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+		.mg-badge.rejected { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+		.mg-badge.withdrawn { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+		.mg-badge.inprogress { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; }
+		.mg-badge.completed { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+		.mg-badge.cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+
+		/* Posted list cards */
+		.pg-list { max-width:980px; margin:12px auto; padding:0 16px; display:grid; gap:10px; }
+		.pg-item { background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:12px; }
+		.pg-top { display:flex; align-items:center; gap:12px; }
+		.pg-title { font-weight:800; margin:0; color:#0f172a; flex:1; }
+		.pg-meta { margin-top:6px; color:#94a3b8; font-size:.85rem; display:flex; gap:10px; flex-wrap:wrap; }
+		.mg-badge.approved { background:#d1fae5; color:#065f46; border:1px solid #34d399; }
+		.mg-badge.closed { background:#f3f4f6; color:#374151; border:1px solid #d1d5db; }
+		.mg-badge.rejected { background:#fee2e2; color:#991b1b; border:1px solid #f87171; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -204,10 +308,86 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 				</div>
 			</header>
 
+			<?php if ($tab === 'offered' && !empty($offered_list)): ?>
+			<section class="mg-list" aria-label="Offers" id="offerList">
+				<?php foreach ($offered_list as $o): 
+					$link = './gawain-detail.php?id='.(int)$o['job_id'];
+					$name = offerer_name($o);
+					$av   = (string)($o['offerer_avatar'] ?? '');
+					if ($av !== '' && !preg_match('#^https?://#i', $av)) $av = '../' . ltrim($av, '/');
+					$status = strtolower(trim($o['status'] ?? 'pending'));
+					$statusLabel = ucfirst($status);
+					// Map filter checkbox values to actual DB status
+					$filterClass = $status;
+					if ($status === 'accepted') $filterClass = 'inprogress'; // if you want "In-progress" to match accepted
+				?>
+				<a class="mg-link" href="<?php echo e($link); ?>" data-status="<?php echo e($status); ?>">
+					<article class="mg-item">
+						<div class="mg-top">
+							<h3 class="mg-title"><?php echo e($o['job_title'] ?? 'Untitled'); ?></h3>
+							<div style="display:flex; align-items:center; gap:4px;">
+								<div class="mg-amt"><?php echo peso($o['amount']); ?></div>
+								<span class="mg-badge <?php echo e($status); ?>"><?php echo e($statusLabel); ?></span>
+							</div>
+						</div>
+						<div class="mg-sub">
+							<span style="display:inline-flex; align-items:center; gap:6px;">
+								<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+								<?php echo e($o['location']); ?>
+							</span>
+							<span class="mg-dot"></span>
+							<span>On <?php echo e($o['date_needed']); ?></span>
+						</div>
+						<div class="mg-meta">
+							<?php if ($av): ?><img class="mg-av" src="<?php echo e($av); ?>" alt=""><?php endif; ?>
+							Offer received • <?php echo date('M j, Y g:ia', strtotime($o['created_at'])); ?>
+						</div>
+					</article>
+				</a>
+				<?php endforeach; ?>
+			</section>
+			<?php elseif ($tab === 'posted'): ?>
+		<?php if (!empty($posted_list)): ?>
+		<section class="pg-list" aria-label="Posted jobs">
+			<?php foreach ($posted_list as $j): 
+				$st = strtolower(trim($j['status']));
+				$label = ucfirst($st);
+				$link = './gawain-detail.php?id='.(int)$j['id'];
+			?>
+			<a href="<?php echo e($link); ?>" class="mg-link" style="text-decoration:none;">
+				<article class="pg-item">
+					<div class="pg-top">
+						<h3 class="pg-title"><?php echo e($j['title'] ?: 'Untitled'); ?></h3>
+						<span class="mg-badge <?php echo e($st); ?>"><?php echo e($label); ?></span>
+					</div>
+					<div class="mg-sub" style="margin-top:6px; display:flex; flex-wrap:wrap; gap:10px; color:#64748b; font-size:.95rem;">
+						<span style="display:inline-flex; align-items:center; gap:6px;">
+							<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+							<?php echo e($j['location']); ?>
+						</span>
+						<span class="mg-dot"></span>
+						<span>On <?php echo e($j['date_needed']); ?></span>
+					</div>
+					<div class="pg-meta">
+						<span>Posted <?php echo date('M j, Y g:ia', strtotime($j['posted_at'])); ?></span>
+						<?php if ($st === 'pending'): ?><span style="font-weight:700;">Awaiting admin review</span><?php endif; ?>
+					</div>
+				</article>
+			</a>
+			<?php endforeach; ?>
+		</section>
+		<?php else: ?>
+		<section class="mq-empty" aria-label="Empty posted">
+			<p class="empty-text">You have not posted any quests yet. Create one to see it here pending review.</p>
+			<a class="btn mq-browse" href="./post.php">Post a quest</a>
+		</section>
+		<?php endif; ?>
+			<?php else: ?>
 			<section class="mq-empty" aria-label="Empty state">
 				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
 				<a class="btn mq-browse" href="./home-gawain.php">Browse gawain</a>
 			</section>
+			<?php endif; ?>
 
 			<!-- Filter Bottom Sheet Modal -->
 			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true">
@@ -220,9 +400,9 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 					</div>
 					<form class="mq-filter-form" id="mqFilterForm">
 						<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="accepted"> <span>In-progress</span></label>
 						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="rejected"> <span>Cancellations</span></label>
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>
@@ -230,39 +410,6 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</div>
 		</main>
 	</div>
-
-	<!-- Floating right-side navigation (replaces bottom nav) -->
-	<nav class="dash-float-nav">
-		<a href="./home-gawain.php" aria-label="Browse">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>
-			</svg>
-			<span class="dash-label">Browse</span>
-		</a>
-		<a href="./post.php" aria-label="Post">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 5v14m-7-7h14"/><circle cx="12" cy="12" r="11"/>
-			</svg>
-			<span class="dash-label">Post</span>
-		</a>
-		<a href="./my-gawain.php" class="active" aria-current="page" aria-label="My Gawain">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M4 7h16M4 12h10M4 17h7"/>
-			</svg>
-			<span class="dash-label">My Gawain</span>
-		</a>
-		<a href="./chats.php" aria-label="Chats">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-			</svg>
-			<span class="dash-label">Chats</span>
-		</a>
-		<a href="./profile.php" aria-label="Profile">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/>
-			</svg>
-			<span class="dash-label">Profile</span>
-		</a>
 
 	<!-- Floating right-side navigation (replaces bottom nav) -->
 	<nav class="dash-float-nav" id="dashNav">
@@ -322,5 +469,61 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 		</div>
 	</nav>
 
+	<script>
+	// Filter modal logic
+	(function(){
+		const modal = document.getElementById('mqFilterModal');
+		const btn = document.getElementById('mqFilterBtn');
+		const closeEls = modal?.querySelectorAll('[data-filter-close]');
+		const resetBtn = document.getElementById('mqFilterReset');
+		const applyBtn = document.getElementById('mqFilterApply');
+		const form = document.getElementById('mqFilterForm');
+		const label = document.getElementById('mqFilterLabel');
+		const list = document.getElementById('offerList');
+
+		if (!modal || !btn || !form || !label || !list) return;
+
+		function open(){ modal.setAttribute('aria-hidden','false'); btn.setAttribute('aria-expanded','true'); }
+		function close(){ modal.setAttribute('aria-hidden','true'); btn.setAttribute('aria-expanded','false'); }
+
+		btn.addEventListener('click', open);
+		closeEls.forEach(el => el.addEventListener('click', close));
+
+		resetBtn.addEventListener('click', ()=>{
+			form.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+			applyFilters();
+		});
+
+		applyBtn.addEventListener('click', ()=>{
+			applyFilters();
+			close();
+		});
+
+		function applyFilters(){
+			const checked = Array.from(form.querySelectorAll('input[name=status]:checked')).map(c => c.value);
+			const cards = list.querySelectorAll('.mg-link');
+			let visible = 0;
+
+			cards.forEach(card => {
+				const status = card.getAttribute('data-status');
+				if (checked.length === 0 || checked.includes(status)){
+					card.style.display = 'block';
+					visible++;
+				} else {
+					card.style.display = 'none';
+				}
+			});
+
+			label.textContent = checked.length === 0 ? 'All' : `${checked.length} filter${checked.length>1?'s':''}`;
+			
+			// Show empty state if no results
+			const empty = list.parentElement.querySelector('.mq-empty');
+			if (empty) empty.style.display = visible === 0 ? 'block' : 'none';
+		}
+
+		// Initialize
+		applyFilters();
+	})();
+	</script>
 </body>
 </html>

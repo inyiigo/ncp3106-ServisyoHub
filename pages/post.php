@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 			urgency, time_preference, specific_time, time_range_start, time_range_end,
 			payment_type, estimated_hours, additional_cost,
 			requirements, make_mandatory
-		) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		if ($stmt = mysqli_prepare($mysqli, $sql)) {
 			mysqli_stmt_bind_param(
@@ -159,9 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 
 			if (mysqli_stmt_execute($stmt)) {
 				$job_id = mysqli_insert_id($mysqli);
-				error_log("✓ SUCCESS: Job #{$job_id} inserted with all fields");
-				$_SESSION['posted_success_once'] = 1;
-				header('Location: ' . $_SERVER['PHP_SELF'] . '?posted=1');
+				// Redirect to My Gawain -> Posted tab to show pending job
+				header('Location: ./my-gawain.php?tab=posted');
 				exit;
 			} else {
 				$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
