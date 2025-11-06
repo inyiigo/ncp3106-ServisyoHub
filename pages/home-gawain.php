@@ -98,12 +98,52 @@ function time_ago($dt) {
 }
 $jobs = [];
 if ($dbAvailable) {
-	// add posted_ts to get an epoch seconds value from MySQL (avoids timezone/parsing issues)
+	// read filter/sort inputs from GET (safe defaults)
+	$sort = $_GET['sort'] ?? 'recent';
+	$catFilter = trim((string)($_GET['cat'] ?? ''));
+	$min = $_GET['min'] ?? '';
+	$max = $_GET['max'] ?? '';
+
+	// base where
+	$where = "WHERE COALESCE(status,'open') IN ('open','pending')";
+
+	// category filter
+	if ($catFilter !== '') {
+		$catEsc = mysqli_real_escape_string($mysqli, $catFilter);
+		$where .= " AND category = '{$catEsc}'";
+	}
+
+	// min/max budget filter (only when numeric)
+	if (is_numeric($min)) {
+		$minVal = (float)$min;
+		$where .= " AND CAST(NULLIF(budget,'') AS DECIMAL(12,2)) >= {$minVal}";
+	}
+	if (is_numeric($max)) {
+		$maxVal = (float)$max;
+		$where .= " AND CAST(NULLIF(budget,'') AS DECIMAL(12,2)) <= {$maxVal}";
+	}
+
+	// determine ordering
+	switch ($sort) {
+		case 'price_asc':
+			// put items with empty budget last, then sort by numeric budget
+			$order = "ORDER BY (budget IS NULL OR budget = '') ASC, CAST(NULLIF(budget,'') AS DECIMAL(12,2)) ASC, posted_at DESC, id DESC";
+			break;
+		case 'price_desc':
+			$order = "ORDER BY (budget IS NULL OR budget = '') ASC, CAST(NULLIF(budget,'') AS DECIMAL(12,2)) DESC, posted_at DESC, id DESC";
+			break;
+		default:
+			$order = "ORDER BY posted_at DESC, id DESC";
+			break;
+	}
+
+	// build and execute query
 	$sql = "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, posted_at, UNIX_TIMESTAMP(posted_at) AS posted_ts
 	        FROM jobs
-	        WHERE COALESCE(status,'open') IN ('open','pending')
-	        ORDER BY posted_at DESC, id DESC
-	        LIMIT 10";
+	        {$where}
+	        {$order}
+	        LIMIT 50"; // increase a bit for filter results
+
 	if ($res = @mysqli_query($mysqli, $sql)) {
 		while ($row = mysqli_fetch_assoc($res)) $jobs[] = $row;
 		@mysqli_free_result($res);
@@ -534,7 +574,7 @@ ob_end_flush();
 		</a>
 		<a href="./chats.php" aria-label="Chats">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-			<span>Chats</span>
+			<span>Profile</span>
 		</a>
 		<a href="./profile.php" aria-label="Profile">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-5 0-9 3-9 6v2h18v-2c0-3-4-6-9-6Z"/></svg>
