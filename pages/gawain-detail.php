@@ -12,6 +12,9 @@ $db = $conn ?? $mysqli ?? null;
 // ensure correct table name used everywhere
 $table = 'jobs';
 
+// Define currentUserId early to avoid "undefined variable" warnings
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
+
 function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 function fmt_money($v){
     if ($v === '' || $v === null) return 'Negotiable';
@@ -90,16 +93,35 @@ function url_from_path($p){
 
 $clientAvatarUrl = '';
 $jobOwnerId = 0;
+
+// --- Use user_id from the fetched $jobs row when available (most reliable) ---
+if (!empty($jobs['user_id'])) {
+  $jobOwnerId = (int)$jobs['user_id'];
+}
 // Best-effort: try jobs.user_id -> users.avatar
 if ($id > 0 && $db) {
+  if ($jobOwnerId === 0) {
+    // 1) try via jobs table user_id column (older schema)
+    if ($stmt = @mysqli_prepare($db, "SELECT user_id FROM {$table} WHERE id = ? LIMIT 1")) {
+      mysqli_stmt_bind_param($stmt, 'i', $id);
+      if (@mysqli_stmt_execute($stmt)) {
+        $res = @mysqli_stmt_get_result($stmt);
+        if ($res && ($row = @mysqli_fetch_assoc($res)) && !empty($row['user_id'])) {
+          $jobOwnerId = (int)$row['user_id'];
+        }
+      }
+      @mysqli_stmt_close($stmt);
+    }
+  }
   // 1) try via user_id column
   if ($stmt = @mysqli_prepare($db, "SELECT user_id FROM {$table} WHERE id = ? LIMIT 1")) {
     mysqli_stmt_bind_param($stmt, 'i', $id);
-    if (@mysqli_stmt_execute($stmt)) {
+    if (@mysqli_stmt_execute($stmt)){
       $res = @mysqli_stmt_get_result($stmt);
       if ($res && ($row = @mysqli_fetch_assoc($res)) && !empty($row['user_id'])) {
         $uid = (int)$row['user_id'];
-        $jobOwnerId = $uid;
+        // only set if not already set from $jobs
+        if ($jobOwnerId === 0) $jobOwnerId = $uid;
         if ($u = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
           mysqli_stmt_bind_param($u, 'i', $uid);
           if (@mysqli_stmt_execute($u)) {
@@ -157,13 +179,36 @@ if (!empty($_SESSION['user_id']) && $db) {
 
 // Determine if current viewer is the owner of this post
 $isOwner = false;
-if (!empty($_SESSION['user_id']) && $jobOwnerId) {
-   $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
- } elseif ($jobOwnerId === 0) {
-   // Fallback: compare display name and job user_name if user_id isn't available
-   $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
-   $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
- }
+// Primary check: compare logged-in user's id with job owner id
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
+if ($currentUserId > 0 && $jobOwnerId > 0) {
+  $isOwner = ($currentUserId === (int)$jobOwnerId);
+} else {
+  // Fallback: if no numeric owner id, try name-based fallback (less reliable)
+  if ($jobOwnerId === 0) {
+    $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
+    $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
+  } else {
+    $isOwner = false;
+  }
+}
+
+// DEBUG (temporary): uncomment to see values in UI during testing
+// echo "<div style='position:fixed;right:10px;top:10px;background:#ffd;'>isOwner=".($isOwner?'Y':'N')." currentUser={$currentUserId} jobOwner={$jobOwnerId}</div>";
+
+// Compute offers count for this job
+if ($id > 0 && $db) {
+  if ($s = @mysqli_prepare($db, "SELECT COUNT(*) AS c FROM offers WHERE job_id = ?")) {
+    mysqli_stmt_bind_param($s, 'i', $id);
+    if (@mysqli_stmt_execute($s)) {
+      $r = @mysqli_stmt_get_result($s);
+      if ($r && ($w = @mysqli_fetch_assoc($r))) {
+        $offers = (int)($w['c'] ?? 0);
+      }
+    }
+    @mysqli_stmt_close($s);
+  }
+}
  
  ob_end_flush();
 ?>
@@ -468,8 +513,14 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
   <footer class="footer-bar">
     <div class="footer-inner">
       <div class="footer-actions">
-  <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
-        <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
+        <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
+        <?php if ($isOwner): ?>
+          <!-- Owner sees View offers button -->
+          <a class="btn-solid" href="./my-gawain.php?tab=offered&job_id=<?php echo (int)$id; ?>" role="button">View offers (<?php echo (int)$offers; ?>)</a>
+        <?php else: ?>
+          <!-- Non-owner sees Make offer button -->
+          <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
+        <?php endif; ?>
       </div>
     </div>
   </footer>
