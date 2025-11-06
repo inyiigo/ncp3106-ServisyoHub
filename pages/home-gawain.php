@@ -351,183 +351,7 @@ ob_end_flush();
 		.fc-title { font-weight: var(--fw-bold) !important; }
 
 		/* Recent Posts Section */
-.recent-posts-section {
-	max-width: 960px;
-	margin: 24px auto 80px;
-	padding: 0 12px;
-	position: relative;
-	z-index: 10;
-}
-
-.section-title {
-	margin: 0 0 20px;
-	font-size: 1.3rem;
-	font-weight: 800;
-	color: #0f172a;
-}
-
-.recent-posts-list {
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-}
-
-.post-card {
-	background: #fff;
-	border: 1px solid #e5e7eb;
-	border-radius: 16px;
-	padding: 20px;
-	transition: all 0.2s ease;
-	cursor: pointer;
-}
-
-.post-card:hover {
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-	border-color: #0078a6;
-	transform: translateY(-2px);
-}
-
-.post-header {
-	display: flex;
-	align-items: flex-start;
-	gap: 12px;
-	margin-bottom: 12px;
-}
-
-.post-avatar {
-	width: 40px;
-	height: 40px;
-	border-radius: 50%;
-	background: #e0f2fe;
-	color: #0078a6;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 700;
-	font-size: 1rem;
-	flex-shrink: 0;
-}
-
-.post-info {
-	flex: 1;
-	min-width: 0;
-}
-
-.post-title {
-	margin: 0 0 6px 0;
-	font-size: 1.1rem;
-	font-weight: 700;
-	color: #0f172a;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.post-meta {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	font-size: 0.85rem;
-	color: #64748b;
-	flex-wrap: wrap;
-}
-
-.post-icon {
-	width: 14px;
-	height: 14px;
-	flex-shrink: 0;
-}
-
-.post-divider {
-	color: #cbd5e1;
-}
-
-.post-price {
-	font-size: 1.2rem;
-	font-weight: 800;
-	color: #0078a6;
-	flex-shrink: 0;
-}
-
-.post-description {
-	margin: 0 0 12px 0;
-	font-size: 0.95rem;
-	color: #475569;
-	line-height: 1.6;
-}
-
-.post-footer {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	padding-top: 12px;
-	border-top: 1px solid #f1f5f9;
-}
-
-.post-time {
-	font-size: 0.85rem;
-	color: #94a3b8;
-}
-
-.post-status {
-	font-size: 0.85rem;
-	font-weight: 600;
-	padding: 4px 12px;
-	border-radius: 999px;
-	text-transform: capitalize;
-}
-
-.post-status.open {
-	background: #dcfce7;
-	color: #166534;
-}
-
-.post-status.closed {
-	background: #fee2e2;
-	color: #991b1b;
-}
-
-.post-status.in-progress {
-	background: #fef3c7;
-	color: #92400e;
-}
-
-.no-posts {
-	text-align: center;
-	padding: 60px 20px;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-}
-
-/* show a small dot separator between consecutive meta items (clean inline look) */
-.svc-meta .item + .item::before,
-.post-meta span + span::before {
-	content: "•";
-	display: inline-block;
-	margin: 0 8px;
-	color: #94a3b8;
-}
-
-/* make the meta row slightly smaller and align nicely like the screenshot */
-.svc-meta, .post-meta {
-	font-size: 0.92rem;
-	color: #64748b;
-	align-items: center;
-}
-
-/* tighten posted row */
-.svc-posted, .post-footer .post-time {
-	font-size: 0.9rem;
-	color: #94a3b8;
-}
-
-/* ensure title / price layout (title left, price right) appears compact */
-.svc-card { grid-template-columns: 1fr auto; align-items: start; }
-.post-header { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
-
-/* keep price aligned top-right */
-.post-price, .svc-price { text-align: right; }
+		/* removed - recent posts UI removed */
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -637,95 +461,37 @@ ob_end_flush();
 					</div>
 				<?php else: ?>
 					<?php foreach ($jobs as $j): ?>
-						<?php $jid = isset($j['id']) ? (int)$j['id'] : 0; ?>
-						<a class="svc-card" href="./gawain-detail.php<?php echo $jid ? ('?id=' . $jid) : ''; ?>" aria-label="View post: <?php echo e($j['title']); ?>">
-							<div>
-								<h3 class="svc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></h3>
-								<div class="svc-meta">
-									<?php if (!empty($j['location'])): ?>
-										<span class="item" title="<?php echo e($j['location']); ?>">
-											<svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/><circle cx="12" cy="12" r="2"/></svg>
-											<?php echo e($j['location']); ?>
-										</span>
-									<?php endif; ?>
-									<?php if (!empty($j['date_needed'])): ?>
-										<span class="item">
-											<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-											On <?php echo e($j['date_needed']); ?>
-										</span>
-									<?php endif; ?>
-								</div>
-								<div class="svc-posted">
-									<span class="svc-av"><?php echo htmlspecialchars($avatar); ?></span>
-									<span>Posted <?php echo e(time_ago($j['posted_ts'] ?? $j['posted_at'])); ?></span>
-								</div>
+					<?php $jid = isset($j['id']) ? (int)$j['id'] : 0; ?>
+					<a class="svc-card" data-category="<?php echo e($j['category'] ?? ''); ?>" href="./gawain-detail.php<?php echo $jid ? ('?id=' . $jid) : ''; ?>" aria-label="View post: <?php echo e($j['title']); ?>">
+						<div>
+							<h3 class="svc-title" title="<?php echo e($j['title']); ?>"><?php echo e($j['title']); ?></h3>
+							<div class="svc-meta">
+								<?php if (!empty($j['location'])): ?>
+									<span class="item" title="<?php echo e($j['location']); ?>">
+										<svg viewBox="0 0 24 24"><path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z"/><circle cx="12" cy="12" r="2"/></svg>
+										<?php echo e($j['location']); ?>
+									</span>
+								<?php endif; ?>
+								<?php if (!empty($j['date_needed'])): ?>
+									<span class="item">
+										<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+										On <?php echo e($j['date_needed']); ?>
+									</span>
+								<?php endif; ?>
 							</div>
-							<div class="svc-price">
-								<span class="amt"><?php echo !empty($j['budget']) ? '₱'.e($j['budget']) : 'Negotiable'; ?></span>
-								<?php if (empty($j['budget'])): ?><span class="note">Negotiable</span><?php endif; ?>
+							<div class="svc-posted">
+								<span class="svc-av"><?php echo htmlspecialchars($avatar); ?></span>
+								<span>Posted <?php echo e(time_ago($j['posted_ts'] ?? $j['posted_at'])); ?></span>
 							</div>
-						</a>
-					<?php endforeach; ?>
+						</div>
+						<div class="svc-price">
+							<span class="amt"><?php echo !empty($j['budget']) ? '₱'.e($j['budget']) : 'Negotiable'; ?></span>
+							<?php if (empty($j['budget'])): ?><span class="note">Negotiable</span><?php endif; ?>
+						</div>
+					</a>
+				<?php endforeach; ?>
 				<?php endif; ?>
 			</section>
-
-			<!-- Recent Posts section -->
-			<section class="recent-posts-section" aria-label="Recent Posts">
-		<h3 class="section-title">Recent Posts</h3>
-		
-		<div class="recent-posts-list">
-			<?php if (!empty($recentPosts)): ?>
-				<?php foreach ($recentPosts as $post): ?>
-					<div class="post-card">
-						<div class="post-header">
-							<div class="post-avatar">
-								<?php 
-								$posterName = htmlspecialchars($post['display_name'] ?? 'User');
-								$posterInitial = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
-								echo $posterInitial;
-								?>
-							</div>
-							<div class="post-info">
-								<h4 class="post-title"><?php echo htmlspecialchars($post['title']); ?></h4>
-								<div class="post-meta">
-									<svg class="post-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-										<circle cx="12" cy="10" r="3"/>
-									</svg>
-									<span><?php echo htmlspecialchars($post['location']); ?></span>
-									<span class="post-divider">•</span>
-									<svg class="post-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-										<line x1="16" y1="2" x2="16" y2="6"/>
-										<line x1="8" y1="2" x2="8" y2="6"/>
-										<line x1="3" y1="10" x2="21" y2="10"/>
-									</svg>
-									<span>On <?php echo date('M j, Y', strtotime($post['date_needed'])); ?></span>
-								</div>
-							</div>
-							<div class="post-price">₱<?php echo number_format($post['budget'], 0); ?></div>
-						</div>
-						<p class="post-description"><?php echo htmlspecialchars(substr($post['description'], 0, 150)); ?><?php echo strlen($post['description']) > 150 ? '...' : ''; ?></p>
-						<div class="post-footer">
-							<span class="post-time">Posted <?php echo e(time_ago($post['posted_ts'] ?? $post['posted_at'])); ?></span>
-							<span class="post-status <?php echo $post['status']; ?>">
-								<?php echo ucfirst($post['status']); ?>
-							</span>
-						</div>
-					</div>
-				<?php endforeach; ?>
-			<?php else: ?>
-				<div class="no-posts">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 48px; height: 48px; color: #cbd5e1; margin-bottom: 16px;">
-						<circle cx="12" cy="12" r="10"/>
-						<path d="M12 16v-4"/>
-						<circle cx="12" cy="8" r="0.5" fill="currentColor"/>
-					</svg>
-					<p style="color: #64748b; font-size: 0.95rem;">No recent posts yet. Be the first to post a gawain!</p>
-				</div>
-			<?php endif; ?>
-		</div>
-	</section>
 
 		</main>
 
@@ -836,7 +602,7 @@ ob_end_flush();
 		const prev = document.getElementById('catPrev');
 		const next = document.getElementById('catNext');
 		const search = document.querySelector('.svc-search-input');
-		const feedCards = document.querySelectorAll('.feed-card');
+		// only svc-card elements remain for filtering
 		const svcCards = document.querySelectorAll('.svc-card');
 		
 		if (!row || !prev || !next) return;
@@ -880,25 +646,18 @@ ob_end_flush();
 				}
 			}
 			
-			// Filter Recent Posts by category
+			// Filter svc cards by category
 			filterPosts(activeCategory);
 		});
 
-		function filterPosts(category){
-			// Filter feed cards (Recent Posts)
-			feedCards.forEach(card => {
-				const cardCat = card.querySelector('.fc-cat')?.textContent.trim() || '';
-				if (category === 'All' || cardCat === category) {
-					card.style.display = '';
-				} else {
-					card.style.display = 'none';
-				}
-			});
+		function normalize(s){ return (s || '').toString().trim().toLowerCase(); }
 
-			// Filter service list cards
+		function filterPosts(category){
+			const catNorm = normalize(category);
+			// Filter service list cards only
 			svcCards.forEach(card => {
-				const cardTitle = card.querySelector('.svc-title')?.textContent.trim().toLowerCase() || '';
-				if (category === 'All' || cardTitle.includes(category.toLowerCase())) {
+				const cardCat = normalize(card.dataset.category || '');
+				if (!catNorm || catNorm === 'all' || cardCat === catNorm) {
 					card.style.display = '';
 				} else {
 					card.style.display = 'none';
@@ -932,11 +691,7 @@ ob_end_flush();
 						filterPosts('All');
 					}
 				} else {
-					// Free-text search: show all that match
-					feedCards.forEach(card => {
-						const text = card.textContent.toLowerCase();
-						card.style.display = text.includes(term) ? '' : 'none';
-					});
+					// Free-text search: show svc-cards that match text
 					svcCards.forEach(card => {
 						const text = card.textContent.toLowerCase();
 						card.style.display = text.includes(term) ? '' : 'none';
