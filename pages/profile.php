@@ -29,8 +29,26 @@ $display = $_SESSION['display_name'] ?? ($mobile ? 'USER' : 'Guest');
 // If logged in, always refresh display name and avatar from DB so repeated edits reflect
 $user_id = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
 $dbAvatarPath = '';
+// NEW: holder for skills fetched from DB
+$dbSkills = '';
+// NEW: holders for first and last names
+$dbFirstName = '';
+$dbLastName  = '';
 if ($user_id > 0 && isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
-	if ($stmt = $mysqli->prepare("SELECT username, COALESCE(avatar,'') FROM users WHERE id = ?")) {
+	// Try to fetch username, avatar, skills, first_name, last_name
+	if ($stmt = $mysqli->prepare("SELECT username, COALESCE(avatar,''), COALESCE(skills,''), COALESCE(first_name,''), COALESCE(last_name,'') FROM users WHERE id = ?")) {
+		$stmt->bind_param('i', $user_id);
+		$stmt->execute();
+		$stmt->bind_result($dbUsername, $dbAvatarPath, $dbSkills, $dbFirstName, $dbLastName);
+		if ($stmt->fetch()) {
+			if (!empty($dbUsername)) {
+				$_SESSION['display_name'] = $dbUsername;
+				$display = $dbUsername;
+			}
+		}
+		$stmt->close();
+	} elseif ($stmt = $mysqli->prepare("SELECT username, COALESCE(avatar,'') FROM users WHERE id = ?")) {
+		// Fallback: old schema without skills/first/last
 		$stmt->bind_param('i', $user_id);
 		$stmt->execute();
 		$stmt->bind_result($dbUsername, $dbAvatarPath);
@@ -63,13 +81,25 @@ $initialSrc = $display_name !== '' ? $display_name : 'Guest';
 $firstAlpha = preg_replace('/[^A-Za-z]/', '', $initialSrc);
 $avatar     = strtoupper(substr($firstAlpha !== '' ? $firstAlpha : 'G', 0, 1));
 
+// Replace session-based skills with DB-driven skills
+// helper: parse comma-separated skills into an array
+function parse_skills_list($s){
+	$parts = array_map('trim', explode(',', (string)$s));
+	$parts = array_values(array_filter($parts, function($v){ return $v !== ''; }));
+	return $parts;
+}
+// Use DB skills if available; otherwise default visible examples
+$skills = parse_skills_list($dbSkills);
+if (empty($skills)) {
+	$skills = ['AI & Machine Learning', 'Frontend Development', 'Software Development'];
+}
+
 // About Me data (with safe fallbacks)
 $joined_raw = $_SESSION['joined_at'] ?? null;
 $joined_ts  = is_numeric($joined_raw) ? (int)$joined_raw : ($joined_raw ? strtotime((string)$joined_raw) : time());
 $joined_date = date('m/d/Y', $joined_ts);
 $kasangga_done = (int)($_SESSION['kasangga_completed'] ?? 0);
 $citizen_done = (int)($_SESSION['citizen_completed'] ?? 0);
-$skills = $_SESSION['skills'] ?? ['AI & Machine Learning', 'Frontend Development', 'Software Development'];
 $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 
 ?>
@@ -595,9 +625,37 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 		.about-row .ico { width: 18px; height: 18px; color: #64748b; flex: 0 0 18px; }
 		.about-label { display: block; font-weight: 800; color: #0f172a; margin: 8px 0 6px; }
 		.skill-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
-		.skill-chip { border: 2px solid #e2e8f0; background: #fff; color: #0f172a; border-radius: 999px; padding: 6px 10px; font-weight: 800; font-size: .85rem; box-shadow: 0 2px 8px rgba(2,6,23,.06); }
-		.about-links a { color: #0078a6; font-weight: 700; text-decoration: none; }
-		.about-links a:hover { text-decoration: underline; }
+		.skill-chip {
+			border: 2px solid transparent;
+			border-radius: 999px;
+			padding: 6px 10px;
+			font-weight: 800;
+			font-size: .85rem;
+			box-shadow: 0 2px 8px rgba(2,6,23,.06);
+		}
+		/* Cycle through palette for each chip */
+		.skill-chips .skill-chip:nth-child(5n+1) {
+			background: var(--pal-1);
+			border-color: color-mix(in srgb, var(--pal-1) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+2) {
+			background: var(--pal-2);
+			border-color: color-mix(in srgb, var(--pal-2) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+3) {
+			background: var(--pal-3);
+			border-color: color-mix(in srgb, var(--pal-3) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+4) {
+			background: var(--pal-4);
+			border-color: color-mix(in srgb, var(--pal-4) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+5) {
+			background: var(--pal-5);
+			border-color: color-mix(in srgb, var(--pal-5) 70%, #ffffff 30%);
+		}
+		/* Force white text */
+		.skill-chip { color:#fff !important; }
 
 		/* About Me spacing tweaks (scoped to About tab only) */
 		#tab-about .card { padding: 18px 18px; }
@@ -757,6 +815,13 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 							<div class="wallet-actions">
 								<a class="btn-chip" href="./edit-profile.php">Edit Profile</a>
 							</div>
+							<!-- NEW: small space then full name from DB -->
+							<?php
+								$_fullName = trim(($dbFirstName ?? '').' '.($dbLastName ?? ''));
+								if ($_fullName !== '') {
+									echo '<p style="margin: 6px 0 12px; font-weight:800; color:#0f172a;">'.htmlspecialchars($_fullName, ENT_QUOTES, 'UTF-8').'</p>';
+								}
+							?>
 
 							<!-- Verification -->
 							<p class="about-verify"><a href="./verification.php">Verification</a></p>
@@ -785,7 +850,8 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 								<?php endforeach; ?>
 							</div>
 
-							<!-- Links -->
+							<!-- Links section removed -->
+							<?php /* 
 							<label class="about-label">Links:</label>
 							<div class="about-links">
 								<?php if ($portfolio_url): ?>
@@ -794,6 +860,7 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 									<a href="./edit-profile.php">Add Portfolio Link</a>
 								<?php endif; ?>
 							</div>
+							*/ ?>
 						</article>
 					</div>
 				</div>
