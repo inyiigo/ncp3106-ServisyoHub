@@ -178,7 +178,7 @@ $max      = $_GET['max']      ?? '';
 						<label for="cat">Pick a category</label>
 						<select id="cat" name="cat">
 							<option value="" <?php echo $cat===''?'selected':''; ?>>All</option>
-							<option value="Business &amp; admin" <?php echo $cat==='Business &amp; admin'?'selected':''; ?>>Business &amp; admin</option>
+							<option value="Business & admin" <?php echo $cat==='Business & admin'?'selected':''; ?>>Business &amp; admin</option>
 							<option value="Care services" <?php echo $cat==='Care services'?'selected':''; ?>>Care services</option>
 							<option value="Creative" <?php echo $cat==='Creative'?'selected':''; ?>>Creative</option>
 							<option value="Household" <?php echo $cat==='Household'?'selected':''; ?>>Household</option>
@@ -187,7 +187,7 @@ $max      = $_GET['max']      ?? '';
 							<option value="Social media" <?php echo $cat==='Social media'?'selected':''; ?>>Social media</option>
 							<option value="Talents" <?php echo $cat==='Talents'?'selected':''; ?>>Talents</option>
 							<option value="Teach me" <?php echo $cat==='Teach me'?'selected':''; ?>>Teach me</option>
-							<option value="Tech &amp; IT" <?php echo $cat==='Tech &amp; IT'?'selected':''; ?>>Tech &amp; IT</option>
+							<option value="Tech & IT" <?php echo $cat==='Tech & IT'?'selected':''; ?>>Tech &amp; IT</option>
 							<option value="Others" <?php echo $cat==='Others'?'selected':''; ?>>Others</option>
 						</select>
 					</fieldset>
@@ -236,4 +236,8 @@ $max      = $_GET['max']      ?? '';
 	})();
 	</script>
 </body>
+<<<<<<< HEAD
 </html>
+=======
+</html>
+>>>>>>> 744f4df74bfac2cecea22afda6091adc2e353d2f

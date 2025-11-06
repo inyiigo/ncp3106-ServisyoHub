@@ -1300,7 +1300,6 @@ cursor: pointer;
 	left: 20px;
 	right: 20px;
 	max-width: 600px;
-	margin: 0 auto;
 }
 .generate-screening-button:hover {
 	background: #ef4444;
@@ -1765,6 +1764,33 @@ cursor: pointer;
 						id="titleInput"
 					/>
 					<p class="char-count">Minimum 10 characters</p>
+					
+					<!-- Category Dropdown -->
+					<div style="margin-top: 24px;">
+						<label class="form-label">Category</label>
+						<p class="step-subtitle" style="margin-top: 4px; margin-bottom: 12px;">Select the category that best describes your task</p>
+						<select 
+							name="category" 
+							class="form-input" 
+							id="categorySelect"
+							required
+							style="cursor: pointer; appearance: none; background-image: url('data:image/svg+xml;charset=UTF-8,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27none%27 stroke=%27%2394a3b8%27 stroke-width=%272%27%3e%3cpolyline points=%276 9 12 15 18 9%27/%3e%3c/svg%3e'); background-repeat: no-repeat; background-position: right 16px center; background-size: 20px; padding-right: 48px;"
+						>
+							<option value="">Select a category</option>
+							<option value="Business & admin">Business & admin</option>
+							<option value="Care services">Care services</option>
+							<option value="Creative">Creative</option>
+							<option value="Household">Household</option>
+							<option value="Part-time">Part-time</option>
+							<option value="Research">Research</option>
+							<option value="Social media">Social media</option>
+							<option value="Talent">Talent</option>
+							<option value="Teach me">Teach me</option>
+							<option value="Tech & IT">Tech & IT</option>
+							<option value="Other">Other</option>
+						</select>
+					</div>
+					
 					<button type="button" class="modal-button next-button" id="nextStep1">Generate task description</button>
 				</div>
 
@@ -2747,7 +2773,16 @@ cursor: pointer;
 		// Step 1 -> Step 2
 		document.getElementById('nextStep1').addEventListener('click', function() {
 			const titleInput = document.getElementById('titleInput');
+			const categorySelect = document.getElementById('categorySelect');
 			if (titleInput.value.trim().length >= 10) {
+				if (!categorySelect.value) {
+					alert('Please select a category.');
+					return;
+				}
+				// Update the hidden category input in Step 4
+				const categoryInput = document.getElementById('categoryInput');
+				if (categoryInput) categoryInput.value = categorySelect.value;
+				
 				goToStep(2);
 				showSubStep(2, 1); // Show first sub-step of Step 2
 			} else {
@@ -3314,6 +3349,7 @@ cursor: pointer;
 					insightBar.style.width = '10%';
 					insightBar.style.background = '#f59e0b';
 				} else if (heroFee < recommended * 0.8) {
+				
 					insightMessage.textContent = 'Below the recommended range';
 					insightBar.style.width = '40%';
 					insightBar.style.background = '#f59e0b';
