@@ -83,17 +83,17 @@ $max      = $_GET['max']      ?? '';
 		.actions { display: flex; gap: 10px; margin-top: 12px; }
 		button, .btn { appearance: none; border-radius: 10px; padding: 10px 14px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-weight: 800; text-decoration: none; color: inherit; }
 		.apply {
-			background: var(--blue);
-			color: #fff;
-			border-color: var(--blue);
+			background: #7cd4c4 !important;
+			color: #0b2c24 !important;
+			border-color: #7cd4c4 !important;
 			transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease;
 		}
 		.apply:hover,
 		.apply:focus-visible {
 			transform: translateY(-1px);
-			box-shadow: 0 6px 16px rgba(0,120,166,.24);
-			background: #006a94;
-			border-color: #006a94;
+			box-shadow: 0 6px 16px rgba(124,212,196,.18);
+			background: #5bbfae !important;
+			border-color: #5bbfae !important;
 			outline: none;
 		}
 		.reset {
@@ -236,8 +236,4 @@ $max      = $_GET['max']      ?? '';
 	})();
 	</script>
 </body>
-<<<<<<< HEAD
 </html>
-=======
-</html>
->>>>>>> 744f4df74bfac2cecea22afda6091adc2e353d2f
