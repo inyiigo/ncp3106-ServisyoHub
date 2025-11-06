@@ -115,8 +115,11 @@ ob_end_flush();
       editLink.href = composeUrl.pathname + composeUrl.search;
 
       confirmBtn.addEventListener('click', ()=>{
-        // UI-only: no backend calls. Show placeholder.
-        alert('UI-only: Offer submitted.');
+        // Navigate to Code of Conduct page, preserving id and amount
+        const next = new URL(window.location.origin + window.location.pathname.replace('make-offer-confirm.php','make-offer-code.php'));
+        if (cur.searchParams.has('id')) next.searchParams.set('id', cur.searchParams.get('id'));
+        if (cur.searchParams.has('amount')) next.searchParams.set('amount', cur.searchParams.get('amount'));
+        window.location.href = next.pathname + next.search;
       });
     })();
   </script>
