@@ -99,7 +99,7 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 		.empty-text { font-size: 1rem; color: #64748b; margin: 0 0 24px; max-width: 420px; }
 		.empty-btn {
 			display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 12px;
-			background: #0078a6; color: #fff; font-weight: 800; text-decoration: none; border: none; cursor: pointer;
+			background: #7cd4c4; color: #0b2c24; font-weight: 800; text-decoration: none; border: none; cursor: pointer;
 			transition: transform .15s ease, box-shadow .15s ease; box-shadow: 0 8px 20px rgba(0,120,166,.24);
 		}
 		.empty-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(0,120,166,.32); }

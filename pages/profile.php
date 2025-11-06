@@ -151,7 +151,7 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 		}
 		.prof-edit {
 			display: inline-flex; align-items: center; gap: 6px;
-			background: #fff; color: #0078a6; padding: 6px 12px; border-radius: 999px;
+			background: #fff; color: #0b2c24; padding: 6px 12px; border-radius: 999px;
 			text-decoration: none; font-weight: 800;
 			transition: filter .15s ease, transform .15s ease, box-shadow .15s ease;
 			box-shadow: 0 8px 20px rgba(255,255,255,.2);
