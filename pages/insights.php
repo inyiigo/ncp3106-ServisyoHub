@@ -61,12 +61,12 @@ $lastMonthQuests    = (int)  ($_SESSION['last_month_quests']    ?? 0);
 		.bottom-box { position: fixed; right: 20px; bottom: 20px; z-index: 999; background: transparent; border: none; padding: 0; box-shadow: none; }
 		.back-box {
 			display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px;
-			background: #0078a6; color: #fff; text-decoration: none; font-weight: 700;
-			border: 2px solid color-mix(in srgb, #0078a6 80%, #0000);
+			background: #7cd4c4; color: #0b2c24; text-decoration: none; font-weight: 700;
+			border: 2px solid color-mix(in srgb, #7cd4c4 80%, #0000);
 			transition: transform 160ms ease, box-shadow 160ms ease, background-color 200ms ease;
-			box-shadow: 0 6px 18px rgba(0,120,166,.24);
+			box-shadow: 0 6px 18px rgba(124,212,196,.24);
 		}
-		.back-box:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 28px rgba(0,120,166,.32); background: #006a94; border-color: color-mix(in srgb, #0078a6 60%, #0000); }
+		.back-box:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 28px rgba(124,212,196,.32); background: #7cd4c4; border-color: #7cd4c4; }
 		@media (max-width:520px){ .bottom-box{ left:12px; right:12px; bottom:14px; display:flex; justify-content:center; } .back-box{ width:100%; justify-content:center; } }
 
 		/* Unbold all texts sitewide, except titles */

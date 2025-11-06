@@ -1463,11 +1463,7 @@ cursor: pointer;
 	color: #fff !important; 
 	box-shadow: 0 6px 18px rgba(0,0,0,.22) !important; 
 }
-.dash-float-nav a.active::after {
-	content: ""; position: absolute; left: -5px; width: 3px; height: 18px;
-	background: #fff; border-radius: 2px;
-	box-shadow: 0 0 0 2px rgba(255,255,255,.9), 0 0 12px rgba(255,255,255,.6);
-}
+.dash-float-nav a.active::after { display: none !important; }
 .dash-float-nav .dash-icon {
 	width: 18px; height: 18px; justify-self: center;
 }
@@ -1603,7 +1599,14 @@ cursor: pointer;
 	<div class="jobs-greeting">
 		<div class="jobs-avatar"><?php echo htmlspecialchars($avatar); ?></div>
 		<div class="jobs-greeting-text">
-			<p class="jobs-greeting-label">Good morning!</p>
+			<?php
+			$hour = (int)date('G');
+			if ($hour >= 5 && $hour < 12)      $greet = 'Good morning!';
+			elseif ($hour >= 12 && $hour < 18) $greet = 'Good afternoon!';
+			elseif ($hour >= 18 /* && $hour < 22 */) $greet = 'Good evening!';
+			else                               $greet = 'Good evening!';
+			?>
+			<p class="jobs-greeting-label"><?php echo $greet; ?></p>
 			<h1 class="jobs-greeting-name"><?php echo htmlspecialchars($display); ?></h1>
 		</div>
 	</div>
@@ -1617,11 +1620,13 @@ cursor: pointer;
 	<section class="jobs-search-simple" aria-label="Quick search">
 		<div class="jobs-box">
 			<div class="jobs-row">
-				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21-4.3-4.3"/></svg>
+				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<circle cx="11" cy="11" r="7"/>
+					<line x1="21" y1="21" x2="16.7" y2="16.7"/>
+				</svg>
 				<div class="jobs-input-wrap">
 					<input class="jobs-input" type="search" id="searchInput" placeholder="" aria-label="Search for a Job" autocomplete="off" />
 				</div>
-				<svg class="jobs-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
 			</div>
 		</div>
 		
@@ -2000,6 +2005,8 @@ cursor: pointer;
 									placeholder="Start address or place in Philippines"
 									id="startingLocationInput"
 									autocomplete="off"
+
+									
 									aria-autocomplete="list"
 									aria-controls="startingSuggestions"
 								/>
