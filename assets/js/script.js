@@ -11,6 +11,61 @@
 	});
 })();
 
+// My Gawain: animated tab indicator (positions exactly under active label)
+(function(){
+	function onReady(cb){ if(document.readyState!=="loading"){ cb(); } else { document.addEventListener('DOMContentLoaded', cb); } }
+	onReady(function(){
+		var tabs = document.querySelector('.mq-tabs');
+		if(!tabs) return;
+
+		// create indicator element
+		var indicator = document.createElement('span');
+		indicator.className = 'mq-indicator';
+		tabs.appendChild(indicator);
+
+		var tabEls = Array.prototype.slice.call(tabs.querySelectorAll('.mq-tab'));
+
+		function updateIndicator(animate){
+			var active = tabs.querySelector('.mq-tab.active') || tabEls[0];
+			if(!active) return;
+			var tabsRect = tabs.getBoundingClientRect();
+			var aRect = active.getBoundingClientRect();
+			var left = aRect.left - tabsRect.left;
+			var width = aRect.width;
+			// ensure pixel values
+			indicator.style.left = Math.round(left) + 'px';
+			indicator.style.width = Math.round(width) + 'px';
+			if(!animate){
+				indicator.style.transition = 'none';
+				// force layout then restore
+				void indicator.offsetWidth;
+				indicator.style.transition = '';
+			}
+		}
+
+		// Update on load (no animation)
+		updateIndicator(false);
+
+		// Update on window resize
+		var resizeTimer = null;
+		window.addEventListener('resize', function(){
+			clearTimeout(resizeTimer);
+			resizeTimer = setTimeout(function(){ updateIndicator(false); }, 80);
+		});
+
+		// Click handlers: make clicked tab active and animate indicator
+		tabEls.forEach(function(el){
+			el.addEventListener('click', function(e){
+				// if tab is a same-page anchor, we still animate before navigation
+				tabEls.forEach(function(t){ t.classList.remove('active'); });
+				el.classList.add('active');
+				updateIndicator(true);
+				// Let the link proceed (page may reload). If it reloads, indicator will be placed on load.
+			});
+		});
+	});
+})();
+
 // My Gawain: Filter modal interactions
 (function(){
 	function onReady(cb){ if(document.readyState!=="loading"){ cb(); } else { document.addEventListener("DOMContentLoaded", cb); } }

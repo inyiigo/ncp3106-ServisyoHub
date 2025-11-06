@@ -206,7 +206,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 			<section class="mq-empty" aria-label="Empty state">
 				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
-				<a class="btn mq-browse" href="./home-gawain.php">Browse gawain</a>
+				<a class="btn mq-browse" href="./home-gawain.php">Browse Gawain</a>
 			</section>
 
 			<!-- Filter Bottom Sheet Modal -->
