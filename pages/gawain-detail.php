@@ -69,13 +69,16 @@ if (!$jobs) {
 // (now using $jobs everywhere)
 
 // Ensure the page uses the DB title when available
-$avatar = strtoupper(substr(preg_replace('/\s+/', '', ($jobs['user_name'] ?? '')), 0, 1));
 $pageTitle = isset($jobs['title']) ? trim((string)$jobs['title']) : '';
 // budget/status/duration/offers are not part of the minimal schema you listed;
 // keep safe fallbacks — price will show "Negotiable" when budget missing
 $priceLabel = fmt_money($jobs['budget'] ?? '');
-$status = 'Open'; // default to Open (adjust if your table has a status column)
-$durationLabel = '—';
+// use DB status with nice casing
+$status = ucfirst(strtolower((string)($jobs['status'] ?? 'open')));
+// duration from estimated_hours (jobs schema)
+$durationLabel = (!empty($jobs['estimated_hours']))
+	? (rtrim(rtrim(number_format((float)$jobs['estimated_hours'], 2, '.', ''), '0'), '.') . ' hr' . (((float)$jobs['estimated_hours'] == 1.0) ? '' : 's'))
+	: '—';
 $offers = 0;
 
 // helpers_needed from your schema -> displayable helpers count
@@ -91,7 +94,9 @@ function url_from_path($p){
   return '../' . ltrim($p, '/');
 }
 
+// Fetch poster identity from users via jobs.user_id
 $clientAvatarUrl = '';
+<<<<<<< HEAD
 $jobOwnerId = 0;
 
 // --- Use user_id from the fetched $jobs row when available (most reliable) ---
@@ -161,6 +166,72 @@ if ($id > 0 && $db) {
       @mysqli_stmt_close($s3);
     }
   }
+=======
+$jobOwnerId = (int)($jobs['user_id'] ?? 0);
+$posterUsername = '';
+$posterFirst = '';
+$posterLast  = '';
+$posterName  = '';
+
+if ($jobOwnerId > 0 && $db) {
+	if ($u = @mysqli_prepare(
+		$db,
+		"SELECT 
+			COALESCE(username,'')     AS username,
+			COALESCE(first_name,'')   AS first_name,
+			COALESCE(last_name,'')    AS last_name,
+			COALESCE(avatar,'')       AS avatar
+		 FROM users WHERE id = ? LIMIT 1"
+	)) {
+		mysqli_stmt_bind_param($u, 'i', $jobOwnerId);
+		if (@mysqli_stmt_execute($u)) {
+			$ur = @mysqli_stmt_get_result($u);
+			if ($ur && ($row = @mysqli_fetch_assoc($ur))) {
+				$posterUsername  = (string)($row['username'] ?? '');
+				$posterFirst     = (string)($row['first_name'] ?? '');
+				$posterLast      = (string)($row['last_name'] ?? '');
+				$clientAvatarUrl = url_from_path($row['avatar'] ?? '');
+			}
+		}
+		@mysqli_stmt_close($u);
+	}
+}
+
+// Build display name preference: username > "First Last" > Citizen
+$posterName = trim($posterUsername !== '' ? $posterUsername : trim($posterFirst . ' ' . $posterLast));
+if ($posterName === '') $posterName = 'Citizen';
+
+// NEW: build full name from first_name + last_name
+$posterFullName = trim(($posterFirst ?? '') . ' ' . ($posterLast ?? ''));
+
+// Avatar initial from poster name (overrides earlier fallback)
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
+
+// Fallbacks to find avatar if not found above
+// 2) try jobs.user_avatar column (if exists)
+if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user_avatar,'') AS ua FROM {$table} WHERE id = ? LIMIT 1"))) {
+	mysqli_stmt_bind_param($s2, 'i', $id);
+	if (@mysqli_stmt_execute($s2)) {
+		$r2 = @mysqli_stmt_get_result($s2);
+		if ($r2 && ($w2 = @mysqli_fetch_assoc($r2))) {
+			$clientAvatarUrl = url_from_path($w2['ua'] ?? '');
+		}
+	}
+	@mysqli_stmt_close($s2);
+}
+// 3) match by name (username or first+last) if we at least have a name
+if ($clientAvatarUrl === '' && $posterName !== '') {
+	if ($s3 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
+		mysqli_stmt_bind_param($s3, 'ss', $posterName, $posterName);
+		if (@mysqli_stmt_execute($s3)) {
+			$r3 = @mysqli_stmt_get_result($s3);
+			if ($r3 && ($w3 = @mysqli_fetch_assoc($r3))) {
+				$clientAvatarUrl = url_from_path($w3['avatar'] ?? '');
+			}
+		}
+		@mysqli_stmt_close($s3);
+	}
+>>>>>>> 8bd84ba2c2ac9f66126698b9f04bf9f2181e3833
 }
 
 // Current logged-in user avatar (for ask input)
@@ -179,6 +250,7 @@ if (!empty($_SESSION['user_id']) && $db) {
 
 // Determine if current viewer is the owner of this post
 $isOwner = false;
+<<<<<<< HEAD
 // Primary check: compare logged-in user's id with job owner id
 $currentUserId = (int)($_SESSION['user_id'] ?? 0);
 if ($currentUserId > 0 && $jobOwnerId > 0) {
@@ -211,6 +283,157 @@ if ($id > 0 && $db) {
 }
  
  ob_end_flush();
+=======
+if (!empty($_SESSION['user_id']) && $jobOwnerId) {
+   $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
+} elseif ($jobOwnerId === 0) {
+   // Fallback: compare display name and job user_name if user_id isn't available
+   $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
+   $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
+}
+
+// Build the destination href depending on ownership
+$profileHref = $isOwner
+  ? './profile.php'
+  : ($jobOwnerId
+      ? ('./user-detail.php?id=' . (int)$jobOwnerId)
+      : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#'));
+
+// --- Comments: CSRF + POST handlers + fetch ---
+if (empty($_SESSION['csrf'])) { $_SESSION['csrf'] = bin2hex(random_bytes(16)); }
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
+$csrf_ok = function($t){ return is_string($t ?? '') && hash_equals($_SESSION['csrf'] ?? '', $t); };
+
+// Handle add/delete
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
+	$action = $_POST['action'] ?? '';
+	$token  = $_POST['csrf'] ?? '';
+	if (!$csrf_ok($token)) {
+		// invalid token -> ignore silently or show notice
+	} else {
+		if ($action === 'add_comment' && $viewerId) {
+			$body = trim((string)($_POST['body'] ?? ''));
+			if ($body !== '') {
+				if ($st = @mysqli_prepare($db, "INSERT INTO comments (job_id,user_id,parent_id,body,created_at) VALUES (?,?,?,?,NOW())")) {
+					$null = null;
+					mysqli_stmt_bind_param($st, 'iiis', $id, $viewerId, $null, $body);
+					@mysqli_stmt_execute($st);
+					$cid = (int)@mysqli_insert_id($db);
+					@mysqli_stmt_close($st);
+
+					// NEW: create notification for job owner (if different user)
+					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
+						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
+							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
+							@mysqli_stmt_execute($nst);
+							@mysqli_stmt_close($nst);
+						}
+					}
+				}
+			}
+			header('Location: ./gawain-detail.php?id='.$id.'#ask-box'); exit;
+		}
+		if ($action === 'add_reply' && $viewerId) {
+			$body = trim((string)($_POST['body'] ?? ''));
+			$parent_id = (int)$_POST['parent_id'] ?? 0;
+			if ($body !== '' && $parent_id > 0) {
+				// ensure parent belongs to this job
+				$ok = false;
+				if ($chk = @mysqli_prepare($db, "SELECT id FROM comments WHERE id=? AND job_id=? LIMIT 1")) {
+					mysqli_stmt_bind_param($chk, 'ii', $parent_id, $id);
+					if (@mysqli_stmt_execute($chk)) {
+						$r = @mysqli_stmt_get_result($chk);
+						$ok = (bool)@mysqli_fetch_assoc($r);
+					}
+					@mysqli_stmt_close($chk);
+				}
+				if ($ok && ($st = @mysqli_prepare($db, "INSERT INTO comments (job_id,user_id,parent_id,body,created_at) VALUES (?,?,?,?,NOW())"))) {
+					mysqli_stmt_bind_param($st, 'iiis', $id, $viewerId, $parent_id, $body);
+					@mysqli_stmt_execute($st);
+					$cid = (int)@mysqli_insert_id($db);
+					@mysqli_stmt_close($st);
+
+					// NEW: notify job owner (skip self)
+					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
+						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
+							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
+							@mysqli_stmt_execute($nst);
+							@mysqli_stmt_close($nst);
+						}
+					}
+				}
+			}
+			header('Location: ./gawain-detail.php?id='.$id.'#c'.$parent_id); exit;
+		}
+		if ($action === 'delete_comment') {
+			$cid = (int)($_POST['comment_id'] ?? 0);
+			if ($cid > 0) {
+				// Allow delete by comment owner or job owner
+				$owner_id = 0;
+				if ($get = @mysqli_prepare($db, "SELECT user_id FROM comments WHERE id=? LIMIT 1")) {
+					mysqli_stmt_bind_param($get, 'i', $cid);
+					if (@mysqli_stmt_execute($get)) {
+						$res = @mysqli_stmt_get_result($get);
+						if ($row = @mysqli_fetch_assoc($res)) $owner_id = (int)$row['user_id'];
+					}
+					@mysqli_stmt_close($get);
+				}
+				if ($viewerId && ($viewerId === $owner_id || $viewerId === $jobOwnerId)) {
+					if ($del = @mysqli_prepare($db, "DELETE FROM comments WHERE id=? LIMIT 1")) {
+						mysqli_stmt_bind_param($del, 'i', $cid);
+						@mysqli_stmt_execute($del);
+						@mysqli_stmt_close($del);
+					}
+				}
+			}
+			header('Location: ./gawain-detail.php?id='.$id.'#ask-box'); exit;
+		}
+	}
+}
+
+// Fetch comments for this job
+$thread = [];   // parent comments
+$replies = [];  // replies grouped by parent_id
+if ($db && $id > 0) {
+	$sql = "SELECT c.id, c.parent_id, c.body, c.created_at, c.user_id,
+	               COALESCE(u.username,'') AS username,
+	               COALESCE(u.first_name,'') AS first_name,
+	               COALESCE(u.last_name,'')  AS last_name,
+	               COALESCE(u.avatar,'')     AS avatar
+	        FROM comments c
+	        LEFT JOIN users u ON u.id = c.user_id
+	        WHERE c.job_id = ?
+	        ORDER BY c.created_at ASC, c.id ASC";
+	if ($st = @mysqli_prepare($db, $sql)) {
+		mysqli_stmt_bind_param($st, 'i', $id);
+		if (@mysqli_stmt_execute($st)) {
+			$res = @mysqli_stmt_get_result($st);
+			while ($row = @mysqli_fetch_assoc($res)) {
+				if (empty($row['parent_id'])) $thread[] = $row;
+				else $replies[(int)$row['parent_id']][] = $row;
+			}
+		}
+		@mysqli_stmt_close($st);
+	}
+}
+
+// Small helpers for rendering names/avatars
+$display_of = function($r){
+	$name = trim($r['username'] ?? '');
+	if ($name === '') $name = trim(trim(($r['first_name'] ?? '') . ' ' . ($r['last_name'] ?? '')));
+	return $name !== '' ? $name : 'User';
+};
+$avatar_of = function($r){
+	$p = (string)($r['avatar'] ?? '');
+	if ($p !== '') {
+		if (preg_match('#^https?://#i', $p)) return $p;
+		return '../' . ltrim($p,'/');
+	}
+	return ''; // will show initial
+};
+
+ob_end_flush();
+>>>>>>> 8bd84ba2c2ac9f66126698b9f04bf9f2181e3833
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -368,142 +591,195 @@ if ($id > 0 && $db) {
     <div class="detail-grid">
       <div class="detail-main">
         <div class="meta-merged" aria-label="Details">
-            <div class="meta-item">
-              <h3 class="meta-title">Posted by</h3>
-              <div class="poster">
-                <div class="avatar">
-                  <?php
-                  // Show user avatar if available, else show attached photo (your-photo.png)
-                  // Make avatar clickable and link to user-detail.php
-                  $userDetailUrl = '';
-                  if (!empty($jobOwnerId)) {
-                    $userDetailUrl = './user-detail.php?id=' . (int)$jobOwnerId;
-                  } elseif (!empty($jobs['user_name'])) {
-                    $userDetailUrl = './user-detail.php?name=' . urlencode($jobs['user_name']);
-                  } else {
-                    $userDetailUrl = '#';
-                  }
-                  if (!empty($clientAvatarUrl)) {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($jobs['user_name'] ?? '') . '" /></a>';
-                  } else {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="User Photo" style="object-fit:cover;" /></a>';
-                  }
-                  ?>
-                </div>
-                <div>
-                  <div style="font-weight:800;"><?php echo e($jobs['user_name'] ?? ''); ?></div>
-                  <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
-                </div>
+          <div class="meta-item">
+            <h3 class="meta-title">Posted by</h3>
+            <div class="poster">
+              <div class="avatar">
+                <?php
+                // Use $profileHref for avatar click-through
+                if (!empty($clientAvatarUrl)) {
+                  echo '<a href="' . e($profileHref) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($posterName) . '" /></a>';
+                } else {
+                  echo '<a href="' . e($profileHref) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="' . e($posterName) . '" style="object-fit:cover;" /></a>';
+                }
+                ?>
               </div>
-              <div class="meta-divider" role="presentation"></div>
-
-              <div class="info-list">
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    </span>
-                    <span>Location</span>
-                  </div>
-                  <div class="value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></div>
+              <div>
+                <!-- Also make the name clickable to the same destination -->
+                <div style="font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <a href="<?php echo e($profileHref); ?>" title="View user details" style="color:inherit; text-decoration:none;"><?php echo e($posterName); ?></a>
+                  <?php if (!empty($posterFullName)): ?>
+                    <span style="color:#64748b; font-weight:700;">(<?php echo e($posterFullName); ?>)</span>
+                  <?php endif; ?>
                 </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                    </span>
-                    <span>Completion Date</span>
-                  </div>
-                  <div class="value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    </span>
-                    <span>Duration</span>
-                  </div>
-                  <div class="value"><?php echo e($durationLabel); ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H7l-4 2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/></svg>
-                    </span>
-                    <span>Offers Received</span>
-                  </div>
-                  <div class="value"><?php echo e($offers); ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <span>Heroes Required</span>
-                  </div>
-                  <div class="value"><?php echo $helpersNeeded; ?></div>
-                </div>
+                <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
               </div>
+            </div>
+            <div class="meta-divider" role="presentation"></div>
 
-              <div class="meta-divider" role="presentation"></div>
-              <div class="merged-desc" aria-label="Description">
-                <h3>Description</h3>
-                <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
+            <div class="info-list">
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <span>Location</span>
+                </div>
+                <div class="value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></div>
               </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  </span>
+                  <span>Completion Date</span>
+                </div>
+                <div class="value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  </span>
+                  <span>Duration</span>
+                </div>
+                <div class="value"><?php echo e($durationLabel); ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H7l-4 2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/></svg>
+                  </span>
+                  <span>Offers Received</span>
+                </div>
+                <div class="value"><?php echo e($offers); ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </span>
+                  <span>Heroes Required</span>
+                </div>
+                <div class="value"><?php echo $helpersNeeded; ?></div>
+              </div>
+            </div>
 
-              <div class="meta-divider" role="presentation"></div>
-              <section class="ask-panel ask-inset" id="ask-box" aria-label="Ask a question">
-                <h3 class="ask-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
-                  Ask a question
-                </h3>
-                <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
+            <div class="meta-divider" role="presentation"></div>
+            <div class="merged-desc" aria-label="Description">
+              <h3>Description</h3>
+              <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
+            </div>
 
-                <div class="comment-list" aria-label="Recent Q&A">
-                  <div class="comment">
-                    <div class="avatar">
-                      <img src="../assets/images/avatar-placeholder.png" alt="Jericho bien V." onerror="this.style.display='none'" />
-                    </div>
-                    <div class="bubble">
-                      <span class="name">Jericho bien V.</span>
-                      <p class="text">location po??</p>
-                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-                    </div>
-                    <div class="replies">
-                      <div class="comment">
-                        <div class="avatar">
-                          <?php if (!empty($clientAvatarUrl)) : ?>
-                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($jobs['user_name'] ?? ''); ?>" />
-                          <?php else: ?>
-                            <?php echo e(strtoupper($avatar)); ?>
+            <div class="meta-divider" role="presentation"></div>
+            <section class="ask-panel ask-inset" id="ask-box" aria-label="Ask a question">
+              <h3 class="ask-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
+                Ask a question
+              </h3>
+              <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
+
+              <!-- Render comments from DB -->
+              <div class="comment-list" aria-label="Recent Q&A">
+                <?php if (empty($thread)): ?>
+                  <div class="bubble" style="border-radius:12px;">Be the first to ask a question.</div>
+                <?php else: ?>
+                  <?php foreach ($thread as $c): ?>
+                    <?php
+                      $cName = $display_of($c);
+                      $cAv   = $avatar_of($c);
+                      $cInit = strtoupper(substr(preg_replace('/\s+/', '', $cName), 0, 1));
+                      $canDel = $viewerId && ($viewerId === (int)$c['user_id'] || $viewerId === (int)$jobOwnerId);
+                    ?>
+                    <div id="c<?php echo (int)$c['id']; ?>" class="comment">
+                      <div class="avatar">
+                        <?php if ($cAv): ?><img src="<?php echo e($cAv); ?>" alt="<?php echo e($cName); ?>" /><?php else: ?><?php echo e($cInit); ?><?php endif; ?>
+                      </div>
+                      <div class="bubble">
+                        <span class="name"><?php echo e($cName); ?></span>
+                        <p class="text"><?php echo e($c['body']); ?></p>
+                        <div class="meta">
+                          <span><?php echo e(time_ago(strtotime($c['created_at']))); ?></span>
+                          <a href="#" class="reply-toggle">Reply</a>
+                          <?php if ($canDel): ?>
+                          <form method="post" style="display:inline;">
+                            <input type="hidden" name="action" value="delete_comment"/>
+                            <input type="hidden" name="comment_id" value="<?php echo (int)$c['id']; ?>"/>
+                            <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                            <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
+                          </form>
                           <?php endif; ?>
                         </div>
-                        <div class="bubble">
-                          <span class="name"><?php echo e($jobs['user_name'] ?? ''); ?></span>
-                          <p class="text"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></p>
-                          <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-                        </div>
-                        <div class="replies"></div>
+                      </div>
+
+                      <div class="replies">
+                        <?php if (!empty($replies[(int)$c['id']])): ?>
+                          <?php foreach ($replies[(int)$c['id']] as $r): ?>
+                            <?php
+                              $rName = $display_of($r);
+                              $rAv   = $avatar_of($r);
+                              $rInit = strtoupper(substr(preg_replace('/\s+/', '', $rName), 0, 1));
+                              $rDel  = $viewerId && ($viewerId === (int)$r['user_id'] || $viewerId === (int)$jobOwnerId);
+                            ?>
+                            <div class="comment">
+                              <div class="avatar">
+                                <?php if ($rAv): ?><img src="<?php echo e($rAv); ?>" alt="<?php echo e($rName); ?>" /><?php else: ?><?php echo e($rInit); ?><?php endif; ?>
+                              </div>
+                              <div class="bubble">
+                                <span class="name"><?php echo e($rName); ?></span>
+                                <p class="text"><?php echo e($r['body']); ?></p>
+                                <div class="meta">
+                                  <span><?php echo e(time_ago(strtotime($r['created_at']))); ?></span>
+                                  <?php if ($rDel): ?>
+                                  <form method="post" style="display:inline;">
+                                    <input type="hidden" name="action" value="delete_comment"/>
+                                    <input type="hidden" name="comment_id" value="<?php echo (int)$r['id']; ?>"/>
+                                    <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                                    <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
+                                  </form>
+                                  <?php endif; ?>
+                                </div>
+                              </div>
+                              <div class="replies"></div>
+                            </div>
+                          <?php endforeach; ?>
+                        <?php endif; ?>
+
+                        <!-- Inline reply form (toggles) -->
+                        <form class="reply-form" method="post" style="display:none; margin-top:6px;">
+                          <input type="hidden" name="action" value="add_reply"/>
+                          <input type="hidden" name="parent_id" value="<?php echo (int)$c['id']; ?>"/>
+                          <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                          <div class="ask-av"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
+                          <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                            <input class="ask-field" name="body" type="text" placeholder="Reply to <?php echo e($cName); ?>" aria-label="Write a reply" required <?php echo $viewerId ? '' : 'disabled'; ?> />
+                            <button type="submit" class="ask-send" aria-label="Send reply" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>
+                              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+                            </button>
+                          </div>
+                        </form>
                       </div>
                     </div>
-                  </div>
-                </div>
-                
-                <div class="ask-input-row">
-                  <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
-                  <form class="ask-form" id="askForm" novalidate>
-                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($jobs['user_name'] ?? ''); ?> a question" aria-label="Ask a question" required />
-                    <button type="submit" class="ask-send" aria-label="Send question" title="Send">
-                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
+                  <?php endforeach; ?>
+                <?php endif; ?>
+              </div>
+
+              <!-- Add new top-level question -->
+              <div class="ask-input-row">
+                <div class="ask-counter" id="askCount" aria-label="Questions count"><?php echo (int)count($thread); ?></div>
+                <form class="ask-form" id="askForm" method="post" novalidate>
+                  <input type="hidden" name="action" value="add_comment"/>
+                  <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                  <input class="ask-field" type="text" name="body" placeholder="Write a comment..." aria-label="Write a comment" required <?php echo $viewerId ? '' : 'disabled'; ?> />
+                  <button type="submit" class="ask-send" aria-label="Send question" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>>
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+                  </button>
+                </form>
+              </div>
+              <?php if (!$viewerId): ?>
+                <small class="hint">You must log in to post.</small>
+              <?php endif; ?>
+            </section>
       </div>
 
       
@@ -525,143 +801,14 @@ if ($id > 0 && $db) {
     </div>
   </footer>
   <script>
-    // Lightweight reply interaction inside the embedded ask section
-    document.addEventListener('click', function(evt){
-      const a = evt.target.closest('.reply-link');
+    // Toggle inline reply forms (no API)
+    document.addEventListener('click', function(e){
+      const a = e.target.closest('.reply-toggle');
       if (!a) return;
-      evt.preventDefault();
+      e.preventDefault();
       const comment = a.closest('.comment');
-      if (!comment) return;
-      // Prefer the direct replies child, not a deeper descendant
-      let replies = comment.querySelector(':scope > .replies');
-      if (!replies) {
-        replies = document.createElement('div');
-        replies.className = 'replies';
-        comment.appendChild(replies);
-      }
-      // If a form already exists under this specific comment, focus it
-      let form = replies.querySelector(':scope > .reply-form');
-      if (form) { const input = form.querySelector('input'); if (input) input.focus(); return; }
-
-      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($jobs['user_name'] ?? ''); ?>';
-
-      // Build a small reply form with contextual placeholder and a Cancel link
-      form = document.createElement('form');
-      form.className = 'reply-form';
-      form.innerHTML = `
-        <div class="ask-av"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
-        <div style="display:flex; gap:8px; align-items:center; width:100%;">
-          <input class="ask-field" type="text" name="reply" placeholder="Reply to ${targetName}" aria-label="Write a reply" required />
-          <button type="submit" class="ask-send" aria-label="Send reply" title="Send">
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
-          </button>
-          <button type="button" class="btn-cancel-reply" style="border:0;background:transparent;color:#64748b;font-weight:800;">Cancel</button>
-        </div>
-      `;
-      replies.appendChild(form);
-      const input = form.querySelector('input');
-      if (input) input.focus();
-
-      const cancel = form.querySelector('.btn-cancel-reply');
-      if (cancel) {
-        cancel.addEventListener('click', function(){ form.remove(); });
-      }
-
-      form.addEventListener('submit', function(e){
-        e.preventDefault();
-        const text = input.value.trim();
-        if (!text) return;
-        // Render a new nested comment bubble
-        const wrap = document.createElement('div');
-        wrap.className = 'comment';
-        wrap.innerHTML = `
-          <div class="avatar"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
-          <div class="bubble">
-            <span class="name">You</span>
-            <p class="text"></p>
-            <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-          </div>
-          <div class="replies"></div>
-        `;
-        wrap.querySelector('.text').textContent = text;
-        replies.appendChild(wrap);
-        input.value = '';
-        // Optionally remove the form after submit
-        form.remove();
-        wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-    });
-    // Ask bar submit -> post into comments list
-    (function(){
-      const form = document.getElementById('askForm');
-      const input = form ? form.querySelector('input[name="question"]') : null;
-      const list = document.querySelector('.comment-list');
-      const counter = document.getElementById('askCount');
-
-      function topLevelCount(){
-        if (!list) return 0;
-        // count only direct children with class comment
-        return Array.from(list.children).filter(el => el.classList && el.classList.contains('comment')).length;
-      }
-
-      function refreshCount(){
-        if (counter) counter.textContent = String(topLevelCount());
-      }
-
-      refreshCount();
-
-      if (form && input && list) {
-        form.addEventListener('submit', function(e){
-          e.preventDefault();
-          const text = (input.value || '').trim();
-          if (!text) { input.focus(); return; }
-          const wrap = document.createElement('div');
-          wrap.className = 'comment';
-          wrap.innerHTML = `
-            <div class="avatar"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
-            <div class="bubble">
-              <span class="name">You</span>
-              <p class="text"></p>
-              <div class="meta"><span>just now</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-            </div>
-            <div class="replies"></div>
-          `;
-          wrap.querySelector('.text').textContent = text;
-          list.appendChild(wrap);
-          input.value = '';
-          refreshCount();
-          // Optional: scroll new comment into view
-          wrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        });
-        // Submit on Enter when focused
-        input.addEventListener('keydown', function(e){
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            form.requestSubmit();
-          }
-        });
-      }
-    })();
-
-    // Owner-only delete: remove a comment (top-level or nested)
-    document.addEventListener('click', function(evt){
-      const del = evt.target.closest('.delete-link');
-      if (!del) return;
-      evt.preventDefault();
-      // Guard in UI only; real enforcement needs server-side auth
-      const comment = del.closest('.comment');
-      if (!comment) return;
-      const ok = confirm('Delete this comment?');
-      if (!ok) return;
-      const parent = comment.parentElement;
-      comment.remove();
-      // Update counter if a top-level comment was removed
-      const list = document.querySelector('.comment-list');
-      const counter = document.getElementById('askCount');
-      if (parent && list && parent === list && counter) {
-        const cnt = Array.from(list.children).filter(el => el.classList && el.classList.contains('comment')).length;
-        counter.textContent = String(cnt);
-      }
+      const form = comment?.querySelector('.replies > .reply-form');
+      if (form) form.style.display = (form.style.display === 'none' || !form.style.display) ? 'grid' : 'none';
     });
   </script>
 </body>
