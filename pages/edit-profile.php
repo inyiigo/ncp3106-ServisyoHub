@@ -25,17 +25,17 @@ $user_id = $not_logged_in ? 0 : intval($_SESSION['user_id']);
 $errors = [];
 $success = '';
 // default user values
-$user = ['username'=>'','first_name'=>'','last_name'=>'','email'=>'','mobile'=>'','address'=>'','avatar'=>''];
+$user = ['username'=>'','first_name'=>'','last_name'=>'','email'=>'','mobile'=>'','address'=>'','avatar'=>'','skills'=>''];
 
 // load user if possible
 if (!$not_logged_in && $dbAvailable) {
-	$stmt = $mysqli->prepare("SELECT username, first_name, last_name, email, mobile, address, COALESCE(avatar,'') FROM users WHERE id = ?");
+	$stmt = $mysqli->prepare("SELECT username, first_name, last_name, email, mobile, address, COALESCE(avatar,''), COALESCE(skills,'') FROM users WHERE id = ?");
 	if ($stmt) {
 		$stmt->bind_param('i',$user_id);
 		$stmt->execute();
 		$stmt->store_result();
 		if ($stmt->num_rows) {
-			$stmt->bind_result($u_username,$u_first,$u_last,$u_email,$u_mobile,$u_address,$u_avatar);
+			$stmt->bind_result($u_username,$u_first,$u_last,$u_email,$u_mobile,$u_address,$u_avatar,$u_skills);
 			$stmt->fetch();
 			$user = [
 				'username'=>$u_username,
@@ -44,7 +44,8 @@ if (!$not_logged_in && $dbAvailable) {
 				'email'=>$u_email,
 				'mobile'=>$u_mobile,
 				'address'=>$u_address,
-				'avatar'=>$u_avatar
+				'avatar'=>$u_avatar,
+				'skills'=>$u_skills
 			];
 		} else {
 			// no such user -> treat as not logged in for editing
@@ -67,6 +68,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 	$mobile     = trim($_POST['mobile'] ?? $user['mobile']);
 	$address    = trim($_POST['address'] ?? $user['address']);
 	$password   = $_POST['password'] ?? '';
+	// NEW: collect and normalize skills (comma-separated)
+	$skillsRaw  = trim($_POST['skills'] ?? $user['skills']);
+	$skills = implode(', ', array_values(array_unique(array_filter(array_map(function($s){
+		return trim(preg_replace('/\s+/',' ', $s));
+	}, explode(',', $skillsRaw)), function($s){ return $s !== ''; }))));
 
 	// validate
 	if ($username === '') $errors[] = 'Username is required.';
@@ -131,19 +137,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 			$pwHash = password_hash($password, PASSWORD_DEFAULT);
 			// include avatar if uploaded
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, avatar=? WHERE id=?");
-				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$newAvatarPath,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, avatar=?, skills=? WHERE id=?");
+				$upd->bind_param('ssssssssis',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$newAvatarPath,$skills,$user_id);
 			} else {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=? WHERE id=?");
-				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, skills=? WHERE id=?");
+				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$skills,$user_id);
 			}
 		} else {
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, avatar=? WHERE id=?");
-				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$newAvatarPath,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, avatar=?, skills=? WHERE id=?");
+				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$newAvatarPath,$skills,$user_id);
 			} else {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=? WHERE id=?");
-				$upd->bind_param('ssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$user_id);
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, skills=? WHERE id=?");
+				$upd->bind_param('sssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$skills,$user_id);
 			}
 		}
 
@@ -157,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 				$user['email']=$email;
 				$user['mobile']=$mobile;
 				$user['address']=$address;
+				$user['skills']=$skills;
 				if ($newAvatarPath !== '') $user['avatar']=$newAvatarPath;
 				// keep session in sync for profile page
 				$_SESSION['mobile'] = $mobile;
@@ -309,7 +316,7 @@ function avatar_url($path){
 						<!-- Chips will be rendered here by JS -->
 					</div>
 					<input id="skills-input" type="text" placeholder="Type a skill and press Enter" autocomplete="off" style="margin-bottom:8px;">
-					<input type="hidden" id="skills" name="skills" value="<?php echo e(isset($_SESSION['skills']) ? (is_array($_SESSION['skills']) ? implode(',', $_SESSION['skills']) : $_SESSION['skills']) : ''); ?>">
+					<input type="hidden" id="skills" name="skills" value="<?php echo e($user['skills']); ?>">
 				</div>
 			</div>
 
