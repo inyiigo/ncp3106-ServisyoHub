@@ -228,7 +228,7 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 			</section>
 
 			<!-- Filter Bottom Sheet Modal -->
-			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true">
+			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true" data-tab="<?php echo $tab; ?>">
 				<div class="mq-filter-backdrop" data-filter-close></div>
 				<div class="mq-filter-sheet" role="document">
 					<div class="mq-filter-header">
@@ -237,10 +237,17 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 						<button class="mq-filter-close" type="button" aria-label="Close" data-filter-close>&times;</button>
 					</div>
 					<form class="mq-filter-form" id="mqFilterForm">
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="open"> <span>Open Gawain</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress Gawain</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed Gawain</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="deleted"> <span>Deleted Gawain</span></label>
+						<?php if($tab === 'offered'): ?>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
+						<?php else: ?>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="open"> <span>Open Gawain</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress Gawain</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed Gawain</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="deleted"> <span>Deleted Gawain</span></label>
+						<?php endif; ?>
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>

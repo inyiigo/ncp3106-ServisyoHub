@@ -85,9 +85,13 @@
 			if(label){ label.textContent = count === 0 ? 'All' : String(count); }
 		}
 
+		// Use tab-scoped storage key so Offered and Posted filters don't collide
+		var tab = modal.getAttribute('data-tab') || 'default';
+		var storageKey = 'mqFilters_' + tab;
+
 		function loadSaved(){
 			try{
-				var data = JSON.parse(localStorage.getItem('mqFilters')||'{}');
+				var data = JSON.parse(localStorage.getItem(storageKey) || '{}');
 				if(data && Array.isArray(data.status)){
 					form.querySelectorAll('input[type="checkbox"]').forEach(function(el){ el.checked = data.status.indexOf(el.value) !== -1; });
 				}
@@ -98,7 +102,7 @@
 		function save(){
 			var selected = [];
 			form.querySelectorAll('input[type="checkbox"]:checked').forEach(function(el){ selected.push(el.value); });
-			localStorage.setItem('mqFilters', JSON.stringify({ status: selected }));
+			localStorage.setItem(storageKey, JSON.stringify({ status: selected }));
 		}
 
 		function open(){
