@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 <?php
 session_start();
 // read current values so form stays sticky
@@ -148,23 +146,15 @@ $max      = $_GET['max']      ?? '';
 
 		/* Keep only the “Filter Options” title bold */
 		#filterTitle, .filter-title { font-weight: var(--fw-bold) !important; }
+
+		/* Remove top bar on this page */
+		.dash-topbar, .top-bar { display: none !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">
 	<!-- Background Logo -->
 	<div class="bg-logo">
 		<img src="../assets/images/job_logo.png" alt="">
-	</div>
-
-	<div class="dash-topbar center">
-		<div class="dash-brand">
-			<img src="../assets/images/bluefont.png" alt="Servisyo Hub" class="dash-brand-logo">
-		</div>
-	</div>
-
-	<!-- NEW: place the blue "x" below the top bar -->
-	<div class="exit-row">
-		<a href="./home-gawain.php" class="filter-exit" aria-label="Exit filters">x</a>
 	</div>
 
 	<div class="dash-shell">
@@ -188,7 +178,7 @@ $max      = $_GET['max']      ?? '';
 						<label for="cat">Pick a category</label>
 						<select id="cat" name="cat">
 							<option value="" <?php echo $cat===''?'selected':''; ?>>All</option>
-							<option value="Business &amp; admin" <?php echo $cat==='Business &amp; admin'?'selected':''; ?>>Business &amp; admin</option>
+							<option value="Business & admin" <?php echo $cat==='Business & admin'?'selected':''; ?>>Business &amp; admin</option>
 							<option value="Care services" <?php echo $cat==='Care services'?'selected':''; ?>>Care services</option>
 							<option value="Creative" <?php echo $cat==='Creative'?'selected':''; ?>>Creative</option>
 							<option value="Household" <?php echo $cat==='Household'?'selected':''; ?>>Household</option>
@@ -197,7 +187,7 @@ $max      = $_GET['max']      ?? '';
 							<option value="Social media" <?php echo $cat==='Social media'?'selected':''; ?>>Social media</option>
 							<option value="Talents" <?php echo $cat==='Talents'?'selected':''; ?>>Talents</option>
 							<option value="Teach me" <?php echo $cat==='Teach me'?'selected':''; ?>>Teach me</option>
-							<option value="Tech &amp; IT" <?php echo $cat==='Tech &amp; IT'?'selected':''; ?>>Tech &amp; IT</option>
+							<option value="Tech & IT" <?php echo $cat==='Tech & IT'?'selected':''; ?>>Tech &amp; IT</option>
 							<option value="Others" <?php echo $cat==='Others'?'selected':''; ?>>Others</option>
 						</select>
 					</fieldset>
@@ -225,17 +215,14 @@ $max      = $_GET['max']      ?? '';
 						</div>
 					</fieldset>
 
-					<div class="actions">
-						<a class="btn reset" href="./filter.php">Reset</a>
+					<div class="actions" style="justify-content: flex-end;">
 						<button class="apply" type="submit">Apply Filters</button>
+						<a class="btn reset" href="./home-gawain.php" style="margin-left:0;">Cancel</a>
 					</div>
 				</form>
 			</section>
 		</main>
 	</div>
-
-	<!-- Removed floating bottom navigation -->
-	<!-- <nav class="dash-bottom-nav"> ... </nav> -->
 
 	<script>
 	// Ensure the Filter Options heading is bold even if markup lacks an id/class
@@ -249,5 +236,8 @@ $max      = $_GET['max']      ?? '';
 	})();
 	</script>
 </body>
+<<<<<<< HEAD
 </html>
->>>>>>> 396fc958b334ad4ea2089ce90cb5a9f70664fb00
+=======
+</html>
+>>>>>>> 744f4df74bfac2cecea22afda6091adc2e353d2f

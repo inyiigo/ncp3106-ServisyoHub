@@ -3,7 +3,14 @@
 ob_start();
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
-require_once __DIR__ . '/../config/db_connect.php';
+// include DB connection (use the requested relative path)
+include '../config/db_connect.php';
+
+// support either $conn or $mysqli provided by the included file
+$db = $conn ?? $mysqli ?? null;
+
+// ensure correct table name used everywhere
+$table = 'jobs';
 
 function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 function fmt_money($v){
@@ -21,43 +28,55 @@ function time_ago($dt){
     return date('M j, Y', $t);
 }
 
-$job = null;
+$jobs = null;
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
-if ($id > 0 && isset($conn) && $conn) {
-    if ($stmt = mysqli_prepare($conn, "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,'') AS budget, COALESCE(date_needed,'') AS date_needed, COALESCE(status,'open') AS status, COALESCE(duration_hours, 0) AS duration_hours, COALESCE(description,'') AS description, COALESCE(workers_required,1) AS workers_required, COALESCE(posted_at, NOW()) AS posted_at, COALESCE(user_name,'Citizen') AS user_name, COALESCE(offers_count,0) AS offers_count FROM jobs WHERE id = ? LIMIT 1")) {
+if ($id > 0 && $db) {
+    // fetch all columns from jobs table
+    $sql = "SELECT * FROM {$table} WHERE id = ? LIMIT 1";
+    if ($stmt = mysqli_prepare($db, $sql)) {
         mysqli_stmt_bind_param($stmt, 'i', $id);
         if (mysqli_stmt_execute($stmt)) {
             $res = mysqli_stmt_get_result($stmt);
-            $job = mysqli_fetch_assoc($res) ?: null;
+            $jobs = mysqli_fetch_assoc($res) ?: null;
         }
         mysqli_stmt_close($stmt);
     }
 }
 
+// Determine final page title from DB (if present) after attempt to fetch $jobs
 // Fallback sample if not found
-if (!$job) {
-    $job = [
-        'id' => 0,
-        'title' => 'Household Cleaning (2-Bedroom)',
-        'category' => 'Household',
-        'location' => 'Quezon City',
-        'budget' => 1800,
-        'date_needed' => date('D, d M', strtotime('+7 days')) . ' (Anytime)',
-        'status' => 'open',
-        'duration_hours' => 3,
-        'description' => "I am looking for help with project that requires assistance with household cleaning tasks.\n\nTask Description:\n- General cleaning and tidying.\n- Wiping surfaces and light dusting.\n- Assisting with sorting and basic organization.\n\nSkills and Experience Required:\n- Basic experience with household cleaning.\n- Attention to detail and punctuality.",
-        'workers_required' => 1,
-        'posted_at' => date('Y-m-d H:i:s', strtotime('-1 hour')),
-        'user_name' => 'Citizen',
-        'offers_count' => 0,
-    ];
+if (!$jobs) {
+	$jobs = [
+		'id' => 0,
+		'title' => 'Household Cleaning (2-Bedroom)',
+		'category' => 'Household',
+		'location' => 'Quezon City',
+		'budget' => 1800,
+		'date_needed' => date('D, d M', strtotime('+7 days')) . ' (Anytime)',
+		'status' => 'open',
+		'duration_hours' => 3,
+		'description' => "I am looking for help with project that requires assistance with household cleaning tasks.\n\nTask Description:\n- General cleaning and tidying.\n- Wiping surfaces and light dusting.\n- Assisting with sorting and basic organization.\n\nSkills and Experience Required:\n- Basic experience with household cleaning.\n- Attention to detail and punctuality.",
+		'workers_required' => 1,
+		'posted_at' => date('Y-m-d H:i:s', strtotime('-1 hour')),
+		'user_name' => 'Citizen',
+		'offers_count' => 0,
+	];
 }
 
-$avatar = strtoupper(substr(preg_replace('/\s+/', '', $job['user_name']), 0, 1));
-$priceLabel = fmt_money($job['budget']);
-$status = strtolower($job['status']) === 'open' ? 'Open' : ucfirst((string)$job['status']);
-$durationLabel = ((int)$job['duration_hours'] > 0) ? ((int)$job['duration_hours'] . ' Hour(s)') : '—';
-$offers = (int)($job['offers_count'] ?? 0);
+// (now using $jobs everywhere)
+
+// Ensure the page uses the DB title when available
+$avatar = strtoupper(substr(preg_replace('/\s+/', '', ($jobs['user_name'] ?? '')), 0, 1));
+$pageTitle = isset($jobs['title']) ? trim((string)$jobs['title']) : '';
+// budget/status/duration/offers are not part of the minimal schema you listed;
+// keep safe fallbacks — price will show "Negotiable" when budget missing
+$priceLabel = fmt_money($jobs['budget'] ?? '');
+$status = 'Open'; // default to Open (adjust if your table has a status column)
+$durationLabel = '—';
+$offers = 0;
+
+// helpers_needed from your schema -> displayable helpers count
+$helpersNeeded = (int)($jobs['helpers_needed'] ?? 1);
 $displayName = $_SESSION['display_name'] ?? $_SESSION['mobile'] ?? 'You';
 $askerInitial = strtoupper(substr(preg_replace('/\s+/', '', (string)$displayName), 0, 1));
 
@@ -72,16 +91,16 @@ function url_from_path($p){
 $clientAvatarUrl = '';
 $jobOwnerId = 0;
 // Best-effort: try jobs.user_id -> users.avatar
-if ($id > 0 && isset($conn) && $conn) {
+if ($id > 0 && $db) {
   // 1) try via user_id column
-  if ($stmt = @mysqli_prepare($conn, "SELECT user_id FROM jobs WHERE id = ? LIMIT 1")) {
+  if ($stmt = @mysqli_prepare($db, "SELECT user_id FROM {$table} WHERE id = ? LIMIT 1")) {
     mysqli_stmt_bind_param($stmt, 'i', $id);
     if (@mysqli_stmt_execute($stmt)) {
       $res = @mysqli_stmt_get_result($stmt);
       if ($res && ($row = @mysqli_fetch_assoc($res)) && !empty($row['user_id'])) {
         $uid = (int)$row['user_id'];
         $jobOwnerId = $uid;
-        if ($u = @mysqli_prepare($conn, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
+        if ($u = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
           mysqli_stmt_bind_param($u, 'i', $uid);
           if (@mysqli_stmt_execute($u)) {
             $ur = @mysqli_stmt_get_result($u);
@@ -96,7 +115,7 @@ if ($id > 0 && isset($conn) && $conn) {
     @mysqli_stmt_close($stmt);
   }
   // 2) try jobs.user_avatar column (if exists)
-  if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($conn, "SELECT COALESCE(user_avatar,'') AS ua FROM jobs WHERE id = ? LIMIT 1"))) {
+  if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user_avatar,'') AS ua FROM {$table} WHERE id = ? LIMIT 1"))) {
     mysqli_stmt_bind_param($s2, 'i', $id);
     if (@mysqli_stmt_execute($s2)) {
       $r2 = @mysqli_stmt_get_result($s2);
@@ -107,9 +126,9 @@ if ($id > 0 && isset($conn) && $conn) {
     @mysqli_stmt_close($s2);
   }
   // 3) match by name (username or first+last)
-  if ($clientAvatarUrl === '' && !empty($job['user_name'])) {
-    $name = (string)$job['user_name'];
-    if ($s3 = @mysqli_prepare($conn, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
+  if ($clientAvatarUrl === '' && !empty($jobs['user_name'])) {
+    $name = (string)$jobs['user_name'];
+    if ($s3 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
       mysqli_stmt_bind_param($s3, 'ss', $name, $name);
       if (@mysqli_stmt_execute($s3)) {
         $r3 = @mysqli_stmt_get_result($s3);
@@ -124,9 +143,9 @@ if ($id > 0 && isset($conn) && $conn) {
 
 // Current logged-in user avatar (for ask input)
 $askerAvatarUrl = '';
-if (!empty($_SESSION['user_id']) && isset($conn) && $conn) {
+if (!empty($_SESSION['user_id']) && $db) {
   $uid = (int)$_SESSION['user_id'];
-  if ($s4 = @mysqli_prepare($conn, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
+  if ($s4 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE id = ? LIMIT 1")) {
     mysqli_stmt_bind_param($s4, 'i', $uid);
     if (@mysqli_stmt_execute($s4)) {
       $r4 = @mysqli_stmt_get_result($s4);
@@ -139,21 +158,21 @@ if (!empty($_SESSION['user_id']) && isset($conn) && $conn) {
 // Determine if current viewer is the owner of this post
 $isOwner = false;
 if (!empty($_SESSION['user_id']) && $jobOwnerId) {
-  $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
-} elseif ($jobOwnerId === 0) {
-  // Fallback: compare display name and job user_name if user_id isn't available
-  $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
-  $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)$job['user_name'])));
-}
-
-ob_end_flush();
+   $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
+ } elseif ($jobOwnerId === 0) {
+   // Fallback: compare display name and job user_name if user_id isn't available
+   $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
+   $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
+ }
+ 
+ ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title><?php echo e($job['title']); ?> • Servisyo Hub</title>
+  <title><?php echo e($pageTitle ?: ($jobs['title'] ?? '')); ?> • Servisyo Hub</title>
   <link rel="stylesheet" href="../assets/css/styles.css" />
   <style>
     .detail-wrap { max-width: 980px; margin: clamp(16px, 6vh, 80px) auto 24px; padding: 0 16px; }
@@ -293,12 +312,12 @@ ob_end_flush();
   </header>
 
   <main class="detail-wrap">
-    <h1 class="detail-title"><?php echo e($job['title']); ?></h1>
+    <h1 class="detail-title"><?php echo e($pageTitle ?: ($jobs['title'] ?? '')); ?></h1>
 
     <div class="price-row">
       <div class="price"><?php echo e($priceLabel); ?></div>
       <span class="badge"><?php echo e($status); ?></span>
-      <span style="margin-left:auto; color:#64748b; font-weight:700;">Posted <?php echo e(date('M j', strtotime($job['posted_at']))); ?></span>
+      <span style="margin-left:auto; color:#64748b; font-weight:700;">Posted <?php echo e(date('M j', strtotime($jobs['posted_at'] ?? 'now'))); ?></span>
     </div>
 
     <div class="detail-grid">
@@ -309,13 +328,13 @@ ob_end_flush();
               <div class="poster">
                 <div class="avatar">
                   <?php if (!empty($clientAvatarUrl)) : ?>
-                    <img class="avatar-img" src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
+                    <img class="avatar-img" src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($jobs['user_name'] ?? ''); ?>" />
                   <?php else: ?>
                     <?php echo e(strtoupper($avatar)); ?>
                   <?php endif; ?>
                 </div>
                 <div>
-                  <div style="font-weight:800;"><?php echo e($job['user_name']); ?></div>
+                  <div style="font-weight:800;"><?php echo e($jobs['user_name'] ?? ''); ?></div>
                   <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
                 </div>
               </div>
@@ -329,7 +348,7 @@ ob_end_flush();
                     </span>
                     <span>Location</span>
                   </div>
-                  <div class="value"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></div>
+                  <div class="value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></div>
                 </div>
                 <div class="info-row">
                   <div class="label">
@@ -338,7 +357,7 @@ ob_end_flush();
                     </span>
                     <span>Completion Date</span>
                   </div>
-                  <div class="value"><?php echo $job['date_needed'] ? e($job['date_needed']) : 'Anytime'; ?></div>
+                  <div class="value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></div>
                 </div>
                 <div class="info-row">
                   <div class="label">
@@ -365,14 +384,14 @@ ob_end_flush();
                     </span>
                     <span>Heroes Required</span>
                   </div>
-                  <div class="value"><?php echo (int)($job['workers_required'] ?? 1); ?></div>
+                  <div class="value"><?php echo $helpersNeeded; ?></div>
                 </div>
               </div>
 
               <div class="meta-divider" role="presentation"></div>
               <div class="merged-desc" aria-label="Description">
                 <h3>Description</h3>
-                <pre><?php echo e($job['description']); ?></pre>
+                <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
               </div>
 
               <div class="meta-divider" role="presentation"></div>
@@ -397,14 +416,14 @@ ob_end_flush();
                       <div class="comment">
                         <div class="avatar">
                           <?php if (!empty($clientAvatarUrl)) : ?>
-                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($job['user_name']); ?>" />
+                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($jobs['user_name'] ?? ''); ?>" />
                           <?php else: ?>
                             <?php echo e(strtoupper($avatar)); ?>
                           <?php endif; ?>
                         </div>
                         <div class="bubble">
-                          <span class="name"><?php echo e($job['user_name']); ?></span>
-                          <p class="text"><?php echo $job['location'] ? e($job['location']) : 'Online'; ?></p>
+                          <span class="name"><?php echo e($jobs['user_name'] ?? ''); ?></span>
+                          <p class="text"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></p>
                           <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
                         </div>
                         <div class="replies"></div>
@@ -416,7 +435,7 @@ ob_end_flush();
                 <div class="ask-input-row">
                   <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
                   <form class="ask-form" id="askForm" novalidate>
-                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($job['user_name']); ?> a question" aria-label="Ask a question" required />
+                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($jobs['user_name'] ?? ''); ?> a question" aria-label="Ask a question" required />
                     <button type="submit" class="ask-send" aria-label="Send question" title="Send">
                       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                         <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
@@ -461,7 +480,7 @@ ob_end_flush();
       let form = replies.querySelector(':scope > .reply-form');
       if (form) { const input = form.querySelector('input'); if (input) input.focus(); return; }
 
-      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($job['user_name']); ?>';
+      const targetName = comment.querySelector('.bubble .name')?.textContent?.trim() || '<?php echo e($jobs['user_name'] ?? ''); ?>';
 
       // Build a small reply form with contextual placeholder and a Cancel link
       form = document.createElement('form');

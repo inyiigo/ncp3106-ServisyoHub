@@ -4,7 +4,7 @@ $balance = isset($_SESSION['wallet_balance']) ? (float)$_SESSION['wallet_balance
 $email   = trim((string)($_SESSION['email'] ?? $_SESSION['user_email'] ?? ''));
 function peso($v){ return 'PHP'.number_format((float)$v, 2); }
 ?>
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 	<meta charset="utf-8">
@@ -72,6 +72,29 @@ function peso($v){ return 'PHP'.number_format((float)$v, 2); }
 		}
 		.back-box:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 28px rgba(0,120,166,.32); background: #006a94; border-color: color-mix(in srgb, #0078a6 60%, #0000); }
 		@media (max-width:520px){ .bottom-box{ left:12px; right:12px; bottom:14px; display:flex; justify-content:center; } .back-box{ width:100%; justify-content:center; } }
+
+		.dash-topbar, .top-bar { display: none !important; }
+		.center-content {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			padding: 24px;
+			box-sizing: border-box;
+		}
+		.withdraw-card {
+			background: rgba(37, 150, 190, 0.18); /* transparent blue */
+			border-radius: 22px;
+			box-shadow: 0 8px 32px rgba(0,0,0,.18);
+			padding: 38px 44px;
+			max-width: 520px;
+			width: 100%;
+			color: #0f172a;
+			border: 2px solid rgba(37,150,190,0.22);
+		}
+		@media (max-width:600px){
+			.withdraw-card { padding: 18px 8px; max-width: 98vw; }
+		}
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -85,42 +108,42 @@ function peso($v){ return 'PHP'.number_format((float)$v, 2); }
 		</div>
 	</div>
 
-	<main class="page-wrap" role="main" aria-labelledby="w-title">
-		<article class="form-card glass-card">
-			<h2 id="w-title" class="no-margin">Withdraw</h2>
-			<p class="note">Withdraw your funds using your linked methods.</p>
+	<div class="center-content">
+		<div class="withdraw-card">
+			<main class="page-wrap" role="main" aria-labelledby="w-title">
+				<article class="form-card glass-card">
+					<h2 id="w-title" class="no-margin">Withdraw</h2>
+					<p class="note">Withdraw your funds using your linked methods.</p>
 
-			<section aria-label="Wallet balance" style="margin-top:12px;">
-				<div class="w-balance">
-					<p class="w-bal-head">Wallet Balance</p>
-					<p class="w-bal-note">Eligible Withdrawal Balance is <?php echo peso($balance); ?></p>
-					<div class="w-bal-row">
-						<span class="w-cur">PHP</span>
-						<strong class="w-amt"><?php echo number_format($balance, 2); ?></strong>
-					</div>
-				</div>
-			</section>
-
-			<section class="w-sec" aria-label="Withdrawal Methods">
-				<h3>Withdrawal Methods</h3>
-				<p class="w-sec-note">Withdrawing of funds will have a processing time of 5 business days</p>
-
-				<a class="w-item" href="./edit-profile.php" aria-label="Link email for withdrawals">
-					<div class="w-left">
-						<div class="w-ico" aria-hidden="true">✉</div>
-						<div class="w-main">
-							<div class="w-name">Email</div>
-							<div class="w-sub"><?php echo $email !== '' ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : 'Not linked'; ?></div>
+					<section aria-label="Wallet balance" style="margin-top:12px;">
+						<div class="w-balance">
+							<p class="w-bal-head">Wallet Balance</p>
+							<p class="w-bal-note">Eligible Withdrawal Balance is <?php echo peso($balance); ?></p>
+							<div class="w-bal-row">
+								<span class="w-cur">PHP</span>
+								<strong class="w-amt"><?php echo number_format($balance, 2); ?></strong>
+							</div>
 						</div>
-					</div>
-					<svg class="w-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-				</a>
-			</section>
-		</article>
-	</main>
+					</section>
 
-	<div class="bottom-box" role="navigation" aria-label="Page actions">
-		<a href="./profile.php" class="back-box" title="Back to profile">← Back to profile</a>
+					<section class="w-sec" aria-label="Withdrawal Methods">
+						<h3>Withdrawal Methods</h3>
+						<p class="w-sec-note">Withdrawing of funds will have a processing time of 5 business days</p>
+
+						<a class="w-item" href="./edit-profile.php" aria-label="Link email for withdrawals">
+							<div class="w-left">
+								<div class="w-ico" aria-hidden="true">✉</div>
+								<div class="w-main">
+									<div class="w-name">Email</div>
+									<div class="w-sub"><?php echo $email !== '' ? htmlspecialchars($email, ENT_QUOTES, 'UTF-8') : 'Not linked'; ?></div>
+								</div>
+							</div>
+							<svg class="w-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+						</a>
+					</section>
+				</article>
+			</main>
+		</div>
 	</div>
 </body>
 </html>

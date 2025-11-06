@@ -85,9 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 	}
 	
 	// Step 3: Location & Date
-	$location = trim($_POST['location'] ?? '');
 	$starting_location = trim($_POST['starting_location'] ?? '');
 	$ending_location = trim($_POST['ending_location'] ?? '');
+	// Use starting location as primary job location; fall back to 'Online' if empty
+	$location = ($starting_location !== '') ? $starting_location : 'Online';
 	$date_needed = trim($_POST['date_needed'] ?? '');
 	$urgency = trim($_POST['urgency'] ?? 'flexible');
 	$time_preference = trim($_POST['time_preference'] ?? 'no-preference');
@@ -116,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 	// Validation
 	if ($title === '') $errors[] = 'Title is required.';
 	if ($description === '') $errors[] = 'Description is required.';
-	if ($location === '' && $starting_location !== 'Philippines') $errors[] = 'Location is required.';
+	// Location is now derived from starting_location (and may be empty for Online jobs)
 	if ($date_needed === '') $errors[] = 'Date is required.';
 	if ($budget <= 0) $errors[] = 'Budget is required.';
 	if ($estimated_hours <= 0) $errors[] = 'Estimated hours is required.';
@@ -1535,6 +1536,50 @@ cursor: pointer;
 	line-height: 1.6;
 	margin: 30px 0;
 }
+
+/* Location suggestions dropdown */
+.location-suggestions {
+	position: absolute;
+	left: 12px;
+	right: 12px;
+	top: calc(100% + 8px);
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	max-height: 260px;
+	overflow: auto;
+	box-shadow: 0 8px 24px rgba(2,6,23,.08);
+	z-index: 2200;
+	list-style: none;
+	margin: 0;
+	padding: 6px;
+}
+.location-suggestions li {
+	padding: 10px 12px;
+	cursor: pointer;
+	border-radius: 8px;
+	font-size: 0.95rem;
+	color: #0f172a;
+}
+.location-suggestions li[aria-selected="true"],
+.location-suggestions li:hover { background: #f1f5f9; }
+
+/* Make Summary (Step 5) scrollable while keeping fixed buttons visible */
+.modal-step[data-step="5"] .summary-container {
+	max-height: calc(100vh - 140px); /* header + spacing */
+	overflow: auto;
+	padding-bottom: 140px;           /* space for fixed .button-group */
+	overscroll-behavior: contain;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-gutter: stable;
+}
+/* Slightly more space on wider screens */
+@media (min-width: 640px) {
+	.modal-step[data-step="5"] .summary-container {
+		max-height: calc(100vh - 160px);
+		padding-bottom: 160px;
+	}
+}
 </style>
 </head>
 <body>
@@ -1943,39 +1988,46 @@ cursor: pointer;
 						
 						<div id="locationFieldsContainer">
 							<label class="form-label">Starting location</label>
-							<input 
-								type="text" 
-								name="starting_location" 
-								class="form-input" 
-								value="Philippines"
-								readonly
-								style="margin-bottom: 16px;"
-								id="startingLocationInput"
-							/>
-							
-							<label class="form-label">Where in Philippines?</label>
-							<div class="location-picker-input">
+							<div class="location-picker-input" style="position: relative; margin-bottom: 16px;">
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 									<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
 									<circle cx="12" cy="10" r="3"/>
 								</svg>
-								<input 
-									type="text" 
-									name="location" 
-									class="location-picker-field" 
-									placeholder="Pick a location"
-									required
-									id="locationInput"
+								<input
+									type="text"
+									name="starting_location"
+									class="location-picker-field"
+									placeholder="Start address or place in Philippines"
+									id="startingLocationInput"
+									autocomplete="off"
+									aria-autocomplete="list"
+									aria-controls="startingSuggestions"
 								/>
+								<ul id="startingSuggestions" class="location-suggestions" role="listbox" hidden></ul>
 							</div>
-							
+							<input type="hidden" name="starting_lat" id="startingLat" />
+							<input type="hidden" name="starting_lon" id="startingLon" />
+
 							<label class="form-label">Ending location <span style="font-weight: 400; color: #94a3b8;">(optional)</span></label>
-							<select name="ending_location" class="form-input" id="endingLocationInput">
-								<option value="">Select a country</option>
-								<option value="Philippines">Philippines</option>
-								<option value="USA">USA</option>
-								<option value="Japan">Japan</option>
-							</select>
+							<div class="location-picker-input" style="position: relative;">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+									<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+									<circle cx="12" cy="10" r="3"/>
+								</svg>
+								<input
+									type="text"
+									name="ending_location"
+									class="location-picker-field"
+									placeholder="Search destination in Philippines"
+									id="endingLocationInput"
+									autocomplete="off"
+									aria-autocomplete="list"
+									aria-controls="endingSuggestions"
+								/>
+								<ul id="endingSuggestions" class="location-suggestions" role="listbox" hidden></ul>
+							</div>
+							<input type="hidden" name="ending_lat" id="endingLat" />
+							<input type="hidden" name="ending_lon" id="endingLon" />
 						</div>
 						
 						<button type="button" class="modal-button next-button" id="nextSubStep3_1">Next</button>
@@ -2006,7 +2058,7 @@ cursor: pointer;
 								<span>Before a specific date</span>
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
 																		<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-									<line x="16" y1="2" x2="16" y2="6"/>
+									<line x1="16" y1="2" x2="16" y2="6"/>
 									<line x1="8" y1="2" x2="8" y2="6"/>
 									<line x1="3" y1="10" x2="21" y2="10"/>
 								</svg>
@@ -2868,13 +2920,13 @@ cursor: pointer;
 		
 		// Step 3 sub-step 1 -> sub-step 2
 		document.getElementById('nextSubStep3_1').addEventListener('click', function() {
-			const locationInput = document.getElementById('locationInput');
+			const locationInput = document.getElementById('startingLocationInput');
 			const onlineBtn = document.getElementById('onlineBtn');
 			const isOnline = onlineBtn.classList.contains('active');
 			
 			// Only validate location if In-Person mode is active
 			if (!isOnline && locationInput.value.trim().length === 0) {
-				alert('Please select a location.');
+				alert('Please select a starting location.');
 				return;
 			}
 			
@@ -2923,7 +2975,8 @@ cursor: pointer;
 			document.getElementById('onlineBtn').classList.remove('active');
 			// Show location fields
 			document.getElementById('locationFieldsContainer').style.display = 'block';
-			document.getElementById('locationInput').required = true;
+			const s = document.getElementById('startingLocationInput');
+			if (s) s.required = true;
 		});
 		
 		document.getElementById('onlineBtn').addEventListener('click', function() {
@@ -2931,7 +2984,8 @@ cursor: pointer;
 			document.getElementById('inPersonBtn').classList.remove('active');
 			// Hide location fields
 			document.getElementById('locationFieldsContainer').style.display = 'none';
-			document.getElementById('locationInput').required = false;
+			const s = document.getElementById('startingLocationInput');
+			if (s) s.required = false;
 		});
 		
 		// Date option buttons toggle (only date section buttons)
@@ -3471,7 +3525,7 @@ cursor: pointer;
 
 				// Location
 				const onlineActive = document.getElementById('onlineBtn')?.classList.contains('active');
-				const locValue = onlineActive ? 'Online' : (document.getElementById('locationInput')?.value || '');
+				const locValue = onlineActive ? 'Online' : (document.getElementById('startingLocationInput')?.value || '');
 				const locEl = document.getElementById('summaryLocationText'); if (locEl) locEl.textContent = locValue || '—';
 
 				// Completion Date + Time
@@ -3882,6 +3936,104 @@ cursor: pointer;
 			// Submit the form normally (POST submission)
 			form.submit();
 		});
+	})();
+
+	/* LocationIQ Autocomplete for Starting/Ending locations */
+	(function(){
+		const LOCATIONIQ_KEY = 'pk.c9d3864efe169c84b4861a2c52e62cfc';
+		const LIMIT = 6;
+
+		function wireAutocomplete({ inputId, listId, latId, lonId, country }) {
+			const input = document.getElementById(inputId);
+			const list = document.getElementById(listId);
+			const latEl = document.getElementById(latId);
+			const lonEl = document.getElementById(lonId);
+			if (!input || !list) return;
+
+			let controller = null;
+			let debounceId = null;
+			let items = [];
+			let activeIndex = -1;
+
+			function clearList() {
+				list.innerHTML = '';
+				list.hidden = true;
+				items = [];
+				activeIndex = -1;
+				input.setAttribute('aria-expanded','false');
+			}
+			function setActive(idx){
+				if (idx < 0 || idx >= items.length) return;
+				items.forEach((li,i)=>li.setAttribute('aria-selected', i===idx ? 'true':'false'));
+				activeIndex = idx;
+				items[idx].scrollIntoView({ block: 'nearest' });
+			}
+			function select(idx){
+				if (idx < 0 || idx >= items.length) return;
+				const it = items[idx];
+				input.value = it.dataset.display;
+				if (latEl) latEl.value = it.dataset.lat || '';
+				if (lonEl) lonEl.value = it.dataset.lon || '';
+				clearList();
+			}
+			function render(results){
+				list.innerHTML = '';
+				if (!Array.isArray(results) || !results.length){ clearList(); return; }
+				results.forEach((r,i)=>{
+					const li = document.createElement('li');
+					li.role = 'option';
+					li.tabIndex = -1;
+					li.dataset.lat = r.lat;
+					li.dataset.lon = r.lon;
+					li.dataset.display = r.display_name;
+					li.textContent = r.display_name;
+					li.addEventListener('click', ()=>select(i));
+					li.addEventListener('mousemove', ()=>setActive(i));
+					list.appendChild(li);
+				});
+				items = Array.from(list.querySelectorAll('li'));
+				list.hidden = false;
+				input.setAttribute('aria-expanded','true');
+				activeIndex = -1;
+			}
+			input.addEventListener('input', () => {
+				const q = input.value.trim();
+				if (latEl) latEl.value = '';
+				if (lonEl) lonEl.value = '';
+				if (debounceId) clearTimeout(debounceId);
+				if (!q || q.length < 2){ clearList(); return; }
+				debounceId = setTimeout(() => {
+					if (controller) controller.abort();
+					controller = new AbortController();
+					const base = 'https://us1.locationiq.com/v1/search.php';
+					const params = new URLSearchParams({
+						key: LOCATIONIQ_KEY,
+						q,
+						format: 'json',
+						limit: String(LIMIT)
+					});
+					if (country) params.set('countrycodes', country);
+					const url = `${base}?${params.toString()}`;
+					fetch(url, { signal: controller.signal })
+						.then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+						.then(render)
+						.catch(err => { if (err?.name !== 'AbortError') { console.warn('LocationIQ:', err); clearList(); } });
+				}, 250);
+			});
+			input.addEventListener('keydown', (e) => {
+				if (list.hidden) return;
+				if (e.key === 'ArrowDown'){ e.preventDefault(); setActive(Math.min(activeIndex+1, items.length-1)); }
+				else if (e.key === 'ArrowUp'){ e.preventDefault(); setActive(Math.max(activeIndex-1, 0)); }
+				else if (e.key === 'Enter'){ if (activeIndex >= 0){ e.preventDefault(); select(activeIndex); } }
+				else if (e.key === 'Escape'){ clearList(); }
+			});
+			document.addEventListener('click', (e)=>{ if (!list.contains(e.target) && e.target !== input) clearList(); });
+			document.getElementById('onlineBtn')?.addEventListener('click', clearList);
+		}
+
+		// Wire Starting (PH-only) and Ending (global) autocompletes
+		wireAutocomplete({ inputId: 'startingLocationInput', listId: 'startingSuggestions', latId: 'startingLat', lonId: 'startingLon', country: 'ph' });
+		wireAutocomplete({ inputId: 'endingLocationInput',   listId: 'endingSuggestions',   latId: 'endingLat',   lonId: 'endingLon',   country: 'ph' });
 	})();
 	</script>
 </body>
