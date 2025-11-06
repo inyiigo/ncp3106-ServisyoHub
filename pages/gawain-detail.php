@@ -127,6 +127,9 @@ if ($jobOwnerId > 0 && $db) {
 $posterName = trim($posterUsername !== '' ? $posterUsername : trim($posterFirst . ' ' . $posterLast));
 if ($posterName === '') $posterName = 'Citizen';
 
+// NEW: build full name from first_name + last_name
+$posterFullName = trim(($posterFirst ?? '') . ' ' . ($posterLast ?? ''));
+
 // Avatar initial from poster name (overrides earlier fallback)
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
 
@@ -174,13 +177,20 @@ if (!empty($_SESSION['user_id']) && $db) {
 $isOwner = false;
 if (!empty($_SESSION['user_id']) && $jobOwnerId) {
    $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
- } elseif ($jobOwnerId === 0) {
+} elseif ($jobOwnerId === 0) {
    // Fallback: compare display name and job user_name if user_id isn't available
    $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
    $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
- }
- 
- ob_end_flush();
+}
+
+// Build the destination href depending on ownership
+$profileHref = $isOwner
+  ? './profile.php'
+  : ($jobOwnerId
+      ? ('./user-detail.php?id=' . (int)$jobOwnerId)
+      : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#'));
+
+ob_end_flush();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -338,132 +348,136 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
     <div class="detail-grid">
       <div class="detail-main">
         <div class="meta-merged" aria-label="Details">
-            <div class="meta-item">
-              <h3 class="meta-title">Posted by</h3>
-              <div class="poster">
-                <div class="avatar">
-                  <?php
-                  // Make avatar clickable and link to user-detail.php
-                  $userDetailUrl = $jobOwnerId ? ('./user-detail.php?id=' . (int)$jobOwnerId) : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#');
-                  if (!empty($clientAvatarUrl)) {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($posterName) . '" /></a>';
-                  } else {
-                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="' . e($posterName) . '" style="object-fit:cover;" /></a>';
-                  }
-                  ?>
-                </div>
-                <div>
-                  <div style="font-weight:800;"><?php echo e($posterName); ?></div>
-                  <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
-                </div>
+          <div class="meta-item">
+            <h3 class="meta-title">Posted by</h3>
+            <div class="poster">
+              <div class="avatar">
+                <?php
+                // Use $profileHref for avatar click-through
+                if (!empty($clientAvatarUrl)) {
+                  echo '<a href="' . e($profileHref) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($posterName) . '" /></a>';
+                } else {
+                  echo '<a href="' . e($profileHref) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="' . e($posterName) . '" style="object-fit:cover;" /></a>';
+                }
+                ?>
               </div>
-              <div class="meta-divider" role="presentation"></div>
-
-              <div class="info-list">
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                    </span>
-                    <span>Location</span>
-                  </div>
-                  <div class="value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></div>
+              <div>
+                <!-- Also make the name clickable to the same destination -->
+                <div style="font-weight:800; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <a href="<?php echo e($profileHref); ?>" title="View user details" style="color:inherit; text-decoration:none;"><?php echo e($posterName); ?></a>
+                  <?php if (!empty($posterFullName)): ?>
+                    <span style="color:#64748b; font-weight:700;">(<?php echo e($posterFullName); ?>)</span>
+                  <?php endif; ?>
                 </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                    </span>
-                    <span>Completion Date</span>
-                  </div>
-                  <div class="value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                    </span>
-                    <span>Duration</span>
-                  </div>
-                  <div class="value"><?php echo e($durationLabel); ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H7l-4 2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/></svg>
-                    </span>
-                    <span>Offers Received</span>
-                  </div>
-                  <div class="value"><?php echo e($offers); ?></div>
-                </div>
-                <div class="info-row">
-                  <div class="label">
-                    <span class="ico" aria-hidden="true">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </span>
-                    <span>Heroes Required</span>
-                  </div>
-                  <div class="value"><?php echo $helpersNeeded; ?></div>
-                </div>
+                <div style="color:#64748b; font-size:.9rem;">No reviews yet</div>
               </div>
-
-              <div class="meta-divider" role="presentation"></div>
-              <div class="merged-desc" aria-label="Description">
-                <h3>Description</h3>
-                <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
-              </div>
-
-              <div class="meta-divider" role="presentation"></div>
-              <section class="ask-panel ask-inset" id="ask-box" aria-label="Ask a question">
-                <h3 class="ask-title">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
-                  Ask a question
-                </h3>
-                <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
-
-                <div class="comment-list" aria-label="Recent Q&A">
-                  <div class="comment">
-                    <div class="avatar">
-                      <img src="../assets/images/avatar-placeholder.png" alt="Jericho bien V." onerror="this.style.display='none'" />
-                    </div>
-                    <div class="bubble">
-                      <span class="name">Jericho bien V.</span>
-                      <p class="text">location po??</p>
-                      <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-                    </div>
-                    <div class="replies">
-                      <div class="comment">
-                        <div class="avatar">
-                          <?php if (!empty($clientAvatarUrl)) : ?>
-                            <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($posterName); ?>" />
-                          <?php else: ?>
-                            <?php echo e(strtoupper($avatar)); ?>
-                          <?php endif; ?>
-                        </div>
-                        <div class="bubble">
-                          <span class="name"><?php echo e($posterName); ?></span>
-                          <p class="text"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></p>
-                          <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
-                        </div>
-                        <div class="replies"></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="ask-input-row">
-                  <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
-                  <form class="ask-form" id="askForm" novalidate>
-                    <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($posterName); ?> a question" aria-label="Ask a question" required />
-                    <button type="submit" class="ask-send" aria-label="Send question" title="Send">
-                      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                        <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
-                      </svg>
-                    </button>
-                  </form>
-                </div>
-              </section>
             </div>
+            <div class="meta-divider" role="presentation"></div>
+
+            <div class="info-list">
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 1 1 18 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                  </span>
+                  <span>Location</span>
+                </div>
+                <div class="value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  </span>
+                  <span>Completion Date</span>
+                </div>
+                <div class="value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  </span>
+                  <span>Duration</span>
+                </div>
+                <div class="value"><?php echo e($durationLabel); ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H7l-4 2V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v4"/></svg>
+                  </span>
+                  <span>Offers Received</span>
+                </div>
+                <div class="value"><?php echo e($offers); ?></div>
+              </div>
+              <div class="info-row">
+                <div class="label">
+                  <span class="ico" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  </span>
+                  <span>Heroes Required</span>
+                </div>
+                <div class="value"><?php echo $helpersNeeded; ?></div>
+              </div>
+            </div>
+
+            <div class="meta-divider" role="presentation"></div>
+            <div class="merged-desc" aria-label="Description">
+              <h3>Description</h3>
+              <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
+            </div>
+
+            <div class="meta-divider" role="presentation"></div>
+            <section class="ask-panel ask-inset" id="ask-box" aria-label="Ask a question">
+              <h3 class="ask-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>
+                Ask a question
+              </h3>
+              <p class="ask-sub">Clarify the details of the quest with the Citizen before making an offer!</p>
+
+              <div class="comment-list" aria-label="Recent Q&A">
+                <div class="comment">
+                  <div class="avatar">
+                    <img src="../assets/images/avatar-placeholder.png" alt="Jericho bien V." onerror="this.style.display='none'" />
+                  </div>
+                  <div class="bubble">
+                    <span class="name">Jericho bien V.</span>
+                    <p class="text">location po??</p>
+                    <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
+                  </div>
+                  <div class="replies">
+                    <div class="comment">
+                      <div class="avatar">
+                        <?php if (!empty($clientAvatarUrl)) : ?>
+                          <img src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($posterName); ?>" />
+                        <?php else: ?>
+                          <?php echo e(strtoupper($avatar)); ?>
+                        <?php endif; ?>
+                      </div>
+                      <div class="bubble">
+                        <span class="name"><?php echo e($posterName); ?></span>
+                        <p class="text"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></p>
+                        <div class="meta"><span>4m ago</span><a href="#" class="reply-link">Reply</a> <a href="#" class="delete-link">Delete</a></div>
+                      </div>
+                      <div class="replies"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="ask-input-row">
+                <div class="ask-counter" id="askCount" aria-label="Questions count">0</div>
+                <form class="ask-form" id="askForm" novalidate>
+                  <input class="ask-field" type="text" name="question" placeholder="Ask <?php echo e($posterName); ?> a question" aria-label="Ask a question" required />
+                  <button type="submit" class="ask-send" aria-label="Send question" title="Send">
+                    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M3 12l18-9-9 18-1.5-6L3 12z"/>
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            </section>
           </div>
         </div>
       </div>
