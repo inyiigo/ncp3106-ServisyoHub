@@ -9,6 +9,10 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Ensure self user id exists for Profile links
 $self_uid = isset($_SESSION['user_id']) ? (int)$_SESSION['user_id'] : 0;
+// Track viewer for notifications
+$viewerId = $self_uid;
+// Capture "mark all as read" action
+$notifAction = $_POST['action'] ?? '';
 
 // Capture mobile from POST if present and keep in session for future requests
 if (!empty($_POST['mobile'])) {
@@ -50,6 +54,23 @@ foreach ($attempts as $creds) {
 	}
 }
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
+// Add small schema helpers
+function db_has_table(mysqli $db, string $table): bool {
+	$tbl = mysqli_real_escape_string($db, $table);
+	$res = @mysqli_query($db, "SHOW TABLES LIKE '{$tbl}'");
+	$ok = ($res && mysqli_num_rows($res) > 0);
+	if ($res) @mysqli_free_result($res);
+	return $ok;
+}
+function db_has_column(mysqli $db, string $table, string $col): bool {
+	$tbl = mysqli_real_escape_string($db, $table);
+	$cl  = mysqli_real_escape_string($db, $col);
+	$res = @mysqli_query($db, "SHOW COLUMNS FROM `{$tbl}` LIKE '{$cl}'");
+	$ok = ($res && mysqli_num_rows($res) > 0);
+	if ($res) @mysqli_free_result($res);
+	return $ok;
+}
+
 /* Replace time_ago() with a robust implementation */
 function time_ago($dt) {
 	// empty input -> empty output (avoids misleading "just now")
@@ -175,6 +196,63 @@ if ($dbAvailable) {
 	} else {
 		error_log("✗ Query failed: " . mysqli_error($mysqli)); // Debug log
 	}
+}
+
+// After $dbAvailable is true
+$notifications = [];
+$unreadCount = 0;
+if ($dbAvailable && $viewerId) {
+	// Introspect notifications schema (table and columns might not exist yet)
+	$hasNotifTable = db_has_table($mysqli, 'notifications');
+	$hasSeenCol    = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'seen_at')   : false;
+	$hasActorCol   = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'actor_id')  : false;
+	// NEW: check comment_id presence
+	$hasCommentCol = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'comment_id') : false;
+
+	// Handle mark as read only when seen_at exists
+	if ($hasNotifTable && $hasSeenCol && $notifAction === 'mark_seen') {
+		@mysqli_query($mysqli, "UPDATE notifications SET seen_at = NOW() WHERE user_id = ".(int)$viewerId." AND seen_at IS NULL");
+	}
+
+	if ($hasNotifTable) {
+		// Build SELECT dynamically to avoid unknown column errors
+		$seenSelect    = $hasSeenCol ? 'n.seen_at' : 'NULL AS seen_at';
+		$commentSelect = $hasCommentCol ? 'n.comment_id' : 'NULL AS comment_id';
+		$joinUsers     = $hasActorCol ? 'LEFT JOIN users u ON u.id = n.actor_id' : 'LEFT JOIN users u ON 1=0'; // force null user fields if actor_id missing
+
+		$sqlN = "SELECT n.id, n.created_at, {$seenSelect}, {$commentSelect},
+		                j.id AS job_id, j.title, j.category,
+		                u.username, u.first_name, u.last_name
+		         FROM notifications n
+		         JOIN jobs j ON j.id = n.job_id
+		         {$joinUsers}
+		         WHERE n.user_id = ".(int)$viewerId."
+		         ORDER BY n.created_at DESC
+		         LIMIT 20";
+		if ($resN = @mysqli_query($mysqli, $sqlN)) {
+			while ($row = @mysqli_fetch_assoc($resN)) $notifications[] = $row;
+			@mysqli_free_result($resN);
+		}
+
+		// Unread count available only when seen_at exists
+		if ($hasSeenCol) {
+			$sqlC = "SELECT COUNT(*) AS c FROM notifications WHERE user_id = ".(int)$viewerId." AND seen_at IS NULL";
+			if ($resC = @mysqli_query($mysqli, $sqlC)) {
+				$tmp = @mysqli_fetch_assoc($resC);
+				$unreadCount = (int)($tmp['c'] ?? 0);
+				@mysqli_free_result($resC);
+			}
+		} else {
+			$unreadCount = 0; // no seen flag -> treat as all read
+		}
+	}
+}
+
+// helper
+function disp_name($r){
+	$n = trim($r['username'] ?? '');
+	if ($n === '') $n = trim(trim(($r['first_name'] ?? '').' '.($r['last_name'] ?? '')));
+	return $n !== '' ? $n : 'Someone';
 }
 
 // End buffering (send output)
@@ -420,36 +498,71 @@ ob_end_flush();
 							<path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/>
 							<path d="M13.73 21a2 2 0 01-3.46 0"/>
 						</svg>
-						<span class="svc-badge" data-count="3">3</span>
+						<span class="svc-badge" data-count="<?php echo (int)$unreadCount; ?>"><?php echo (int)$unreadCount; ?></span>
 					</button>
 					<div id="svcNotifyDrawer" class="svc-notify-drawer" role="dialog" aria-label="Notifications" hidden>
-						<div class="svc-notify-header">Notifications</div>
+						<div class="svc-notify-header" style="display:flex;align-items:center;justify-content:space-between;">
+							<span>Notifications</span>
+							<?php if ($viewerId && $unreadCount): ?>
+							<form method="post" style="margin:0;">
+								<input type="hidden" name="action" value="mark_seen">
+								<button type="submit" class="toggle-btn" title="Mark all as read" style="width:auto;height:auto;padding:6px 10px;border-radius:8px;">
+									Mark all as read
+								</button>
+							</form>
+							<?php endif; ?>
+						</div>
+						<!-- Restore two tabs -->
 						<div class="svc-tabs" role="tablist" aria-label="Notification role">
 							<button class="svc-tab is-active" id="tabKasangga" role="tab" aria-selected="true" data-role="kasangga">As a Kasangga</button>
 							<button class="svc-tab" id="tabCitizen" role="tab" aria-selected="false" data-role="citizen">As a Citizen</button>
 						</div>
 						<ul class="svc-notify-list">
-							<li class="svc-notify-item" data-role="kasangga">
+							<!-- Placeholder items for Kasangga -->
+							<li class="svc-notify-item" data-role="kasangga" style="display:none;">
 								<div>
-									<p class="title">New job posted near you</p>
-									<p class="meta">Plumbing • ₱1,500 • Today</p>
+									<p class="title">No updates</p>
+									<p class="meta">We’ll show offers and job updates here.</p>
 								</div>
-								<time class="time">2m ago</time>
+								<time class="time">—</time>
 							</li>
-							<li class="svc-notify-item" data-role="citizen">
-								<div>
-									<p class="title">Your post got a reply</p>
-									<p class="meta">Cleaning • 1 offer</p>
-								</div>
-								<time class="time">12m ago</time>
-							</li>
-							<li class="svc-notify-item" data-role="kasangga">
-								<div>
-									<p class="title">Reminder: Job starts tomorrow</p>
-									<p class="meta">Painting • 9:00 AM</p>
-								</div>
-								<time class="time">1h ago</time>
-							</li>
+							<?php if (!$viewerId): ?>
+								<li class="svc-notify-item" data-role="citizen" style="display:none;">
+									<div>
+										<p class="title">Log in to see notifications</p>
+										<p class="meta">You’re currently not signed in.</p>
+									</div>
+									<time class="time">now</time>
+								</li>
+							<?php elseif (empty($notifications)): ?>
+								<li class="svc-notify-item" data-role="citizen" style="display:none;">
+									<div>
+										<p class="title">No notifications</p>
+										<p class="meta">We’ll alert you when someone comments on your posts.</p>
+									</div>
+									<time class="time">—</time>
+								</li>
+							<?php else: ?>
+								<?php foreach ($notifications as $n): ?>
+									<?php
+										// Build destination URL to the post, with optional comment anchor
+										$link = './gawain-detail.php?id=' . (int)($n['job_id'] ?? 0);
+										if (!empty($n['comment_id'])) {
+											$link .= '#c' . (int)$n['comment_id'];
+										}
+										$bg = empty($n['seen_at']) ? 'background:#f8fbff;' : '';
+									?>
+									<li class="svc-notify-item" data-role="citizen" style="display:none; <?php echo $bg; ?> position:relative;">
+										<!-- Full-item clickable overlay -->
+										<a href="<?php echo e($link); ?>" class="notify-item-link" aria-label="Open post" style="position:absolute; inset:0; z-index:1;"></a>
+										<div>
+											<p class="title"><?php echo e(disp_name($n)); ?> commented on your post</p>
+											<p class="meta"><?php echo e($n['category'] ?? ''); ?> • <?php echo e($n['title'] ?? ''); ?></p>
+										</div>
+										<time class="time"><?php echo e(time_ago(strtotime($n['created_at'] ?? 'now'))); ?></time>
+									</li>
+								<?php endforeach; ?>
+							<?php endif; ?>
 						</ul>
 					</div>
 				</div>
@@ -748,29 +861,25 @@ ob_end_flush();
 	</script>
 
 	<script>
-	// Notification drawer logic
+	// Notification drawer logic (restore open/close + tabs)
 	(function(){
 		const btn = document.querySelector('.svc-notify-btn');
 		const drawer = document.getElementById('svcNotifyDrawer');
 		const backdrop = document.querySelector('.svc-notify-backdrop');
-		const tabs = drawer ? drawer.querySelectorAll('.svc-tab') : null;
-		const items = drawer ? drawer.querySelectorAll('.svc-notify-item') : null;
 		if (!btn || !drawer || !backdrop) return;
 
 		function openDrawer(){
-			drawer.hidden = false; // ensure it's in layout for transition
+			drawer.hidden = false;
 			requestAnimationFrame(()=>{
 				drawer.classList.add('is-open');
-				backdrop.classList.add('is-open');
+				backdrop.classList.add('is-open'); // backdrop uses class to show
 			});
 			btn.setAttribute('aria-expanded','true');
 		}
-
 		function closeDrawer(){
 			drawer.classList.remove('is-open');
 			backdrop.classList.remove('is-open');
 			btn.setAttribute('aria-expanded','false');
-			// Wait for transition to end before hiding
 			setTimeout(()=>{ drawer.hidden = true; }, 180);
 		}
 
@@ -779,44 +888,35 @@ ob_end_flush();
 			const isOpen = btn.getAttribute('aria-expanded') === 'true';
 			if (isOpen) closeDrawer(); else openDrawer();
 		});
-
 		backdrop.addEventListener('click', closeDrawer);
-
-		document.addEventListener('keydown', (e)=>{
-			if (e.key === 'Escape') closeDrawer();
-		});
-
-		// Close when clicking outside the drawer
+		document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape') closeDrawer(); });
 		document.addEventListener('click', (e)=>{
-			if (!drawer.contains(e.target) && !btn.contains(e.target)) {
-				closeDrawer();
-			}
+			if (!drawer.contains(e.target) && !btn.contains(e.target)) closeDrawer();
 		});
 
-		// Tabs: filter items by data-role
-		function applyRoleFilter(role){
-			if (!items) return;
-			items.forEach(it => {
-				const r = it.getAttribute('data-role') || 'kasangga';
-				it.style.display = (role === 'all' || r === role) ? '' : 'none';
+		// Tabs filter
+		const tabs = drawer.querySelectorAll('.svc-tab');
+		const items = drawer.querySelectorAll('.svc-notify-item');
+		function applyRole(role){
+			items.forEach(it=>{
+				const r = it.getAttribute('data-role') || 'citizen';
+				it.style.display = (r === role) ? '' : 'none';
 			});
 		}
-
-		if (tabs && tabs.length) {
-			// Default to kasangga tab active
-			applyRoleFilter('kasangga');
-			tabs.forEach(tab => {
-				tab.addEventListener('click', () => {
-					const role = tab.getAttribute('data-role') || 'kasangga';
-					tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
+		if (tabs.length){
+			// default to kasangga tab active
+			applyRole('kasangga');
+			tabs.forEach(tab=>{
+				tab.addEventListener('click', ()=>{
+					tabs.forEach(t=>{ t.classList.remove('is-active'); t.setAttribute('aria-selected','false'); });
 					tab.classList.add('is-active');
 					tab.setAttribute('aria-selected','true');
-					applyRoleFilter(role);
+					applyRole(tab.getAttribute('data-role') || 'citizen');
 				});
 			});
 		}
 
-		// Optional: reflect count from data-count attribute
+		// Badge visibility
 		const badge = btn.querySelector('.svc-badge');
 		if (badge) {
 			const count = parseInt(badge.getAttribute('data-count')||'0',10);
@@ -825,5 +925,6 @@ ob_end_flush();
 		}
 	})();
 	</script>
+	<!-- ...existing code... -->
 </body>
 </html>

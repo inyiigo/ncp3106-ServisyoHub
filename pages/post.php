@@ -1122,7 +1122,8 @@ cursor: pointer;
 	gap: 8px;
 }
 .calendar-nav button {
-	background: #f1f5f9;
+	background: #7cd4c4 !important;
+	color: #0b2c24 !important;
 	border: none;
 	width: 36px;
 	height: 36px;
@@ -1131,12 +1132,11 @@ cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #64748b;
 	transition: all 0.15s ease;
 }
 .calendar-nav button:hover {
-	background: #e2e8f0;
-	color: #0f172a;
+	background: #5bb9a9 !important;
+	color: #0b2c24 !important;
 }
 .calendar-weekdays {
 	display: grid;
@@ -1182,8 +1182,8 @@ cursor: pointer;
 	color: #cbd5e1;
 }
 .calendar-day.selected {
-	background: #0f172a;
-	color: #fff;
+	background: #7cd4c4 !important;
+	color: #0b2c24 !important;
 }
 .calendar-day.today {
 	border: 2px solid #0f172a;
@@ -1576,6 +1576,73 @@ cursor: pointer;
 		padding-bottom: 160px;
 	}
 }
+/* Step progress circles and active step colors */
+.step-item.active .step-circle,
+.step-item.completed .step-circle {
+	background: #7cd4c4 !important;
+	border-color: #7cd4c4 !important;
+}
+.step-item.active .step-circle::after {
+	background: #0b2c24 !important;
+}
+.step-item.completed .step-circle svg {
+	color: #0b2c24 !important;
+}
+.step-item.active .step-label,
+.step-item.completed .step-label {
+	color: #0b2c24 !important;
+}
+
+/* Step 1-4 modal buttons custom color */
+.modal-step[data-step="1"] .modal-button,
+.modal-step[data-step="2"] .modal-button,
+.modal-step[data-step="3"] .modal-button,
+.modal-step[data-step="4"] .modal-button,
+.button-group .modal-button.next-button {
+	background: #7cd4c4 !important;
+	color: #0b2c24 !important;
+}
+.button-group .modal-button.next-button:hover,
+.modal-step[data-step="1"] .modal-button:hover,
+.modal-step[data-step="2"] .modal-button:hover,
+.modal-step[data-step="3"] .modal-button:hover,
+.modal-step[data-step="4"] .modal-button:hover {
+	background: #5bb9a9 !important;
+	color: #0b2c24 !important;
+}
+
+/* All options that are shaded black (active state) */
+.date-option-btn.active,
+.location-type-btn.active {
+	background: #7cd4c4 !important;
+	border-color: #7cd4c4 !important;
+	color: #0b2c24 !important;
+}
+.date-option-btn.active svg,
+.location-type-btn.active svg {
+	stroke: #0b2c24 !important;
+	color: #0b2c24 !important;
+}
+
+/* Time Picker 'Done' button custom color */
+.time-picker-done {
+	background: #7cd4c4 !important;
+	color: #0b2c24 !important;
+}
+.time-picker-done:hover {
+	background: #5bb9a9 !important;
+	color: #0b2c24 !important;
+}
+
+/* Calendar navigation buttons custom color */
+.calendar-nav button {
+	background: #7cd4c4 !important;
+	color: #0b2c24 !important;
+}
+.calendar-nav button:hover {
+	background: #5bb9a9 !important;
+	color: #0b2c24 !important;
+}
 </style>
 </head>
 <body>
@@ -1960,6 +2027,7 @@ cursor: pointer;
 						<input 
 							type="text" 
 							name="requirements" 
+						 
 							class="form-input" 
 							placeholder="Do you have your own car?"
 							id="requirementsInput"
@@ -2065,8 +2133,8 @@ cursor: pointer;
 								<span>Before a specific date</span>
 								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; opacity: 0.5;">
 																		<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-									<line x1="16" y1="2" x2="16" y2="6"/>
-									<line x1="8" y1="2" x2="8" y2="6"/>
+									<line x="16" y1="2" x2="16" y2="6"/>
+									<line x="8" y1="2" x2="8" y2="6"/>
 									<line x1="3" y1="10" x2="21" y2="10"/>
 								</svg>
 							</button>
@@ -3368,6 +3436,7 @@ cursor: pointer;
 		(function(){
 			const budgetInput = document.getElementById('budgetHeroFeeInput');
 			const recommendedText = document.getElementById('recommendedFeeText');
+
 			const minFeeText = document.getElementById('minFeeText');
 			const breakdownHero = document.getElementById('breakdownHeroFee');
 			const breakdownBooking = document.getElementById('breakdownBookingFee');

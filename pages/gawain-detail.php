@@ -209,14 +209,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 					$null = null;
 					mysqli_stmt_bind_param($st, 'iiis', $id, $viewerId, $null, $body);
 					@mysqli_stmt_execute($st);
+					$cid = (int)@mysqli_insert_id($db);
 					@mysqli_stmt_close($st);
+
+					// NEW: create notification for job owner (if different user)
+					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
+						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
+							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
+							@mysqli_stmt_execute($nst);
+							@mysqli_stmt_close($nst);
+						}
+					}
 				}
 			}
 			header('Location: ./gawain-detail.php?id='.$id.'#ask-box'); exit;
 		}
 		if ($action === 'add_reply' && $viewerId) {
 			$body = trim((string)($_POST['body'] ?? ''));
-			$parent_id = (int)($_POST['parent_id'] ?? 0);
+			$parent_id = (int)$_POST['parent_id'] ?? 0;
 			if ($body !== '' && $parent_id > 0) {
 				// ensure parent belongs to this job
 				$ok = false;
@@ -231,7 +241,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 				if ($ok && ($st = @mysqli_prepare($db, "INSERT INTO comments (job_id,user_id,parent_id,body,created_at) VALUES (?,?,?,?,NOW())"))) {
 					mysqli_stmt_bind_param($st, 'iiis', $id, $viewerId, $parent_id, $body);
 					@mysqli_stmt_execute($st);
+					$cid = (int)@mysqli_insert_id($db);
 					@mysqli_stmt_close($st);
+
+					// NEW: notify job owner (skip self)
+					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
+						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
+							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
+							@mysqli_stmt_execute($nst);
+							@mysqli_stmt_close($nst);
+						}
+					}
 				}
 			}
 			header('Location: ./gawain-detail.php?id='.$id.'#c'.$parent_id); exit;
