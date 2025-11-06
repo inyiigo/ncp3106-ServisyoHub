@@ -689,14 +689,6 @@ $portfolio_url = trim((string)($_SESSION['portfolio_url'] ?? ''));
 				<div class="tab-panels">
 					<!-- Earnings -->
 					<div id="tab-earnings" class="tab-panel" role="tabpanel">
-						<article class="card" aria-labelledby="prefer-kasangga-title">
-							<h4 id="prefer-kasangga-title">Become a preferred Kasangga</h4>
-							<p class="muted">Unlock more quests and higher earnings by getting the preferred Kasangga badge.</p>
-							<div class="wallet-actions">
-								<a class="btn-chip" href="">Check eligibility</a>
-							</div>
-						</article>
-
 						<article class="card wallet" aria-labelledby="wallet-title">
 							<h4 id="wallet-title">Wallet</h4>
 							<div class="wallet-row">

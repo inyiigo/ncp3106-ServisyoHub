@@ -188,6 +188,60 @@ function avatar_url($path){
 	<title>Edit Profile • Servisyo Hub</title>
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/styles.css">
+	<style>
+		/* ...existing code... */
+		.save {
+			background: #7cd4c4 !important;
+			color: #0b2c24 !important;
+			border: none;
+			font-weight: 900;
+			transition: background .15s, box-shadow .15s;
+		}
+		.save:hover, .save:focus-visible {
+			background: #5bbfae !important;
+			box-shadow: 0 6px 16px rgba(124,212,196,.18);
+		}
+		/* ...existing code... */
+		.skill-chips {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin: 0 0 14px;
+		}
+		.skill-chip {
+			background: rgba(37,150,190,0.18); /* transparent blue */
+			border: 2px solid rgba(37,150,190,0.22);
+			color: #0078a6;
+			border-radius: 8px; /* changed from 999px to 8px for box shape */
+			padding: 6px 10px;
+			font-weight: 800;
+			font-size: .95rem;
+			box-shadow: 0 2px 8px rgba(2,6,23,.06);
+			display: inline-flex;
+			align-items: center;
+			margin-bottom: 4px;
+		}
+		.skill-chip button {
+			margin-left: 6px;
+			background: none;
+			border: none;
+			color: #0078a6;
+			font-weight: bold;
+			font-size: 1.1em;
+			cursor: pointer;
+			border-radius: 4px;
+			width: 22px;
+			height: 22px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			transition: background .15s;
+		}
+		.skill-chip button:hover {
+			background: rgba(37,150,190,0.12);
+		}
+		/* ...existing code... */
+		</style>
 </head>
 <body class="reg-body theme-profile-bg">
 	<main class="form-card glass-card animate-fade">
@@ -246,6 +300,16 @@ function avatar_url($path){
 				<div class="field col-12">
 					<label for="address">Address</label>
 					<textarea id="address" name="address" <?php echo $disabledAttr; ?>><?php echo e($user['address']); ?></textarea>
+				</div>
+				<div class="field col-12">
+					<label for="skills">Skills</label>
+					<small class="hint">Example: Frontend Development, AI & Machine Learning, Software Development</small>
+					<!-- Skills input box and chips -->
+					<div id="skills-chips" class="skill-chips" style="margin-bottom:10px;">
+						<!-- Chips will be rendered here by JS -->
+					</div>
+					<input id="skills-input" type="text" placeholder="Type a skill and press Enter" autocomplete="off" style="margin-bottom:8px;">
+					<input type="hidden" id="skills" name="skills" value="<?php echo e(isset($_SESSION['skills']) ? (is_array($_SESSION['skills']) ? implode(',', $_SESSION['skills']) : $_SESSION['skills']) : ''); ?>">
 				</div>
 			</div>
 
@@ -309,6 +373,54 @@ if (cancelBtn) {
 		}
 	});
 }
+
+// --- Skills chips UI ---
+// No limit on number of skills
+const skillsInput = document.getElementById('skills-input');
+const skillsHidden = document.getElementById('skills');
+const chipsDiv = document.getElementById('skills-chips');
+
+function parseSkills(val) {
+	return val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+function renderChips(skills) {
+	chipsDiv.innerHTML = '';
+	skills.forEach((skill, idx) => {
+		const chip = document.createElement('span');
+		chip.className = 'skill-chip';
+		chip.textContent = skill;
+		const btn = document.createElement('button');
+		btn.type = 'button';
+		btn.textContent = '×';
+		btn.title = 'Remove';
+		btn.onclick = function() {
+			skills.splice(idx, 1);
+			updateSkills();
+		};
+		chip.appendChild(btn);
+		chipsDiv.appendChild(chip);
+	});
+}
+function updateSkills() {
+	skillsHidden.value = skillsArr.join(',');
+	renderChips(skillsArr);
+}
+let skillsArr = parseSkills(skillsHidden.value);
+
+renderChips(skillsArr);
+
+skillsInput.addEventListener('keydown', function(e){
+	if (e.key === 'Enter' && this.value.trim()) {
+		const val = this.value.trim();
+		// No limit, allow any number of skills
+		if (!skillsArr.includes(val)) {
+			skillsArr.push(val);
+			updateSkills();
+		}
+		this.value = '';
+		e.preventDefault();
+	}
+});
 	</script>
 </body>
 </html>
