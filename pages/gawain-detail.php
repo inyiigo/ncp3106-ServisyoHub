@@ -12,6 +12,9 @@ $db = $conn ?? $mysqli ?? null;
 // ensure correct table name used everywhere
 $table = 'jobs';
 
+// Define currentUserId early to avoid "undefined variable" warnings
+$currentUserId = (int)($_SESSION['user_id'] ?? 0);
+
 function e($v){ return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 function fmt_money($v){
     if ($v === '' || $v === null) return 'Negotiable';
@@ -93,12 +96,13 @@ function url_from_path($p){
 
 // Fetch poster identity from users via jobs.user_id
 $clientAvatarUrl = '';
-$jobOwnerId = (int)($jobs['user_id'] ?? 0);
-$posterUsername = '';
-$posterFirst = '';
-$posterLast  = '';
-$posterName  = '';
 
+// --- Consolidated poster/owner resolution (merged from both conflict sides) ---
+$jobOwnerId = (int)($jobs['user_id'] ?? 0);
+$posterUsername = $posterFirst = $posterLast = $posterName = '';
+$posterFullName = '';
+
+// If we have a numeric owner id, try to fetch name/avatar from users table
 if ($jobOwnerId > 0 && $db) {
 	if ($u = @mysqli_prepare(
 		$db,
@@ -125,16 +129,17 @@ if ($jobOwnerId > 0 && $db) {
 
 // Build display name preference: username > "First Last" > Citizen
 $posterName = trim($posterUsername !== '' ? $posterUsername : trim($posterFirst . ' ' . $posterLast));
+if ($posterName === '') $posterName = trim((string)($jobs['user_name'] ?? ''));
 if ($posterName === '') $posterName = 'Citizen';
 
-// NEW: build full name from first_name + last_name
+// Full name for parentheses display (may be empty)
 $posterFullName = trim(($posterFirst ?? '') . ' ' . ($posterLast ?? ''));
 
-// Avatar initial from poster name (overrides earlier fallback)
+// Avatar initial from poster name (fallback)
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $posterName), 0, 1));
 
 // Fallbacks to find avatar if not found above
-// 2) try jobs.user_avatar column (if exists)
+// 1) try jobs.user_avatar column (if exists)
 if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user_avatar,'') AS ua FROM {$table} WHERE id = ? LIMIT 1"))) {
 	mysqli_stmt_bind_param($s2, 'i', $id);
 	if (@mysqli_stmt_execute($s2)) {
@@ -145,7 +150,7 @@ if ($clientAvatarUrl === '' && ($s2 = @mysqli_prepare($db, "SELECT COALESCE(user
 	}
 	@mysqli_stmt_close($s2);
 }
-// 3) match by name (username or first+last) if we at least have a name
+// 2) match by name (username or first+last) if we at least have a name
 if ($clientAvatarUrl === '' && $posterName !== '') {
 	if ($s3 = @mysqli_prepare($db, "SELECT COALESCE(avatar,'') AS avatar FROM users WHERE username = ? OR CONCAT(TRIM(first_name),' ',TRIM(last_name)) = ? LIMIT 1")) {
 		mysqli_stmt_bind_param($s3, 'ss', $posterName, $posterName);
@@ -173,14 +178,17 @@ if (!empty($_SESSION['user_id']) && $db) {
   }
 }
 
+// Viewer / session id (use a single canonical variable)
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
+
 // Determine if current viewer is the owner of this post
 $isOwner = false;
-if (!empty($_SESSION['user_id']) && $jobOwnerId) {
-   $isOwner = ((int)$_SESSION['user_id'] === (int)$jobOwnerId);
+if ($viewerId && $jobOwnerId) {
+	$isOwner = ($viewerId === $jobOwnerId);
 } elseif ($jobOwnerId === 0) {
-   // Fallback: compare display name and job user_name if user_id isn't available
-   $viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
-   $isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
+	// Fallback: compare display name and job user_name if user_id isn't available
+	$viewerName = (string)($displayName ?? ($_SESSION['display_name'] ?? ''));
+	$isOwner = (trim(strtolower($viewerName)) === trim(strtolower((string)($jobs['user_name'] ?? ''))));
 }
 
 // Build the destination href depending on ownership
@@ -190,18 +198,29 @@ $profileHref = $isOwner
       ? ('./user-detail.php?id=' . (int)$jobOwnerId)
       : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#'));
 
-// --- Comments: CSRF + POST handlers + fetch ---
+// Compute offers count for this job (ensure $offers is set)
+$offers = 0;
+if ($id > 0 && $db) {
+  if ($s = @mysqli_prepare($db, "SELECT COUNT(*) AS c FROM offers WHERE job_id = ?")) {
+    mysqli_stmt_bind_param($s, 'i', $id);
+    if (@mysqli_stmt_execute($s)) {
+      $r = @mysqli_stmt_get_result($s);
+      if ($r && ($w = @mysqli_fetch_assoc($r))) {
+        $offers = (int)($w['c'] ?? 0);
+      }
+    }
+    @mysqli_stmt_close($s);
+  }
+}
+
+// --- CSRF + POST handlers (add_comment, add_reply, delete_comment) ---
 if (empty($_SESSION['csrf'])) { $_SESSION['csrf'] = bin2hex(random_bytes(16)); }
-$viewerId = (int)($_SESSION['user_id'] ?? 0);
 $csrf_ok = function($t){ return is_string($t ?? '') && hash_equals($_SESSION['csrf'] ?? '', $t); };
 
-// Handle add/delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 	$action = $_POST['action'] ?? '';
 	$token  = $_POST['csrf'] ?? '';
-	if (!$csrf_ok($token)) {
-		// invalid token -> ignore silently or show notice
-	} else {
+	if ($csrf_ok($token)) {
 		if ($action === 'add_comment' && $viewerId) {
 			$body = trim((string)($_POST['body'] ?? ''));
 			if ($body !== '') {
@@ -212,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 					$cid = (int)@mysqli_insert_id($db);
 					@mysqli_stmt_close($st);
 
-					// NEW: create notification for job owner (if different user)
+					// create notification for job owner (if different user)
 					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
 						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
 							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
@@ -226,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 		}
 		if ($action === 'add_reply' && $viewerId) {
 			$body = trim((string)($_POST['body'] ?? ''));
-			$parent_id = (int)$_POST['parent_id'] ?? 0;
+			$parent_id = (int)($_POST['parent_id'] ?? 0);
 			if ($body !== '' && $parent_id > 0) {
 				// ensure parent belongs to this job
 				$ok = false;
@@ -244,7 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 					$cid = (int)@mysqli_insert_id($db);
 					@mysqli_stmt_close($st);
 
-					// NEW: notify job owner (skip self)
+					// notify job owner (skip self)
 					if ($cid > 0 && $jobOwnerId && $viewerId !== (int)$jobOwnerId) {
 						if ($nst = @mysqli_prepare($db, "INSERT INTO notifications (user_id,actor_id,job_id,comment_id) VALUES (?,?,?,?)")) {
 							mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $id, $cid);
@@ -282,7 +301,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $id > 0) {
 	}
 }
 
-// Fetch comments for this job
+// Fetch comments for this job (thread + replies)
 $thread = [];   // parent comments
 $replies = [];  // replies grouped by parent_id
 if ($db && $id > 0) {
@@ -679,8 +698,14 @@ ob_end_flush();
   <footer class="footer-bar">
     <div class="footer-inner">
       <div class="footer-actions">
-  <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
-        <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
+        <a class="btn-ghost" href="#ask-box" role="button">Ask a question</a>
+        <?php if ($isOwner): ?>
+          <!-- Owner sees View offers button -->
+          <a class="btn-solid" href="./my-gawain.php?tab=offered&job_id=<?php echo (int)$id; ?>" role="button">View offers (<?php echo (int)$offers; ?>)</a>
+        <?php else: ?>
+          <!-- Non-owner sees Make offer button -->
+          <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>" role="button">Make offer</a>
+        <?php endif; ?>
       </div>
     </div>
   </footer>

@@ -112,7 +112,10 @@ ob_end_flush();
     </main>
 
     <div class="offer-footer">
-      <button class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
+      <form method="POST" action="./make-offer-submit.php">
+        <input type="hidden" name="job_id" value="<?php echo $id; ?>" />
+        <button class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
+      </form>
     </div>
   </div>
 
