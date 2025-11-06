@@ -327,11 +327,23 @@ if (!empty($_SESSION['user_id']) && $jobOwnerId) {
               <h3 class="meta-title">Posted by</h3>
               <div class="poster">
                 <div class="avatar">
-                  <?php if (!empty($clientAvatarUrl)) : ?>
-                    <img class="avatar-img" src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($jobs['user_name'] ?? ''); ?>" />
-                  <?php else: ?>
-                    <?php echo e(strtoupper($avatar)); ?>
-                  <?php endif; ?>
+                  <?php
+                  // Show user avatar if available, else show attached photo (your-photo.png)
+                  // Make avatar clickable and link to user-detail.php
+                  $userDetailUrl = '';
+                  if (!empty($jobOwnerId)) {
+                    $userDetailUrl = './user-detail.php?id=' . (int)$jobOwnerId;
+                  } elseif (!empty($jobs['user_name'])) {
+                    $userDetailUrl = './user-detail.php?name=' . urlencode($jobs['user_name']);
+                  } else {
+                    $userDetailUrl = '#';
+                  }
+                  if (!empty($clientAvatarUrl)) {
+                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="' . e($clientAvatarUrl) . '" alt="' . e($jobs['user_name'] ?? '') . '" /></a>';
+                  } else {
+                    echo '<a href="' . e($userDetailUrl) . '" title="View user details"><img class="avatar-img" src="../assets/images/your-photo.png" alt="User Photo" style="object-fit:cover;" /></a>';
+                  }
+                  ?>
                 </div>
                 <div>
                   <div style="font-weight:800;"><?php echo e($jobs['user_name'] ?? ''); ?></div>
