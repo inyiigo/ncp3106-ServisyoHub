@@ -68,6 +68,15 @@ $lastMonthQuests    = (int)  ($_SESSION['last_month_quests']    ?? 0);
 		}
 		.back-box:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 12px 28px rgba(0,120,166,.32); background: #006a94; border-color: color-mix(in srgb, #0078a6 60%, #0000); }
 		@media (max-width:520px){ .bottom-box{ left:12px; right:12px; bottom:14px; display:flex; justify-content:center; } .back-box{ width:100%; justify-content:center; } }
+
+		/* Unbold all texts sitewide, except titles */
+		:root { --fw-normal: 400; --fw-bold: 800; }
+		body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
+
+		/* Keep titles/headings bold */
+		h1, h2, h3, h4, h5, h6,
+		.title, .page-title, .section-title,
+		.card > h3, .card .title { font-weight: var(--fw-bold) !important; }
 	</style>
 </head>
 <body class="theme-profile-bg">
