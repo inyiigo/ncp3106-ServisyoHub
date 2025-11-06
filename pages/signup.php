@@ -81,14 +81,7 @@
 			<h1 class="greet-top">Hello!</h1>
 			<h2 class="greet-sub">We are glad to see you :)</h2>
 
-			<div class="social-row" aria-label="Social sign up options">
-				<a href="#" class="btn-social" role="button" aria-label="Sign up with Google">
-					<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11v2.9h4.9c-.2 1.2-1.5 3.5-4.9 3.5-3 0-5.5-2.5-5.5-5.5S9 6.4 12 6.4c1.7 0 2.8.7 3.5 1.3l2.4-2.3C16.7 3.8 14.6 3 12 3 6.9 3 2.9 7 2.9 12s4 9 9.1 9c5.2 0 8.6-3.7 8.6-8.9 0-.6-.1-1-.2-1.5H12z"/></svg>
-					<span>Sign up with Google</span>
-				</a>
-			</div>
 
-			<div class="divider" role="separator" aria-label="Or"><span>Or</span></div>
 
 			<form class="sg-form" action="../config/signup_act.php" method="POST" novalidate>
 				<!-- Mobile number on top -->
