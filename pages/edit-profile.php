@@ -209,24 +209,27 @@ function avatar_url($path){
 			box-shadow: 0 6px 16px rgba(124,212,196,.18);
 		}
 		/* ...existing code... */
-		.skill-chips {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 8px;
-			margin: 0 0 14px;
+
+		/* Palette from provided blue swatch */
+		:root {
+			--pal-1: #03222c;
+			--pal-2: #043644;
+			--pal-3: #064c5f;
+			--pal-4: #08627b;
+			--pal-5: #0a7897;
 		}
+
+		/* Skills chips */
+		.skill-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
 		.skill-chip {
-			background: rgba(37,150,190,0.18); /* transparent blue */
-			border: 2px solid rgba(37,150,190,0.22);
-			color: #0078a6;
-			border-radius: 8px; /* changed from 999px to 8px for box shape */
+			/* keep box shape you used here */
+			border-radius: 8px;
+			border: 2px solid transparent;
 			padding: 6px 10px;
 			font-weight: 800;
 			font-size: .95rem;
 			box-shadow: 0 2px 8px rgba(2,6,23,.06);
-			display: inline-flex;
-			align-items: center;
-			margin-bottom: 4px;
+			display: inline-flex; align-items: center; margin-bottom: 4px;
 		}
 		.skill-chip button {
 			margin-left: 6px;
@@ -247,6 +250,31 @@ function avatar_url($path){
 		.skill-chip button:hover {
 			background: rgba(37,150,190,0.12);
 		}
+
+		/* Cycle palette for chips; ensure readable text */
+		.skill-chips .skill-chip:nth-child(5n+1) {
+			background: var(--pal-1);
+			border-color: color-mix(in srgb, var(--pal-1) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+2) {
+			background: var(--pal-2);
+			border-color: color-mix(in srgb, var(--pal-2) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+3) {
+			background: var(--pal-3);
+			border-color: color-mix(in srgb, var(--pal-3) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+4) {
+			background: var(--pal-4);
+			border-color: color-mix(in srgb, var(--pal-4) 70%, #ffffff 30%);
+		}
+		.skill-chips .skill-chip:nth-child(5n+5) {
+			background: var(--pal-5);
+			border-color: color-mix(in srgb, var(--pal-5) 70%, #ffffff 30%);
+		}
+
+		/* Override: make all skills text white only */
+		.skill-chip { color:#fff !important; }
 		/* ...existing code... */
 		</style>
 </head>

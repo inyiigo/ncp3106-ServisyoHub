@@ -180,6 +180,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : 'there';
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
+// NEW: fetch avatar (and optionally username/name) from DB for the logged-in user
+$avatar_path = '';
+if ($dbAvailable && $user_id) {
+	if ($st = @mysqli_prepare($mysqli, "SELECT COALESCE(avatar,''), COALESCE(username,''), COALESCE(first_name,''), COALESCE(last_name,'') FROM users WHERE id = ?")) {
+		mysqli_stmt_bind_param($st, 'i', $user_id);
+		@mysqli_stmt_execute($st);
+		@mysqli_stmt_bind_result($st, $db_avatar, $db_username, $db_first, $db_last);
+		if (@mysqli_stmt_fetch($st)) {
+			$avatar_path = $db_avatar ?: '';
+			// Prefer a better display name when available
+			if ($db_username) {
+				$display = $db_username;
+			} elseif ($db_first || $db_last) {
+				$display = trim($db_first . ' ' . $db_last);
+			}
+			// Refresh initial if display changed
+			$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+		}
+		@mysqli_stmt_close($st);
+	}
+}
+
+// helper to get avatar URL or empty string
+function avatar_url_from_db($path){
+	if (!$path) return '';
+	// stored like 'assets/uploads/avatars/xxx.jpg' → page is under /pages, so prefix '../'
+	return '../' . ltrim($path, '/');
+}
+
 /* Fetch recent job posts from users */
 $recentSearches = [];
 if ($dbAvailable) {
@@ -316,6 +345,14 @@ body {
 	font-size: 1.3rem;
 	flex-shrink: 0;
 	box-shadow: 0 4px 12px rgba(0,120,166,.15);
+	overflow: hidden; /* ensure image is clipped to circle */
+}
+.jobs-avatar img {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
 }
 .jobs-greeting-text {
 	display: flex;
@@ -1664,7 +1701,14 @@ cursor: pointer;
 
 	<!-- Greeting with avatar (left) and text (right) -->
 	<div class="jobs-greeting">
-		<div class="jobs-avatar"><?php echo htmlspecialchars($avatar); ?></div>
+		<div class="jobs-avatar">
+			<?php $avatarUrl = avatar_url_from_db($avatar_path); ?>
+			<?php if ($avatarUrl): ?>
+				<img src="<?php echo e($avatarUrl); ?>" alt="Your avatar">
+			<?php else: ?>
+				<?php echo htmlspecialchars($avatar); ?>
+			<?php endif; ?>
+		</div>
 		<div class="jobs-greeting-text">
 			<?php
 			$hour = (int)date('G');
