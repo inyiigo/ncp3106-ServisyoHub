@@ -182,6 +182,24 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 		/* Slightly shift content downward for breathing room */
 		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
+
+		/* Filter modal / bottom-sheet styles (page-scoped) */
+		.mq-filter-modal { position: fixed; inset: 0; display: none; z-index: 1200; }
+		.mq-filter-modal[aria-hidden="false"] { display: block; }
+		.mq-filter-backdrop { position: absolute; inset: 0; background: rgba(4,6,8,0.45); }
+		.mq-filter-sheet { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 720px; background: #fff; border-top-left-radius: 18px; border-top-right-radius: 18px; padding: 18px 18px 28px; box-shadow: 0 -12px 40px rgba(2,6,23,.16); }
+		.mq-filter-header { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-bottom: 12px; position: relative; }
+		.mq-filter-title { margin: 0; text-align: center; font-size: 1.05rem; font-weight: 800; }
+		.mq-filter-reset, .mq-filter-close { background: transparent; border: none; color: #374151; font-weight: 600; font-size: .95rem; padding: 6px 8px; cursor: pointer; }
+		.mq-filter-close { font-size: 1.4rem; line-height: 1; }
+
+		.mq-filter-form { display: grid; gap: 14px; }
+		.mq-filter-item { display: flex; gap: 12px; align-items: center; padding: 8px 6px; border-radius: 10px; }
+		.mq-filter-item input[type="checkbox"] { width: 22px; height: 22px; appearance: none; -webkit-appearance: none; border: 2px solid #d1d5db; border-radius: 6px; display: inline-grid; place-items: center; cursor: pointer; }
+		.mq-filter-item input[type="checkbox"]:checked { background: #0b2c24; border-color: #0b2c24; }
+		.mq-filter-item span { color: #0b2c24; font-weight: 500; }
+
+		.mq-filter-apply { margin-top: 8px; width: 100%; background: #111827; color: #fff; border: none; padding: 14px 18px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
 	</style>
 </head>
 <body class="theme-profile-bg">
@@ -219,10 +237,10 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 						<button class="mq-filter-close" type="button" aria-label="Close" data-filter-close>&times;</button>
 					</div>
 					<form class="mq-filter-form" id="mqFilterForm">
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="open"> <span>Open Gawain</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress Gawain</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed Gawain</span></label>
+						<label class="mq-filter-item"><input type="checkbox" name="status" value="deleted"> <span>Deleted Gawain</span></label>
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>

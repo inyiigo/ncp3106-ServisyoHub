@@ -101,8 +101,18 @@
 			localStorage.setItem('mqFilters', JSON.stringify({ status: selected }));
 		}
 
-		function open(){ modal.classList.add('active'); openBtn.setAttribute('aria-expanded','true'); }
-		function close(){ modal.classList.remove('active'); openBtn.setAttribute('aria-expanded','false'); }
+		function open(){
+			modal.classList.add('active');
+			// reflect accessibility state used by page CSS
+			modal.setAttribute('aria-hidden', 'false');
+			openBtn.setAttribute('aria-expanded','true');
+		}
+		function close(){
+			modal.classList.remove('active');
+			// reflect accessibility state used by page CSS
+			modal.setAttribute('aria-hidden', 'true');
+			openBtn.setAttribute('aria-expanded','false');
+		}
 
 		openBtn.addEventListener('click', function(e){ e.preventDefault(); open(); });
 		closeEls.forEach(function(el){ el.addEventListener('click', function(){ close(); }); });
