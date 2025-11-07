@@ -81,27 +81,41 @@
 			<h1 class="greet-top">Hello!</h1>
 			<h2 class="greet-sub">We are glad to see you :)</h2>
 
-			<div class="social-row" aria-label="Social sign up options">
-				<a href="#" class="btn-social" role="button" aria-label="Sign up with Google">
-					<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M12 11v2.9h4.9c-.2 1.2-1.5 3.5-4.9 3.5-3 0-5.5-2.5-5.5-5.5S9 6.4 12 6.4c1.7 0 2.8.7 3.5 1.3l2.4-2.3C16.7 3.8 14.6 3 12 3 6.9 3 2.9 7 2.9 12s4 9 9.1 9c5.2 0 8.6-3.7 8.6-8.9 0-.6-.1-1-.2-1.5H12z"/></svg>
-					<span>Sign up with Google</span>
-				</a>
-			</div>
-
-			<div class="divider" role="separator" aria-label="Or"><span>Or</span></div>
-
 			<form class="sg-form" action="../config/signup_act.php" method="POST" novalidate>
 				<!-- Mobile number on top -->
 				<div>
 					<label for="mobile">Mobile number</label>
-					<input type="tel" id="mobile" name="mobile" class="pill slim" placeholder="e.g. 0917 123 4567" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
+					<input
+						type="tel"
+						id="mobile"
+						name="mobile"
+						class="pill slim"
+						placeholder="e.g. 09171234567"
+						inputmode="numeric"
+						maxlength="11"
+						pattern="^[0-9]{11}$"
+						title="Enter exactly 11 digits"
+						oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
+						required
+					/>
 				</div>
 
 				<div class="grid-2 pw-grid">
 					<div class="input-with-toggle">
 						<label for="password">Password</label>
 						<div class="control">
-							<input type="password" id="password" name="password" class="pill slim" placeholder="Create a password" required />
+							<input
+								type="password"
+								id="password"
+								name="password"
+								class="pill slim"
+								placeholder="Create a password"
+								required
+								minlength="8"
+								maxlength="16"
+								pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,16}$"
+								title="8–16 characters, include 1 uppercase, 1 number, 1 special, no spaces"
+							/>
 							<button type="button" id="togglePassword" class="toggle-visibility" aria-label="Show password" aria-controls="password" aria-pressed="false">
 								<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
 									<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
@@ -117,7 +131,18 @@
 					<div class="input-with-toggle">
 						<label for="confirm">Repeat Password</label>
 						<div class="control">
-							<input type="password" id="confirm" name="confirm" class="pill slim" placeholder="Repeat password" required />
+							<input
+								type="password"
+								id="confirm"
+								name="confirm"
+								class="pill slim"
+								placeholder="Repeat password"
+								required
+								minlength="8"
+								maxlength="16"
+								pattern="^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,16}$"
+								title="8–16 characters, include 1 uppercase, 1 number, 1 special, no spaces"
+							/>
 							<button type="button" id="toggleConfirm" class="toggle-visibility" aria-label="Show password" aria-controls="confirm" aria-pressed="false">
 								<svg class="eye-open" viewBox="0 0 24 24" aria-hidden="true">
 									<path fill="currentColor" d="M12 5c-4.97 0-9 4.03-9 7 0 2.97 4.03 7 9 7s9-4.03 9-7c0-2.97-4.03-7-9-7zm0 12c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-3a2 2 0 110-4 2 2 0 010 4z"/>
@@ -156,22 +181,57 @@
 	// Small client-side validation for password confirmation + show/hide toggles
 	document.addEventListener('DOMContentLoaded', function(){
 		var form = document.querySelector('.sg-form');
+		var pwBulletMsg = [
+			'* 8-16 characters',
+			'* At least 1 uppercase character',
+			'* At least 1 number',
+			'* At least 1 special character'
+		].join('\n');
+
+		function meetsPassword(s){
+			// 8–16, at least 1 uppercase, 1 number, 1 special, no spaces
+			return /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9])\S{8,16}$/.test(s || '');
+		}
 		if(form){
 			form.addEventListener('submit', function(e){
 				var pw = document.getElementById('password');
 				var cf = document.getElementById('confirm');
 				var agree = document.getElementById('agree');
+
+				if (pw && !meetsPassword(pw.value)) {
+					e.preventDefault();
+					alert(pwBulletMsg);
+					pw.focus();
+					return false;
+				}
+				if (cf && !meetsPassword(cf.value)) {
+					e.preventDefault();
+					alert(pwBulletMsg);
+					cf.focus();
+					return false;
+				}
+				// existing: match check
 				if(pw && cf && pw.value !== cf.value){
 					e.preventDefault();
 					alert('Passwords do not match.');
 					cf.focus();
 					return false;
 				}
+				// existing: terms check
 				if(!agree || !agree.checked){
 					e.preventDefault();
 					alert('Please agree to the Terms to continue.');
 					return false;
 				}
+			});
+
+			// Optional: live validity messages clear
+			['password','confirm'].forEach(function(id){
+				var el = document.getElementById(id);
+				if (!el) return;
+				el.addEventListener('input', function(){
+					el.setCustomValidity(meetsPassword(el.value) ? '' : pwBulletMsg);
+				});
 			});
 		}
 

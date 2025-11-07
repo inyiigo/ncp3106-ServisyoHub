@@ -1860,7 +1860,7 @@ cursor: pointer;
 				</svg>
 				<span class="dash-text">Terms & Conditions</span>
 			</a>
-			<a href="./logout.php" aria-label="Log out">
+			<a href="./profile.php?logout=1" aria-label="Log out">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
 					<polyline points="16 17 21 12 16 7"/>
@@ -1952,7 +1952,7 @@ cursor: pointer;
 						</select>
 					</div>
 					
-					<button type="button" class="modal-button next-button" id="nextStep1">Generate task description</button>
+					<button type="button" class="modal-button next-button" id="nextStep1">Next</button>
 				</div>
 
 				<!-- Step 2: Description -->
@@ -3424,6 +3424,7 @@ cursor: pointer;
 		document.getElementById('generateBudgetBtn').addEventListener('click', function() {
 			const hoursVal = parseFloat(document.getElementById('estimatedHoursInput').value || '0');
 			const paymentType = (document.getElementById('paymentTypeInput')?.value || 'one-time');
+		
 			if (!hoursVal || hoursVal <= 0) {
 				alert('Please enter estimated hours.');
 				return;
