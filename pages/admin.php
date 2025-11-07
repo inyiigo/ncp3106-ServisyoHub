@@ -23,7 +23,12 @@ session_start();
 		}
 		*{box-sizing:border-box}
 		html,body{height:100%}
-		body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+		body {
+			margin:0;
+			background: #fff; /* Remove blue gradient, use plain white */
+			color:var(--text);
+			font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+		}
 		a{text-decoration:none;color:inherit}
 
 		/* layout */
@@ -85,8 +90,28 @@ session_start();
 		.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 		@media (max-width:1024px){.stats{grid-template-columns:repeat(2,1fr)}}
 		@media (max-width:560px){.stats{grid-template-columns:1fr}}
-		.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
-		.card h4{margin:0 0 6px;font-size:.95rem;color:var(--muted)}
+		.card {
+			background: linear-gradient(135deg, rgba(255,255,255,0.98) 70%, rgba(124,212,196,0.10) 100%);
+			border-radius: 22px;
+			padding: 28px 22px 18px 22px;
+			box-shadow: 0 16px 40px rgba(37,150,190,.18), 0 2px 12px rgba(0,0,0,.10);
+			border: 2px solid #b6e6f7;
+			backdrop-filter: blur(8px) saturate(1.12);
+			transition: box-shadow .22s, transform .22s, border-color .22s;
+			position: relative;
+		}
+		.card:hover {
+			box-shadow: 0 24px 64px rgba(37,150,190,.22), 0 6px 24px rgba(0,0,0,.14);
+			transform: translateY(-2px) scale(1.012);
+			border-color: #7cd4c4;
+		}
+		.card h4 {
+			margin:0 0 10px;
+			font-size:1.08rem;
+			color:#2596be;
+			letter-spacing:0.02em;
+			font-weight: 800;
+		}
 		.metric{font-size:1.4rem;font-weight:800}
 		.delta{font-size:.85rem;color:var(--muted)}
 
@@ -114,6 +139,18 @@ session_start();
 
 		.table{width:100%;border-collapse:collapse}
 		.table th,.table td{padding:12px;border-bottom:1px solid var(--line);text-align:left;font-size:.95rem}
+		.table th {
+			font-weight:800;
+			color: #0b2c24 !important;
+			background: #e0f2fe;
+			border-bottom: 2px solid #b6e6f7;
+		}
+		.table tr {
+			transition: background .15s;
+		}
+		.table tr:hover {
+			background: #f0f9ff;
+		}
 		.status{padding:6px 10px;border-radius:10px;font-weight:800;font-size:.78rem}
 		.status.process{background:#e0f2fe;color:#075985}
 		.status.open{background:#ede9fe;color:#5b21b6}
@@ -135,7 +172,13 @@ session_start();
 		.feedback .dot { width:10px; height:10px; border-radius:50%; background:#0078a6; margin-top:7px; flex:0 0 10px; }
 
 		/* NEW: section titles and 2-col layout */
-		.section-title { margin: 4px 4px 2px; color: var(--muted); font-weight: 800; font-size: .95rem; }
+		.section-title {
+			margin: 18px 4px 8px;
+			color: #2596be;
+			font-weight: 900;
+			font-size: 1.18rem;
+			letter-spacing: 0.01em;
+		}
 		.layout-two { display:grid; grid-template-columns: 2fr 1fr; gap:12px; }
 		@media (max-width: 960px){ .layout-two{ grid-template-columns:1fr; } }
 
@@ -162,172 +205,177 @@ session_start();
 			display: block;
 			margin: 0 auto; /* ensure centered image */
 		}
+
+		/* NEW: floating right-side nav bar */
+		.dash-float-nav {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1000;
+	display: flex !important;
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 8px;
+	padding: 12px 8px 8px 8px;
+	background: #2596be !important;
+	backdrop-filter: saturate(1.15) blur(12px);
+	border-top-left-radius: 16px;
+	border-bottom-left-radius: 16px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
+	transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
+	width: 56px;
+	overflow: hidden;
+}
+.dash-float-nav:hover {
+	width: 200px;
+	box-shadow: 0 12px 32px rgba(0,0,0,.32) !important;
+}
+.dash-float-nav .nav-brand { display: grid; place-items: center; position: relative; height: 56px; padding: 6px 0; }
+.dash-float-nav .nav-brand a { display:block; width:100%; height:100%; position:relative; text-decoration:none; }
+.dash-float-nav .nav-brand img {
+	position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+	display:block; object-fit:contain; pointer-events:none;
+	transition: opacity .25s ease, transform .25s ease, width .3s ease;
+}
+.dash-float-nav .nav-brand .logo-small { width:26px; height:auto; opacity:1; }
+.dash-float-nav .nav-brand .logo-wide { width:160px; height:auto; opacity:0; }
+.dash-float-nav:hover .nav-brand .logo-small { opacity:0; transform:translate(-50%,-50%) scale(.96); }
+.dash-float-nav:hover .nav-brand .logo-wide { opacity:1; transform:translate(-50%,-50%) scale(1); }
+.dash-float-nav > .nav-main { display:grid; gap:8px; align-content:start; }
+.dash-float-nav > .nav-settings { margin-top:auto; display:grid; gap:8px; }
+.dash-float-nav a {
+	position: relative;
+	width: 40px; height: 40px;
+	display: grid; grid-template-columns: 40px 1fr; place-items: center; align-items: center;
+	border-radius: 12px; color: #fff !important; text-decoration: none; outline: none; white-space: nowrap;
+	transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4,0,0.2,1);
+}
+.dash-float-nav:hover a { width: 184px; }
+.dash-float-nav a:hover:not(.active) {
+	background: rgba(255,255,255,.15) !important;
+	transform: scale(1.05);
+}
+.dash-float-nav a:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
+.dash-float-nav a.active {
+	background: rgba(255,255,255,.22) !important;
+	color: #fff !important;
+	box-shadow: 0 6px 18px rgba(0,0,0,.22) !important;
+}
+.dash-float-nav a.active::after { display: none !important; }
+.dash-float-nav .dash-icon {
+	width: 18px; height: 18px; justify-self: center;
+}
+.dash-float-nav .dash-text {
+	opacity: 0; transform: translateX(-10px);
+	transition: opacity .3s cubic-bezier(0.4,0,0.2,1) .1s, transform .3s cubic-bezier(0.4,0,0.2,1) .1s;
+	font-weight: 800; font-size: .85rem; color: inherit; justify-self: start; padding-left: 8px;
+}
+.dash-float-nav:hover .dash-text { opacity: 1; transform: translateX(0); }
+
+		.btn-ghost, .btn-danger, .btn-primary {
+			font-weight: 700;
+			border-radius: 12px;
+			box-shadow: 0 2px 8px rgba(37,150,190,.08);
+			transition: box-shadow .18s, transform .18s, background .18s, color .18s;
+			letter-spacing: 0.01em;
+			border: none;
+		}
+		.btn-ghost {
+			background: linear-gradient(90deg, #fff 80%, #e0f2fe 100%);
+			color: #0078a6;
+			border: 1px solid #e0f2fe;
+		}
+		.btn-primary {
+			background: linear-gradient(90deg, #7cd4c4 80%, #b6e6f7 100%);
+			color: #0b2c24;
+		}
+		.btn-danger {
+			background: linear-gradient(90deg, #ef4444 80%, #fca5a5 100%);
+			color: #fff;
+		}
+		.btn-ghost:hover, .btn-primary:hover, .btn-danger:hover {
+			box-shadow: 0 4px 16px rgba(37,150,190,.14);
+			transform: scale(1.06);
+			filter: brightness(1.07);
+		}
 	</style>
 </head>
 <body>
+<!-- Remove .admin-wrap and sidebar markup -->
 
-<div class="admin-wrap">
-	<aside class="aside" id="aside">
-		<!-- Sidebar top bar with logo -->
-		<div class="side-topbar">
-			<img src="../assets/images/bluefont.png" alt="ServisyoHub" />
-		</div>
+<!-- Add floating right-side nav bar (copied from profile.php) -->
+<nav class="dash-float-nav" id="dashNav">
+	<div class="nav-brand">
+		<a>	<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub">
+		</a>
+		<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub" style="pointer-events:none;">
+	</div>
+	<div class="nav-main">
+		<a href="./admin.php" class="active" aria-current="page" aria-label="Dashboard">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/>
+			</svg>
+			<span class="dash-text">Dashboard</span>
+		</a>
+		<a href="./post-approvals.php" aria-label="Post Approvals">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
+			</svg>
+			<span class="dash-text">Post Approvals</span>
+		</a>
+		<a href="./manage-users.php" aria-label="Manage Users">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>
+			</svg>
+			<span class="dash-text">Manage Users</span>
+		</a>
+	</div>
+	<div class="nav-settings">
+		<a href="./profile.php?logout=1" aria-label="Log out">
+			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+				<path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/>
+			</svg>
+			<span class="dash-text">Log out</span>
+		</a>
+	</div>
+</nav>
 
-		<nav class="nav">
-			<a class="active" href="./admin.php">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>
-				Dashboard
-			</a>
-		</nav>
-	</aside>
-
-	<main class="main">
-		<div class="container">
-			<p class="section-title">Jobs Overview</p>
-			<!-- Jobs overview -->
-			<section class="stats" aria-label="Jobs overview">
-				<div class="card">
-					<h4>Applications</h4>
-					<div class="metric">0</div>
-					<div class="delta">0% vs last month</div>
+<!-- Main content (dashboard, stats, etc.) -->
+<main class="main">
+	<div class="container" style="max-width:1200px; margin-top:-18px; gap:0;">
+		<!-- Total Users Monitoring Section -->
+		<p class="section-title" style="margin-left:8px; font-size:2.1rem; font-weight:900; color:#2596be; letter-spacing:0.01em; margin-top:0; margin-bottom:0;">
+			Total Users Monitoring
+		</p>
+		<div class="card" style="margin-bottom:18px; padding:38px 32px 32px 32px;">
+			<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0;">
+				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
+					<h4 style="margin-bottom:8px; text-align:left;">Total Users</h4>
+					<div class="metric" style="margin-bottom:4px;">0</div>
+					<div class="delta">+0 this month</div>
 				</div>
-				<div class="card">
-					<h4>Open Jobs</h4>
-					<div class="metric">0</div>
+				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
+					<h4 style="margin-bottom:8px; text-align:left;">Active Users</h4>
+					<div class="metric" style="margin-bottom:4px;">0</div>
+					<div class="delta">0 online</div>
+				</div>
+				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
+					<h4 style="margin-bottom:8px; text-align:left;">Pending Verification</h4>
+					<div class="metric" style="margin-bottom:4px;">0</div>
 					<div class="delta">—</div>
 				</div>
-				<div class="card">
-					<h4>Active Jobs</h4>
-					<div class="metric">0</div>
-					<div class="delta">Today</div>
+				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
+					<h4 style="margin-bottom:8px; text-align:left;">Suspended</h4>
+					<div class="metric" style="margin-bottom:4px;">0</div>
+					<div class="delta">—</div>
 				</div>
-				<div class="card">
-					<h4>Response Rate</h4>
-					<div class="metric">0%</div>
-					<div class="delta">Monthly</div>
-				</div>
-			</section>
-
-			<p class="section-title">Clients Overview</p>
-			<!-- Clients overview -->
-			<section class="stats" aria-label="Clients overview">
-				<div class="card">
-					<h4>New Clients</h4>
-					<div class="metric">0</div>
-					<div class="delta">0% vs last month</div>
-				</div>
-				<div class="card">
-					<h4>Active Bookings</h4>
-					<div class="metric">0</div>
-					<div class="delta">Today</div>
-				</div>
-				<div class="card">
-					<h4>Pending Requests</h4>
-					<div class="metric">0</div>
-					<div class="delta">Awaiting review</div>
-				</div>
-				<div class="card">
-					<h4>Unread Messages</h4>
-					<div class="metric">0</div>
-					<div class="delta">Inbox</div>
-				</div>
-			</section>
-
-			<!-- Replace separate charts/client-widgets with a 2-col layout -->
-			<section class="layout-two" aria-label="Clients and insights">
-				<div>
-					<p class="section-title">Clients</p>
-					<!-- Client widgets -->
-					<section class="client-widgets" aria-label="Clients">
-						<div class="card">
-							<h4>Pending Client Requests</h4>
-							<ul class="c-list">
-								<li>House cleaning • Brgy. 442 • Today 2:00 PM</li>
-								<li>Plumbing check • Sampaloc • Tomorrow 10:00 AM</li>
-								<li>Errand runner • Quiapo • Fri 9:00 AM</li>
-							</ul>
-						</div>
-						<div class="card">
-							<h4>Active Bookings</h4>
-							<table class="table compact" aria-label="Active bookings">
-								<thead>
-									<tr>
-										<th>Ref</th>
-										<th>Client</th>
-										<th>Service</th>
-										<th>Created By</th> <!-- added -->
-										<th>When</th>
-										<th>Status</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<td>BK-1042</td>
-										<td>A. Santos</td>
-										<td>Cleaning</td>
-										<td>Admin</td> <!-- added -->
-										<td>Today 3:00 PM</td>
-										<td><span class="tag active">Active</span></td>
-									</tr>
-									<tr>
-										<td>BK-1041</td>
-										<td>J. Cruz</td>
-										<td>Plumbing</td>
-										<td>Admin</td> <!-- added -->
-										<td>Tomorrow 9:30 AM</td>
-										<td><span class="tag pending">Pending</span></td>
-									</tr>
-									<tr>
-										<td>BK-1039</td>
-										<td>M. Reyes</td>
-										<td>Errands</td>
-										<td>Client</td> <!-- added -->
-										<td>Fri 8:00 AM</td>
-										<td><span class="tag pending">Pending</span></td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</section>
-				</div>
-				<div>
-					<p class="section-title">Insights</p>
-					<!-- Charts -->
-					<section class="charts" aria-label="Charts">
-						<div class="card">
-							<h4>Lead Sources</h4>
-							<canvas id="trafChart" height="110"></canvas>
-							<div style="display:flex;gap:10px;margin-top:10px;color:var(--muted);font-weight:700">
-								<span>0% Search</span><span>•</span><span>0% Referrals</span><span>•</span><span>0% Direct</span>
-							</div>
-						</div>
-					</section>
-				</div>
-			</section>
-
-			<!-- Details -->
-			<section class="lower" aria-label="Details">
-				<div class="card">
-					<h4>Recent Feedback</h4>
-					<div class="feedback">
-						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Great service, very responsive.” • Cleaning • K. P.</div></div>
-						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Arrived on time and finished quickly.” • Plumbing • R. T.</div></div>
-						<div class="item"><span class="dot" aria-hidden="true"></span><div>“Helpful and professional.” • Errands • L. G.</div></div>
-					</div>
-				</div>
-
-				<div class="card">
-					<h4>Work Queue</h4>
-					<ul class="list">
-						<li>Verify client details • Open</li>
-						<li>Confirm schedule • In progress</li>
-						<li>Review application • On hold</li>
-					</ul>
-				</div>
-			</section>
+			</div>
 		</div>
-	</main>
-</div>
+	</div>
+</main>
 
 <!-- Move mask OUTSIDE the grid so it doesn't sit in the sidebar column -->
 <div class="aside-mask" id="asideMask"></div>
