@@ -56,12 +56,36 @@
 		// Click handlers: make clicked tab active and animate indicator
 		tabEls.forEach(function(el){
 			el.addEventListener('click', function(e){
-				// if tab is a same-page anchor, we still animate before navigation
-				tabEls.forEach(function(t){ t.classList.remove('active'); });
-				el.classList.add('active');
-				updateIndicator(true);
-				// Let the link proceed (page may reload). If it reloads, indicator will be placed on load.
+				var href = el.getAttribute('href') || '';
+				var isSamePage = href.indexOf('?tab=') !== -1 || href.indexOf('#') === 0 || href === '';
+				// if this is a same-page tab link, prevent full navigation and handle via history API
+				if(isSamePage){
+					e.preventDefault();
+					tabEls.forEach(function(t){ t.classList.remove('active'); });
+					el.classList.add('active');
+					updateIndicator(true);
+					// update URL without reload
+					try{ history.pushState({}, '', href || window.location.pathname); }catch(err){}
+					// emit a custom event so pages can react to tab changes
+					var params = (href.indexOf('?')!==-1) ? new URLSearchParams(href.split('?')[1]) : new URLSearchParams(window.location.search);
+					var tabName = params.get('tab') || '';
+					window.dispatchEvent(new CustomEvent('tabchange', { detail: { tab: tabName } }));
+				} else {
+					// normal navigation
+					// allow link to proceed
+				}
 			});
+		});
+
+		// React to browser navigation (back/forward) and notify listeners
+		window.addEventListener('popstate', function(){
+			// determine active tab from URL
+			var params = new URLSearchParams(window.location.search);
+			var tabName = params.get('tab') || '';
+			// update active classes
+			tabEls.forEach(function(t){ t.classList.toggle('active', (t.getAttribute('href')||'').indexOf('tab='+tabName) !== -1); });
+			updateIndicator(false);
+			window.dispatchEvent(new CustomEvent('tabchange', { detail: { tab: tabName } }));
 		});
 	});
 })();

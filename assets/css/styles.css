@@ -567,19 +567,40 @@ a.svc-card { text-decoration: none; color: inherit; }
 .mq-title { margin: 6px 0 10px; font-size: 1.4rem; font-weight: 900; }
 .mq-tabs { display: flex; align-items: center; justify-content: center; gap: 24px; width: fit-content; margin: 0 auto; }
 .mq-tab { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; text-decoration: none; color: #0f172a; font-weight: 800; opacity: .7; }
-.mq-tab.active { opacity: 1; }
-.mq-tab.active::after { display: none; }
+
+.mq-tab.active { opacity: 1; color: #0f172a; }
+.mq-tab.active::after {
+  /* fallback underline for environments where the JS indicator may not render quickly
+     or to ensure an underline is always visible for the active tab */
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: -10px;
+  height: 4px;
+  background: #111827;
+  border-radius: 999px;
+}
+
+/* Centered header helper to ensure consistent top spacing across pages */
+.mq-header-centered {
+  text-align: center;
+  margin-top: 18px;
+}
 
 /* Animated indicator that sits directly under the active tab label */
 .mq-tabs { position: relative; }
 .mq-tabs .mq-indicator {
   position: absolute;
-  bottom: -8px;
-  height: 3px;
+  /* slightly lower so the underline sits under the tab label */
+  bottom: -10px;
+  /* a bit thicker than before to be more visible */
+  height: 4px;
   background: #111827;
   border-radius: 999px;
   transition: left 300ms cubic-bezier(.2,.9,.2,1), width 300ms cubic-bezier(.2,.9,.2,1);
   will-change: left, width;
+  box-shadow: 0 2px 0 rgba(17,24,39,0.06);
 }
 
 @media (max-width: 520px) {

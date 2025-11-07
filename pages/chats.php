@@ -1,6 +1,8 @@
 <?php
 session_start();
 $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
+// tab for role views: kasangga (default) or citizen
+$tab = isset($_GET['tab']) ? $_GET['tab'] : 'kasangga';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -115,18 +117,23 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 		<img id="bgLogo" src="../assets/images/kasangga.png" alt="" onerror="this.style.display='none'">
 	</div>
 
-	<!-- Role Tabs -->
-	<div class="chat-tabs">
-		<button type="button" class="chat-tab active" id="heroTab">As a Kasangga</button>
-		<button type="button" class="chat-tab" id="citizenTab">As a Citizen</button>
-	</div>
+	<!-- Page title -->
+	<header class="mq-header mq-header-centered">
+		<h1 class="mq-title">Chats</h1>
+	</header>
+
+	<!-- Role Tabs (matching My Gawain style) -->
+	<nav class="mq-tabs" role="tablist" aria-label="Chat role tabs">
+		<a class="mq-tab <?php echo $tab==='kasangga'?'active':''; ?>" href="?tab=kasangga" role="tab" aria-selected="<?php echo $tab==='kasangga'?'true':'false'; ?>">As a Kasangga</a>
+		<a class="mq-tab <?php echo $tab==='citizen'?'active':''; ?>" href="?tab=citizen" role="tab" aria-selected="<?php echo $tab==='citizen'?'true':'false'; ?>">As a Citizen</a>
+	</nav>
 
 	<!-- Empty State -->
 	<div class="chat-empty" id="chatEmpty">
 		<img src="../assets/images/empty-chat.svg" alt="No messages" class="empty-illustration" onerror="this.style.display='none'" />
 		<h2 class="empty-title">It looks pretty empty here...</h2>
-		<p class="empty-text" id="emptyHelper">Why not help some citizens in need?</p>
-		<a href="./home-services.php" class="empty-btn" id="emptyCta">Get Started</a>
+		<p class="empty-text" id="emptyHelper"><?php echo $tab==='kasangga' ? 'Why not help some citizens in need?' : 'Why not post some gawain?'; ?></p>
+		<a href="<?php echo $tab==='kasangga' ? './home-services.php' : './clients-post.php'; ?>" class="empty-btn" id="emptyCta"><?php echo $tab==='kasangga' ? 'Get Started' : 'Post a Gawain'; ?></a>
 	</div>
 
 	<!-- Right-side full-height sidebar navigation -->
@@ -180,51 +187,56 @@ $display = $_SESSION['display_name'] ?? ($_SESSION['mobile'] ?? 'Guest');
 	</nav>
 
 	<script>
-	// Tab switching + bg logo + empty-state text swap
+	// Adjust empty state offset and ensure correct background logo based on server-side tab
 	(function(){
-		const heroTab = document.getElementById('heroTab');      // As a Kasangga
-		const citizenTab = document.getElementById('citizenTab');// As a Citizen
-		const bgLogo = document.getElementById('bgLogo');
-		const emptyText = document.getElementById('emptyHelper');
-		const emptyCta = document.getElementById('emptyCta');
-		const emptyBox = document.getElementById('chatEmpty');
-
-		function setRole(role){
-			const isKas = role === 'kasangga';
-			heroTab.classList.toggle('active', isKas);
-			citizenTab.classList.toggle('active', !isKas);
-
-			// swap bg logo
-			if (bgLogo) bgLogo.src = isKas ? '../assets/images/kasangga.png' : '../assets/images/citizen.png';
-
-			// swap helper text + CTA target
-			if (emptyText) emptyText.textContent = isKas
-				? 'Why not help some citizens in need?'
-				: 'Why not post some quests?';
-			if (emptyCta) emptyCta.href = isKas ? './home-services.php' : './clients-post.php';
-
-			// adjust spacing so empty state sits just below the logo
-			adjustEmptyOffset();
-		}
-
+		var bgLogo = document.getElementById('bgLogo');
+		var emptyBox = document.getElementById('chatEmpty');
 		function adjustEmptyOffset(){
-			const logo = bgLogo;
-			const box  = emptyBox;
-			if (!logo || !box) return;
-
-			const lr = logo.getBoundingClientRect();
-			const br = box.getBoundingClientRect();
-			const extra = Math.max(0, Math.round(lr.bottom + 12 - br.top));
+			var logo = bgLogo; var box = emptyBox;
+			if(!logo || !box) return;
+			var lr = logo.getBoundingClientRect();
+			var br = box.getBoundingClientRect();
+			var extra = Math.max(0, Math.round(lr.bottom + 12 - br.top));
 			box.style.paddingTop = extra + 'px';
 		}
-
-		// Events
-		if (heroTab) heroTab.addEventListener('click', ()=> setRole('kasangga'));
-		if (citizenTab) citizenTab.addEventListener('click', ()=> setRole('citizen'));
-
-		// Initialize
-		window.addEventListener('load', ()=>{ setRole(heroTab && heroTab.classList.contains('active') ? 'kasangga' : 'citizen'); });
+		// set logo src once on load (server already set content text)
+		if(bgLogo){ bgLogo.src = '<?php echo $tab==='kasangga' ? "../assets/images/kasangga.png" : "../assets/images/citizen.png"; ?>'; }
+		window.addEventListener('load', adjustEmptyOffset);
 		window.addEventListener('resize', adjustEmptyOffset);
+	})();
+    
+	// Client-side tab handling: react to tab clicks emitted by mq-tabs script
+	(function(){
+		function onTabChange(e){
+			var tab = (e && e.detail && e.detail.tab) || new URLSearchParams(window.location.search).get('tab') || '<?php echo $tab; ?>';
+			var bg = document.getElementById('bgLogo');
+			var helper = document.getElementById('emptyHelper');
+			var cta = document.getElementById('emptyCta');
+			if(!bg || !helper || !cta) return;
+			if(tab === 'citizen'){
+				bg.src = '../assets/images/citizen.png';
+				helper.textContent = 'Why not post some gawain?';
+				cta.href = './clients-post.php';
+				cta.textContent = 'Post a Gawain';
+			} else {
+				bg.src = '../assets/images/kasangga.png';
+				helper.textContent = 'Why not help some citizens in need?';
+				cta.href = './home-services.php';
+				cta.textContent = 'Get Started';
+			}
+			// small layout tweak to ensure empty box sits under logo
+			setTimeout(function(){
+				var box = document.getElementById('chatEmpty');
+				if(!box || !bg) return;
+				var lr = bg.getBoundingClientRect();
+				var br = box.getBoundingClientRect();
+				var extra = Math.max(0, Math.round(lr.bottom + 12 - br.top));
+				box.style.paddingTop = extra + 'px';
+			}, 60);
+		}
+		window.addEventListener('tabchange', onTabChange);
+		// also run once on load to ensure correct state
+		window.addEventListener('load', function(){ onTabChange(); });
 	})();
 	</script>
 </body>

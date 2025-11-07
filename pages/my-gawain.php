@@ -234,17 +234,17 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 
 	<div class="dash-shell">
 		<main class="dash-content">
-			<header class="mq-header">
+			<header class="mq-header mq-header-centered">
 				<h1 class="mq-title">My Gawain</h1>
-				<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
-					<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
-					<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
-					<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
-				</nav>
-				<div class="mq-filter-row">
-					<button class="mq-filter" id="mqFilterBtn" type="button" aria-haspopup="dialog" aria-controls="mqFilterModal" aria-expanded="false">Filter: <strong id="mqFilterLabel">All</strong></button>
-				</div>
 			</header>
+			<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
+				<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
+				<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
+				<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
+			</nav>
+			<div class="mq-filter-row">
+				<button class="mq-filter" id="mqFilterBtn" type="button" aria-haspopup="dialog" aria-controls="mqFilterModal" aria-expanded="false">Filter: <strong id="mqFilterLabel">All</strong></button>
+			</div>
 
 			<section class="mq-empty" aria-label="Empty state">
 				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
