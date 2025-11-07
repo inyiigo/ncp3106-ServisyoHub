@@ -66,6 +66,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 	$last_name  = trim($_POST['last_name'] ?? $user['last_name']);
 	$email      = trim($_POST['email'] ?? $user['email']);
 	$mobile     = trim($_POST['mobile'] ?? $user['mobile']);
+	// NEW: sanitize and hard-limit mobile to 11 digits
+	$mobile = preg_replace('/\D+/', '', $mobile);
+	if (strlen($mobile) > 11) { $mobile = substr($mobile, 0, 11); }
 	$address    = trim($_POST['address'] ?? $user['address']);
 	$password   = $_POST['password'] ?? '';
 	// NEW: collect and normalize skills (comma-separated)
@@ -326,7 +329,16 @@ function avatar_url($path){
 				</div>
 				<div class="field col-6">
 					<label for="mobile">Phone</label>
-					<input id="mobile" name="mobile" type="text" value="<?php echo e($user['mobile']); ?>" <?php echo $disabledAttr; ?>>
+					<input
+						id="mobile"
+						name="mobile"
+						type="tel"
+						value="<?php echo e($user['mobile']); ?>"
+						inputmode="numeric"
+						maxlength="11"
+						oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
+						<?php echo $disabledAttr; ?>
+					>
 				</div>
 				<div class="field col-6">
 					<label for="password">New password (leave blank to keep current)</label>

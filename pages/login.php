@@ -132,7 +132,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 					<form action="" method="POST" novalidate>
 						<div class="field">
 							<label class="label" for="mobile">Mobile number</label>
-							<input type="tel" id="mobile" name="mobile" class="pill" value="<?php echo htmlspecialchars($mobile); ?>" placeholder="Enter your mobile number" inputmode="tel" pattern="[0-9\s+()-]{7,}" required />
+							<input
+	type="tel"
+	id="mobile"
+	name="mobile"
+	class="pill slim"
+	placeholder="e.g. 09171234567"
+	inputmode="numeric"
+	maxlength="11"
+	pattern="^[0-9]{11}$"
+	title="Enter exactly 11 digits"
+	oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"
+	required
+/>
 						</div>
 
 						<div class="field input-with-toggle">
@@ -195,6 +207,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 			btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
 			var sr = btn.querySelector('.sr-only');
 			if(sr) sr.textContent = isHidden ? 'Hide password' : 'Show password';
+		});
+	})();
+	// Safeguard: enforce 11 digits during typing
+	(function(){
+		var m = document.getElementById('mobile');
+		if (!m) return;
+		m.addEventListener('input', function(){
+			this.value = this.value.replace(/\D/g,'').slice(0,11);
 		});
 	})();
 	</script>

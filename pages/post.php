@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 			urgency, time_preference, specific_time, time_range_start, time_range_end,
 			payment_type, estimated_hours, additional_cost,
 			requirements, make_mandatory
-		) VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
 		if ($stmt = mysqli_prepare($mysqli, $sql)) {
 			mysqli_stmt_bind_param(
@@ -159,9 +159,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 
 			if (mysqli_stmt_execute($stmt)) {
 				$job_id = mysqli_insert_id($mysqli);
-				error_log("✓ SUCCESS: Job #{$job_id} inserted with all fields");
-				$_SESSION['posted_success_once'] = 1;
-				header('Location: ' . $_SERVER['PHP_SELF'] . '?posted=1');
+				// Redirect to My Gawain -> Posted tab to show pending job
+				header('Location: ./my-gawain.php?tab=posted');
 				exit;
 			} else {
 				$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
@@ -1860,7 +1859,7 @@ cursor: pointer;
 				</svg>
 				<span class="dash-text">Terms & Conditions</span>
 			</a>
-			<a href="./logout.php" aria-label="Log out">
+			<a href="./profile.php?logout=1" aria-label="Log out">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
 					<polyline points="16 17 21 12 16 7"/>
@@ -1952,7 +1951,7 @@ cursor: pointer;
 						</select>
 					</div>
 					
-					<button type="button" class="modal-button next-button" id="nextStep1">Generate task description</button>
+					<button type="button" class="modal-button next-button" id="nextStep1">Next</button>
 				</div>
 
 				<!-- Step 2: Description -->
@@ -3424,6 +3423,7 @@ cursor: pointer;
 		document.getElementById('generateBudgetBtn').addEventListener('click', function() {
 			const hoursVal = parseFloat(document.getElementById('estimatedHoursInput').value || '0');
 			const paymentType = (document.getElementById('paymentTypeInput')?.value || 'one-time');
+		
 			if (!hoursVal || hoursVal <= 0) {
 				alert('Please enter estimated hours.');
 				return;
