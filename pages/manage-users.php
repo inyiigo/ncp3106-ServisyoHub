@@ -1,13 +1,46 @@
 <?php
 session_start();
-// ...existing code for DB connection if needed...
+require_once "../config/db_connect.php";
 
-// Dummy data for users (replace with DB query)
-$users = [
-	['id'=>1, 'name'=>'Juan Dela Cruz', 'role'=>'Kasangga', 'date'=>'2024-06-01', 'status'=>'Pending'],
-	['id'=>2, 'name'=>'Maria Santos', 'role'=>'Citizen', 'date'=>'2024-06-02', 'status'=>'Active'],
-	// ...more rows...
-];
+// Ensure status column exists
+$conn->query("ALTER TABLE users ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pending' AFTER created_at");
+
+// Handle verify/suspend actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && isset($_POST['user_id'])) {
+	$user_id = intval($_POST['user_id']);
+	$action = $_POST['action'];
+	
+	// Verify user
+	if ($action === 'verify') {
+		$stmt = $conn->prepare("UPDATE users SET status = 'active' WHERE id = ?");
+		$stmt->bind_param("i", $user_id);
+		if ($stmt->execute()) {
+			header("Location: manage-users.php");
+			exit;
+		}
+		$stmt->close();
+	}
+	
+	// Suspend user
+	if ($action === 'suspend') {
+		$stmt = $conn->prepare("UPDATE users SET status = 'suspended' WHERE id = ?");
+		$stmt->bind_param("i", $user_id);
+		if ($stmt->execute()) {
+			header("Location: manage-users.php");
+			exit;
+		}
+		$stmt->close();
+	}
+}
+
+// Fetch users from database
+$users = [];
+$result = $conn->query("SELECT id, CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) AS name, 'User' AS role, DATE_FORMAT(created_at, '%Y-%m-%d') AS date, LOWER(COALESCE(status, 'pending')) AS status FROM users ORDER BY created_at DESC");
+if ($result) {
+	while ($row = $result->fetch_assoc()) {
+		$users[] = $row;
+	}
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -65,27 +98,69 @@ $users = [
 			color: #222 !important;
 			font-weight: 500;
 		}
-		.status-pending {
-			background: #fef3c7;
-			color: #92400e;
+		.status-pending,
+		.status-active,
+		.status-suspended {
 			font-weight: 800;
 			border-radius: 999px;
-			padding: 4px 14px;
-			display: inline-block;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
 			font-size: .95rem;
 			letter-spacing: 0.02em;
 			border: none;
+			min-width: 100px;
+			height: 32px;
+			padding: 0 12px;
+		}
+		.status-pending {
+			background: #fef3c7;
+			color: #92400e;
 		}
 		.status-active {
 			background: #e0f2fe;
 			color: #075985;
-			font-weight: 800;
-			border-radius: 999px;
-			padding: 4px 14px;
-			display: inline-block;
-			font-size: .95rem;
-			letter-spacing: 0.02em;
+		}
+		.status-suspended {
+			background: #fee2e2;
+			color: #991b1b;
+		}
+		.action-form {
+			display: flex;
+			gap: 8px;
+			align-items: center;
+			flex-wrap: wrap;
+		}
+		.action-form button {
+			width: 92px;
+			height: 40px;
+			padding: 0 10px;
+			line-height: 40px;
+			text-align: center;
+			font-size: .9rem;
+			font-weight: 600;
 			border: none;
+			border-radius: 10px;
+			cursor: pointer;
+			transition: all .2s ease;
+		}
+		.action-form .btn-primary {
+			background: #7cd4c4;
+			color: #0b2c24;
+		}
+		.action-form .btn-primary:hover {
+			background: #5fc9b8;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(124, 212, 196, .3);
+		}
+		.action-form .btn-danger {
+			background: #ef4444;
+			color: #fff;
+		}
+		.action-form .btn-danger:hover {
+			background: #dc2626;
+			transform: translateY(-2px);
+			box-shadow: 0 4px 12px rgba(239, 68, 68, .3);
 		}
 		.card .table tbody {
 			display: block;
@@ -226,29 +301,35 @@ $users = [
 				<?php foreach ($users as $user): ?>
 				<tr>
 					<td class="id"><?php echo $user['id']; ?></td>
-					<td class="name"><?php echo htmlspecialchars($user['name']); ?></td>
+					<td class="name"><?php echo htmlspecialchars(trim($user['name'])); ?></td>
 					<td class="role"><?php echo htmlspecialchars($user['role']); ?></td>
 					<td class="date"><?php echo htmlspecialchars($user['date']); ?></td>
 					<td>
-						<?php if ($user['status'] === 'Pending'): ?>
+						<?php if ($user['status'] === 'pending'): ?>
 							<span class="status-pending">Pending</span>
+						<?php elseif ($user['status'] === 'suspended'): ?>
+							<span class="status-suspended">Suspended</span>
 						<?php else: ?>
 							<span class="status-active">Active</span>
 						<?php endif; ?>
 					</td>
 					<td>
-						<?php if ($user['status'] === 'Pending'): ?>
-							<form method="post" style="display:inline">
-								<input type="hidden" name="action" value="verify">
-								<input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-								<button type="submit" class="btn-primary">Verify</button>
-							</form>
-						<?php endif; ?>
-						<form method="post" style="display:inline" onsubmit="return confirm('Suspend this user?');">
-							<input type="hidden" name="action" value="suspend">
-							<input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
-							<button type="submit" class="btn-danger">Suspend</button>
-						</form>
+						<div class="action-form">
+							<?php if ($user['status'] === 'pending'): ?>
+								<form method="post" style="display:inline">
+									<input type="hidden" name="action" value="verify">
+									<input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+									<button type="submit" class="btn-primary">Verify</button>
+								</form>
+							<?php endif; ?>
+							<?php if ($user['status'] !== 'suspended'): ?>
+								<form method="post" style="display:inline" onsubmit="return confirm('Suspend this user?');">
+									<input type="hidden" name="action" value="suspend">
+									<input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
+									<button type="submit" class="btn-danger">Suspend</button>
+								</form>
+							<?php endif; ?>
+						</div>
 					</td>
 				</tr>
 				<?php endforeach; ?>

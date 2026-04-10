@@ -45,8 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
                     }
                 }
                 
-                // Redirect to My Gawain Offered tab
-                header('Location: ./my-gawain.php?tab=offered');
+                // Redirect to success page
+                $successQs = http_build_query([
+                    'id' => (int)$jobId,
+                    'amount' => number_format((float)$amount, 2, '.', ''),
+                ]);
+                header('Location: ./make-offer-success.php?' . $successQs);
                 exit;
             }
             @mysqli_stmt_close($stmt);

@@ -548,12 +548,16 @@ body {
 	left: 0;
 	width: 100%;
 	height: 100%;
+	--action-side-gap: 20px;
+	--action-max-width: 600px;
+	--action-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
 	background: #fff;
 	z-index: 2000;
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
 	overflow-y: auto;
+	scrollbar-gutter: stable;
 	-webkit-overflow-scrolling: touch;
 	contain: layout style paint;
 }
@@ -798,12 +802,12 @@ body {
 
 /* Sub-steps */
 .sub-step {
-	animation: fadeIn 0.3s ease;
+	animation: fadeIn 0.2s ease;
 	min-height: 200px;
 }
 @keyframes fadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 /* Question Items */
@@ -1333,10 +1337,12 @@ cursor: pointer;
 	cursor: pointer;
 	transition: all 0.15s ease;
 	position: fixed;
-	bottom: 20px;
-	left: 20px;
-	right: 20px;
-	max-width: 600px;
+	left: 50%;
+	bottom: var(--action-bottom);
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
+	transform: translateX(-50%);
+	z-index: 2100;
 }
 .generate-screening-button:hover {
 	background: #ef4444;
@@ -1371,6 +1377,7 @@ cursor: pointer;
 }
 .modal-button {
 	width: 100%;
+	box-sizing: border-box;
 	background: #cbd5e1;
 	color: #64748b;
 	border: none;
@@ -1392,11 +1399,14 @@ cursor: pointer;
 }
 .modal-button.next-button {
 	position: fixed;
-	bottom: 20px;
-	left: 20px;
-	right: 20px;
-	max-width: 600px;
-	margin: 0 auto;
+	left: 50%;
+	bottom: var(--action-bottom);
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
+	margin: 0;
+	transform: translateX(-50%);
+	z-index: 2100;
+	transition: transform 0.2s ease, bottom 0.2s ease, opacity 0.2s ease;
 }
 .back-button {
 	background: transparent;
@@ -1412,28 +1422,37 @@ cursor: pointer;
 .button-group {
 	position: fixed !important;
 	left: 50% !important;
-	bottom: 80px !important;
-	width: calc(100% - 40px);
-	max-width: 560px;
+	bottom: var(--action-bottom) !important;
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
 	transform: translateX(-50%) translateZ(0);
 	display: flex;
-	flex-direction: column-reverse;
+	flex-direction: column;
 	gap: 12px;
 	z-index: 2100;
 	background: #fff;
 	padding-top: 12px;
+	transition: transform 0.2s ease, bottom 0.2s ease, opacity 0.2s ease;
 	will-change: transform;
 	backface-visibility: hidden;
 	contain: layout style paint;
 	pointer-events: auto;
 }
 .button-group .modal-button {
+	width: 100%;
+	max-width: none;
 	margin-top: 0 !important;
 	margin-bottom: 0 !important;
 	transform: translateZ(0);
 }
 .button-group .modal-button.next-button {
 	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+	transform: none !important;
 	margin: 0;
 	background: #0f172a;
 	color: #fff;
@@ -1976,7 +1995,7 @@ cursor: pointer;
 							required
 							id="descriptionInput"
 						></textarea>
-						<p class="char-count">Minimum 30 characters</p>
+						<p class="char-count" id="descriptionCharCount">Minimum 30 characters</p>
 						
 						
 						<div class="helper-section">
@@ -2716,6 +2735,9 @@ cursor: pointer;
 		const suggestionPills = document.querySelectorAll('.suggestion-pill');
 		const trendingItems = document.querySelectorAll('.service-item');
 		const titleInput = document.getElementById('titleInput');
+		const descriptionInput = document.getElementById('descriptionInput');
+		const descriptionCharCount = document.getElementById('descriptionCharCount');
+		const MIN_DESCRIPTION_CHARS = 30;
 		
 		// Guard against missing elements
 		if (!modal || !searchInput || !titleInput) {
@@ -2777,6 +2799,22 @@ cursor: pointer;
 				document.body.style.overflow = '';
 			}
 		});
+
+		function updateDescriptionCounter() {
+			if (!descriptionInput || !descriptionCharCount) return;
+			const length = descriptionInput.value.trim().length;
+			if (length === 0) {
+				descriptionCharCount.textContent = `Minimum ${MIN_DESCRIPTION_CHARS} characters`;
+				return;
+			}
+			const left = Math.max(0, MIN_DESCRIPTION_CHARS - length);
+			descriptionCharCount.textContent = `${left} character${left === 1 ? '' : 's'} left`;
+		}
+
+		if (descriptionInput) {
+			descriptionInput.addEventListener('input', updateDescriptionCounter);
+			updateDescriptionCounter();
+		}
 	})();
 	
 	// Helper counter

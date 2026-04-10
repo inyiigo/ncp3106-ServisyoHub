@@ -129,7 +129,7 @@ if ($dbAvailable) {
 	$max = $_GET['max'] ?? '';
 
 	// base where
-	$where = "WHERE COALESCE(status,'open') IN ('open','pending')";
+	$where = "WHERE LOWER(COALESCE(status,'approved')) IN ('open','pending','approved')";
 
 	// category filter
 	if ($catFilter !== '') {
@@ -180,7 +180,7 @@ if ($dbAvailable) {
 	// include epoch seconds posted_ts for accurate time calculations
 	$sql = "SELECT j.*, 'User' AS display_name, '' AS email, UNIX_TIMESTAMP(j.posted_at) AS posted_ts
 	        FROM jobs j 
-	        WHERE j.status = 'open' 
+	        WHERE LOWER(COALESCE(j.status,'')) IN ('open','approved') 
 	        ORDER BY j.posted_at DESC 
 	        LIMIT 10";
 	

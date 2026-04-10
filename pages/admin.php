@@ -2,6 +2,37 @@
 session_start();
 // Optional: basic guard
 // if (empty($_SESSION['is_admin'])) { header('Location: ./login.php'); exit; }
+
+require_once __DIR__ . '/../config/db_connect.php';
+$db = $conn ?? null;
+
+$totalUsers = 0;
+$activeUsers = 0;
+$pendingVerification = 0;
+$suspendedUsers = 0;
+
+if ($db) {
+	if ($res = @mysqli_query($db, "SELECT COUNT(*) AS c FROM users")) {
+		$row = @mysqli_fetch_assoc($res);
+		$totalUsers = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	if ($res = @mysqli_query($db, "SELECT COUNT(DISTINCT user_id) AS c FROM jobs WHERE LOWER(COALESCE(status,'')) IN ('approved','open')")) {
+		$row = @mysqli_fetch_assoc($res);
+		$activeUsers = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	if ($res = @mysqli_query($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'pending')) = 'pending'")) {
+		$row = @mysqli_fetch_assoc($res);
+		$pendingVerification = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	// Keep suspended at 0 until a suspension flag/column is added to the users table.
+	$suspendedUsers = 0;
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -354,23 +385,19 @@ session_start();
 			<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0;">
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Total Users</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">+0 this month</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$totalUsers; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Active Users</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">0 online</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$activeUsers; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Pending Verification</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">—</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$pendingVerification; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Suspended</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">—</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$suspendedUsers; ?></div>
 				</div>
 			</div>
 		</div>

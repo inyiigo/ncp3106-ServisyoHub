@@ -64,7 +64,10 @@ if ($tab === 'posted' && $viewerId && $db) {
 	$psql = "SELECT id, title, COALESCE(location,'Online') AS location,
 	         COALESCE(date_needed,'Anytime') AS date_needed,
 	         COALESCE(status,'pending') AS status, posted_at
-	         FROM {$dbPrefix}`jobs` WHERE user_id = ? ORDER BY posted_at DESC, id DESC";
+	         FROM {$dbPrefix}`jobs`
+	         WHERE user_id = ?
+	           AND LOWER(COALESCE(status,'pending')) = 'approved'
+	         ORDER BY posted_at DESC, id DESC";
 	if ($pst = @mysqli_prepare($db, $psql)) {
 		mysqli_stmt_bind_param($pst, 'i', $viewerId);
 		if (@mysqli_stmt_execute($pst)) {
@@ -397,8 +400,8 @@ if ($tab === 'posted' && $viewerId && $db) {
 		<?php if (!empty($posted_list)): ?>
 		<section class="pg-list" aria-label="Posted jobs">
 			<?php foreach ($posted_list as $j): 
-				$st = strtolower(trim($j['status']));
-				$label = ucfirst($st);
+				$st = 'approved';
+				$label = 'Approved';
 				$link = './gawain-detail.php?id='.(int)$j['id'];
 			?>
 			<a href="<?php echo e($link); ?>" class="mg-link" style="text-decoration:none;">
@@ -417,7 +420,6 @@ if ($tab === 'posted' && $viewerId && $db) {
 					</div>
 					<div class="pg-meta">
 						<span>Posted <?php echo date('M j, Y g:ia', strtotime($j['posted_at'])); ?></span>
-						<?php if ($st === 'pending'): ?><span style="font-weight:700;">Awaiting admin review</span><?php endif; ?>
 					</div>
 				</article>
 			</a>
@@ -425,7 +427,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 		</section>
 		<?php else: ?>
 		<section class="mq-empty" aria-label="Empty posted">
-			<p class="empty-text">You have not posted any quests yet. Create one to see it here pending review.</p>
+			<p class="empty-text">No approved posts yet. Your new posts will appear here after admin approval.</p>
 			<a class="btn mq-browse" href="./post.php">Post a quest</a>
 		</section>
 		<?php endif; ?>
@@ -452,15 +454,8 @@ if ($tab === 'posted' && $viewerId && $db) {
 							<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
 							<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
 						<?php else: ?>
-							<label class="mq-filter-item"><input type="checkbox" name="status" value="open"> <span>Open Gawain</span></label>
-							<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress Gawain</span></label>
-							<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed Gawain</span></label>
-							<label class="mq-filter-item"><input type="checkbox" name="status" value="deleted"> <span>Deleted Gawain</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="approved"> <span>Approved posts</span></label>
 						<?php endif; ?>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="accepted"> <span>In-progress</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="rejected"> <span>Cancellations</span></label>
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>
