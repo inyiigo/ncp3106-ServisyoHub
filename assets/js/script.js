@@ -57,7 +57,9 @@
 		tabEls.forEach(function(el){
 			el.addEventListener('click', function(e){
 				var href = el.getAttribute('href') || '';
-				var isSamePage = href.indexOf('?tab=') !== -1 || href.indexOf('#') === 0 || href === '';
+				// Only intercept hash/empty links. Query links like ?tab=posted should do full reload
+				// so server-side rendering can switch between Offered and Posted content correctly.
+				var isSamePage = href.indexOf('#') === 0 || href === '';
 				// if this is a same-page tab link, prevent full navigation and handle via history API
 				if(isSamePage){
 					e.preventDefault();

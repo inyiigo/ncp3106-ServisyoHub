@@ -5,6 +5,11 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 // --- Fetch "Offered" data: only offers received on MY posts ---
 require_once __DIR__ . '/../config/db_connect.php';
 $db = $conn ?? $mysqli ?? null;
+$dbName = 'login';
+$dbPrefix = '`' . $dbName . '`.';
+if ($db) {
+	@mysqli_select_db($db, $dbName);
+}
 $viewerId = (int)($_SESSION['user_id'] ?? 0);
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered';
 
@@ -24,7 +29,7 @@ function offerer_name(array $r): string {
 
 $offered_list = [];
 if ($tab === 'offered' && $viewerId && $db) {
-	// Only offers received on jobs owned by the current user
+	// Show only offers created by the current user.
 	$sql = "SELECT 
 	            o.id            AS offer_id,
 	            o.job_id        AS job_id,
@@ -39,10 +44,10 @@ if ($tab === 'offered' && $viewerId && $db) {
 	            COALESCE(u.first_name,'') AS offerer_first,
 	            COALESCE(u.last_name,'')  AS offerer_last,
 	            COALESCE(u.avatar,'')     AS offerer_avatar
-	        FROM offers o
-	        JOIN jobs j  ON j.id = o.job_id
-	        LEFT JOIN users u ON u.id = o.user_id
-	        WHERE j.user_id = ?
+	        FROM {$dbPrefix}`offers` o
+	        JOIN {$dbPrefix}`jobs` j  ON j.id = o.job_id
+	        LEFT JOIN {$dbPrefix}`users` u ON u.id = o.user_id
+	        WHERE o.user_id = ?
 	        ORDER BY o.created_at DESC, o.id DESC";
 	if ($st = @mysqli_prepare($db, $sql)) {
 		mysqli_stmt_bind_param($st, 'i', $viewerId);
@@ -59,7 +64,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 	$psql = "SELECT id, title, COALESCE(location,'Online') AS location,
 	         COALESCE(date_needed,'Anytime') AS date_needed,
 	         COALESCE(status,'pending') AS status, posted_at
-	         FROM jobs WHERE user_id = ? ORDER BY posted_at DESC, id DESC";
+	         FROM {$dbPrefix}`jobs` WHERE user_id = ? ORDER BY posted_at DESC, id DESC";
 	if ($pst = @mysqli_prepare($db, $psql)) {
 		mysqli_stmt_bind_param($pst, 'i', $viewerId);
 		if (@mysqli_stmt_execute($pst)) {
@@ -358,6 +363,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 					if ($av !== '' && !preg_match('#^https?://#i', $av)) $av = '../' . ltrim($av, '/');
 					$status = strtolower(trim($o['status'] ?? 'pending'));
 					$statusLabel = ucfirst($status);
+					$metaLabel = 'Offer sent';
 					// Map filter checkbox values to actual DB status
 					$filterClass = $status;
 					if ($status === 'accepted') $filterClass = 'inprogress'; // if you want "In-progress" to match accepted
@@ -381,7 +387,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 						</div>
 						<div class="mg-meta">
 							<?php if ($av): ?><img class="mg-av" src="<?php echo e($av); ?>" alt=""><?php endif; ?>
-							Offer received • <?php echo date('M j, Y g:ia', strtotime($o['created_at'])); ?>
+							<?php echo e($metaLabel); ?> • <?php echo date('M j, Y g:ia', strtotime($o['created_at'])); ?>
 						</div>
 					</article>
 				</a>

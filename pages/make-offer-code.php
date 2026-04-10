@@ -98,7 +98,11 @@ ob_end_flush();
     </main>
 
     <div class="footer">
-      <button id="agreeBtn" class="cta" disabled>I agree to the terms</button>
+      <form id="offerSubmitForm" method="post" action="./make-offer-submit.php" style="display:grid; gap:10px;">
+        <input type="hidden" name="job_id" value="<?php echo (int)$id; ?>">
+        <input type="hidden" name="amount" value="<?php echo htmlspecialchars(number_format($amount, 2, '.', ''), ENT_QUOTES); ?>">
+        <button id="agreeBtn" class="cta" type="submit" disabled>I agree to the terms</button>
+      </form>
       <a class="edit" href="<?php echo htmlspecialchars($editHref, ENT_QUOTES); ?>">Edit my offer</a>
     </div>
   </div>
@@ -119,14 +123,10 @@ ob_end_flush();
       c2.addEventListener('change', upd);
       upd();
 
-      btn.addEventListener('click', ()=>{
-        if (btn.disabled) return;
-        // Navigate to Offer Sent success page, preserving id & amount
-        const cur = new URL(window.location.href);
-        const next = new URL(window.location.origin + window.location.pathname.replace('make-offer-code.php','make-offer-success.php'));
-        if (cur.searchParams.has('id')) next.searchParams.set('id', cur.searchParams.get('id'));
-        if (cur.searchParams.has('amount')) next.searchParams.set('amount', cur.searchParams.get('amount'));
-        window.location.href = next.pathname + next.search;
+      btn.addEventListener('click', (e)=>{
+        if (btn.disabled) {
+          e.preventDefault();
+        }
       });
     })();
   </script>

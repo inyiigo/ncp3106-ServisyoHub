@@ -671,11 +671,7 @@ ob_end_flush();
   <footer class="footer-bar">
     <div class="footer-inner">
       <a class="btn-ghost" href="#ask-box">Ask a question</a>
-      <?php if ($isOwner): ?>
-        <a class="btn-solid" href="./my-gawain.php?tab=offered&job_id=<?php echo (int)$id; ?>">View offers (<?php echo (int)$offers; ?>)</a>
-      <?php else: ?>
-        <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>">Make offer</a>
-      <?php endif; ?>
+      <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>">Make offer</a>
     </div>
   </footer>
 
