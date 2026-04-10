@@ -404,6 +404,7 @@ ob_end_flush();
                     border-bottom: 2px solid #e2e8f0;
                     /* visible line after Heroes Required */ }
     .info-item { display:grid; gap:4px; }
+    .info-row-pair { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
     .info-label { font-size:.75rem; font-weight:600; text-transform:uppercase; color:#64748b; }
     .info-value { font-weight:700; color:#0f172a; font-size:1rem; word-wrap:break-word; overflow-wrap:break-word; }
 
@@ -412,8 +413,9 @@ ob_end_flush();
       background: transparent;
       border: 0;
       border-top: 2px solid #e2e8f0; /* same color as card border */
+      border-bottom: 2px solid #e2e8f0;
       border-radius: 0;
-      padding: 14px 0 0;
+      padding: 14px 0;
       margin: 8px 0 12px;
       display: grid;
       gap: 10px;
@@ -548,10 +550,14 @@ ob_end_flush();
           <!-- 5..9) Details -->
           <div class="info-block">
             <div class="info-item"><span class="info-label">Location</span><span class="info-value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></span></div>
-            <div class="info-item"><span class="info-label">Completion Date</span><span class="info-value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></span></div>
-            <div class="info-item"><span class="info-label">Duration</span><span class="info-value"><?php echo e($durationLabel); ?></span></div>
-            <div class="info-item"><span class="info-label">Offers Received</span><span class="info-value"><?php echo e($offers); ?></span></div>
-            <div class="info-item"><span class="info-label">Heroes Required</span><span class="info-value"><?php echo $helpersNeeded; ?></span></div>
+            <div class="info-row-pair">
+              <div class="info-item"><span class="info-label">Completion Date</span><span class="info-value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></span></div>
+              <div class="info-item"><span class="info-label">Duration</span><span class="info-value"><?php echo e($durationLabel); ?></span></div>
+            </div>
+            <div class="info-row-pair">
+              <div class="info-item"><span class="info-label">Offers Received</span><span class="info-value"><?php echo e($offers); ?></span></div>
+              <div class="info-item"><span class="info-label">Heroes Required</span><span class="info-value"><?php echo $helpersNeeded; ?></span></div>
+            </div>
           </div>
         </div>
 
