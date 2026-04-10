@@ -375,59 +375,72 @@ ob_end_flush();
     .badge.open { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
     .badge.accepted { background: #dbeafe; color: #1e40af; border: 1px solid #60a5fa; }
 
-    /* Two-column grid: main + ask panel */
-    .detail-grid { display: grid; gap: 24px; grid-template-columns: 1fr; }
+    /* Stack everything vertically */
+    .detail-grid {
+      display: grid;
+      gap: 0; /* move comments up */
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
     @media (min-width: 1000px){
-      .detail-grid { grid-template-columns: minmax(0, 1fr) 380px; align-items: start; }
-    }
-
-    /* Main details card */
-    .detail-main-card {
-      background:#fff; border:2px solid #e2e8f0; border-radius:18px;
-      padding:20px 22px; box-shadow:0 8px 24px rgba(15,23,42,.06);
-      display:grid; gap:20px; overflow:hidden;
-    }
-
-    /* Posted by + info grid */
-    .meta-top { display:grid; gap:18px; }
-    @media (min-width:640px){
-      .meta-top { grid-template-columns: 1fr 1fr; align-items:start; position:relative; }
-      .meta-top::before {
-        content:""; position:absolute; left:50%; top:0; bottom:0;
-        width:1px; background:#e2e8f0; transform:translateX(-50%);
+      .detail-grid {
+        grid-template-columns: 1fr; /* keep comments below even on desktop */
       }
+    }
+
+    /* Put description below profile/info */
+    .meta-top { display:grid; gap:18px; grid-template-columns: 1fr; }
+    @media (min-width:640px){
+      .meta-top { grid-template-columns: 1fr; position: static; }
+      .meta-top::before { display: none; content: none; }
     }
 
     .poster-row { display:flex; gap:14px; align-items:center; }
     .poster-row .avatar { width:56px; height:56px; border-radius:50%; overflow:hidden; background:#e2e8f0; display:grid; place-items:center; font-weight:700; color:#0f172a; }
     .poster-row .avatar-img { width:100%; height:100%; object-fit:cover; }
 
-    .info-block { display:grid; gap:14px; }
+    .info-block { display:grid; gap:14px; padding-bottom: 10px;
+                    margin-bottom: 0;
+                    border-bottom: 2px solid #e2e8f0;
+                    /* visible line after Heroes Required */ }
     .info-item { display:grid; gap:4px; }
     .info-label { font-size:.75rem; font-weight:600; text-transform:uppercase; color:#64748b; }
     .info-value { font-weight:700; color:#0f172a; font-size:1rem; word-wrap:break-word; overflow-wrap:break-word; }
 
-    /* Description box with scroll */
+    /* Description as a divided section (no card) */
     .description-box {
-      background:#f8fafc; border:2px solid #e2e8f0; border-radius:14px;
-      padding:16px; display:grid; gap:10px;
-      max-height:280px; overflow:auto; scrollbar-width:thin;
+      background: transparent;
+      border: 0;
+      border-top: 2px solid #e2e8f0; /* same color as card border */
+      border-radius: 0;
+      padding: 14px 0 0;
+      margin: 8px 0 12px;
+      display: grid;
+      gap: 10px;
+      max-height: none;
+      overflow: visible;
+      scrollbar-width: auto;
     }
+
     .description-box h3 { margin:0; font-size:.8rem; font-weight:700; text-transform:uppercase; color:#64748b; }
     .description-box pre {
       margin:0; white-space:pre-wrap; font-family:inherit; line-height:1.5;
       color:#0f172a; word-wrap:break-word; overflow-wrap:break-word;
     }
 
-    /* Ask panel as sticky aside */
+    /* Ask/comments panel should be below (not sticky side panel) */
     .detail-aside {
-      position:sticky; top:86px;
-      background:#fff; border:2px solid #e2e8f0; border-radius:18px;
-      padding:18px 20px; box-shadow:0 8px 24px rgba(15,23,42,.06);
-      display:grid; gap:16px;
+      position: static;
+      top: auto;
+      width: 100%;
+      margin-top: -2px; /* pull ask box closer */
+      padding-top: 0 !important;
     }
-    .ask-title { margin:0; font-weight:800; font-size:1.05rem; display:flex; align-items:center; gap:8px; }
-    .ask-sub { margin:0; color:#64748b; font-size:.85rem; }
+
+    /* Optional: let description expand naturally now that it's below */
+    .description-box {
+      max-height: none;
+    }
 
     .comment-list { display:grid; gap:12px; }
     .comment { display:grid; grid-template-columns:36px 1fr; gap:10px; align-items:flex-start; }
@@ -469,6 +482,24 @@ ob_end_flush();
     :root { --fw-normal: 400; --fw-bold: 800; }
     body, body *:not(svg):not(path) { font-weight: var(--fw-normal) !important; }
     .detail-title { font-weight: var(--fw-bold) !important; }
+
+    /* Whole post card */
+    .post-card{
+      background:#fff;
+      border:2px solid #e2e8f0;
+      border-radius:18px;
+      padding:18px 20px;
+      box-shadow:0 8px 24px rgba(15,23,42,.06);
+    }
+
+    /* Keep inner sections clean so only one outer card shows */
+    .detail-main-card,
+    .detail-aside{
+      background:transparent !important;
+      border:0 !important;
+      box-shadow:none !important;
+      padding:0 !important;
+    }
   </style>
 </head>
 <body class="theme-profile-bg page-fade is-ready">
@@ -477,153 +508,158 @@ ob_end_flush();
   </header>
 
   <main class="detail-wrap">
-    <h1 class="detail-title"><?php echo e($pageTitle ?: ($jobs['title'] ?? '')); ?></h1>
-
-    <div class="price-row">
-      <div class="price"><?php echo e($priceLabel); ?></div>
-      <span class="badge <?php echo strtolower($status); ?>"><?php echo e($status); ?></span>
-      <span style="margin-left:auto; color:#64748b; font-weight:600; font-size:.8rem;">Posted <?php echo e(date('M j', strtotime($jobs['posted_at'] ?? 'now'))); ?></span>
-    </div>
-
-    <div class="detail-grid">
-      <!-- LEFT: main details -->
-      <div class="detail-main-card">
-        <div class="meta-top">
-          <div>
-            <div class="poster-row">
-              <div class="avatar">
-                <?php if (!empty($clientAvatarUrl)): ?>
-                  <a href="<?php echo e($profileHref); ?>"><img class="avatar-img" src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($posterName); ?>"></a>
-                <?php else: ?>
-                  <a href="<?php echo e($profileHref); ?>"><img class="avatar-img" src="../assets/images/your-photo.png" alt="<?php echo e($posterName); ?>"></a>
-                <?php endif; ?>
-              </div>
-              <div>
-                <div style="font-weight:800; display:flex; flex-wrap:wrap; gap:6px;">
-                  <a href="<?php echo e($profileHref); ?>" style="text-decoration:none; color:inherit;"><?php echo e($posterName); ?></a>
-                  <?php if ($posterFullName): ?><span style="color:#64748b; font-weight:600;">(<?php echo e($posterFullName); ?>)</span><?php endif; ?>
-                </div>
-                <small style="color:#64748b;">No reviews yet</small>
-              </div>
+    <section class="post-card">
+      <div class="detail-grid">
+        <!-- Main details in requested order -->
+        <div class="detail-main-card">
+          <!-- 1) Profile -->
+          <div class="poster-row">
+            <div class="avatar">
+              <?php if (!empty($clientAvatarUrl)): ?>
+                <a href="<?php echo e($profileHref); ?>"><img class="avatar-img" src="<?php echo e($clientAvatarUrl); ?>" alt="<?php echo e($posterName); ?>"></a>
+              <?php else: ?>
+                <a href="<?php echo e($profileHref); ?>"><img class="avatar-img" src="../assets/images/your-photo.png" alt="<?php echo e($posterName); ?>"></a>
+              <?php endif; ?>
             </div>
-            <div class="info-block" style="margin-top:18px;">
-              <div class="info-item"><span class="info-label">Location</span><span class="info-value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></span></div>
-              <div class="info-item"><span class="info-label">Completion Date</span><span class="info-value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></span></div>
-              <div class="info-item"><span class="info-label">Duration</span><span class="info-value"><?php echo e($durationLabel); ?></span></div>
-              <div class="info-item"><span class="info-label">Offers Received</span><span class="info-value"><?php echo e($offers); ?></span></div>
-              <div class="info-item"><span class="info-label">Heroes Required</span><span class="info-value"><?php echo $helpersNeeded; ?></span></div>
+            <div>
+              <div style="font-weight:800; display:flex; flex-wrap:wrap; gap:6px;">
+                <a href="<?php echo e($profileHref); ?>" style="text-decoration:none; color:inherit;"><?php echo e($posterName); ?></a>
+                <?php if ($posterFullName): ?><span style="color:#64748b; font-weight:600;">(<?php echo e($posterFullName); ?>)</span><?php endif; ?>
+              </div>
+              <small style="color:#64748b;">No reviews yet</small>
             </div>
           </div>
-          <div>
-            <div class="description-box"><h3>Description</h3><pre><?php echo e($jobs['description'] ?? ''); ?></pre></div>
+
+          <!-- 2) Title -->
+          <h1 class="detail-title"><?php echo e($pageTitle ?: ($jobs['title'] ?? '')); ?></h1>
+
+          <!-- 3) Price -->
+          <div class="price-row">
+            <div class="price"><?php echo e($priceLabel); ?></div>
+            <span class="badge <?php echo strtolower($status); ?>"><?php echo e($status); ?></span>
+          </div>
+
+          <!-- 4) Description -->
+          <div class="description-box">
+            <h3>Description</h3>
+            <pre><?php echo e($jobs['description'] ?? ''); ?></pre>
+          </div>
+
+          <!-- 5..9) Details -->
+          <div class="info-block">
+            <div class="info-item"><span class="info-label">Location</span><span class="info-value"><?php echo ($jobs['location'] ?? '') ? e($jobs['location']) : 'Online'; ?></span></div>
+            <div class="info-item"><span class="info-label">Completion Date</span><span class="info-value"><?php echo ($jobs['date_needed'] ?? '') ? e($jobs['date_needed']) : 'Anytime'; ?></span></div>
+            <div class="info-item"><span class="info-label">Duration</span><span class="info-value"><?php echo e($durationLabel); ?></span></div>
+            <div class="info-item"><span class="info-label">Offers Received</span><span class="info-value"><?php echo e($offers); ?></span></div>
+            <div class="info-item"><span class="info-label">Heroes Required</span><span class="info-value"><?php echo $helpersNeeded; ?></span></div>
           </div>
         </div>
-      </div>
 
-      <!-- RIGHT: ask panel -->
-      <aside class="detail-aside" id="ask-box">
-        <h3 class="ask-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>Ask a question</h3>
-        <p class="ask-sub">Clarify the details before making an offer.</p>
+        <!-- comments panel remains below -->
+        <aside class="detail-aside" id="ask-box">
+          <h3 class="ask-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9a3 3 0 0 1 6 0c0 2-3 2-3 5"/><circle cx="12" cy="17" r="1"/></svg>Ask a question</h3>
+          <p class="ask-sub">Clarify the details before making an offer.</p>
 
-        <div class="comment-list">
-          <?php if (empty($thread)): ?>
-            <div class="bubble" style="border-radius:14px;">Be the first to ask a question.</div>
-          <?php else: ?>
-            <?php foreach ($thread as $c): ?>
-              <?php
-                $cName = $display_of($c);
-                $cAv   = $avatar_of($c);
-                $cInit = strtoupper(substr(preg_replace('/\s+/', '', $cName), 0, 1));
-                $canDel = $viewerId && ($viewerId === (int)$c['user_id'] || $viewerId === (int)$jobOwnerId);
-              ?>
-              <div id="c<?php echo (int)$c['id']; ?>" class="comment">
-                <div class="avatar">
-                  <?php if ($cAv): ?><img src="<?php echo e($cAv); ?>" alt="<?php echo e($cName); ?>" /><?php else: ?><?php echo e($cInit); ?><?php endif; ?>
-                </div>
-                <div class="bubble">
-                  <span class="name"><?php echo e($cName); ?></span>
-                  <p class="text"><?php echo e($c['body']); ?></p>
-                  <div class="meta">
-                    <span><?php echo e(time_ago($c['created_at'])); ?></span>
-                    <a href="#" class="reply-toggle">Reply</a>
-                    <?php if ($canDel): ?>
-                    <form method="post" style="display:inline;">
-                      <input type="hidden" name="action" value="delete_comment"/>
-                      <input type="hidden" name="comment_id" value="<?php echo (int)$c['id']; ?>"/>
-                      <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
-                      <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
-                    </form>
-                    <?php endif; ?>
+          <div class="comment-list">
+            <?php if (empty($thread)): ?>
+              <div class="bubble" style="border-radius:14px;">Be the first to ask a question.</div>
+            <?php else: ?>
+              <?php foreach ($thread as $c): ?>
+                <?php
+                  $cName = $display_of($c);
+                  $cAv   = $avatar_of($c);
+                  $cInit = strtoupper(substr(preg_replace('/\s+/', '', $cName), 0, 1));
+                  $canDel = $viewerId && ($viewerId === (int)$c['user_id'] || $viewerId === (int)$jobOwnerId);
+                ?>
+                <div id="c<?php echo (int)$c['id']; ?>" class="comment">
+                  <div class="avatar">
+                    <?php if ($cAv): ?><img src="<?php echo e($cAv); ?>" alt="<?php echo e($cName); ?>" /><?php else: ?><?php echo e($cInit); ?><?php endif; ?>
                   </div>
-                </div>
+                  <div class="bubble">
+                    <span class="name"><?php echo e($cName); ?></span>
+                    <p class="text"><?php echo e($c['body']); ?></p>
+                    <div class="meta">
+                      <span><?php echo e(time_ago($c['created_at'])); ?></span>
+                      <a href="#" class="reply-toggle">Reply</a>
+                      <?php if ($canDel): ?>
+                      <form method="post" style="display:inline;">
+                        <input type="hidden" name="action" value="delete_comment"/>
+                        <input type="hidden" name="comment_id" value="<?php echo (int)$c['id']; ?>"/>
+                        <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                        <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
+                      </form>
+                      <?php endif; ?>
+                    </div>
+                  </div>
 
-                <div class="replies">
-                  <?php if (!empty($replies[(int)$c['id']])): ?>
-                    <?php foreach ($replies[(int)$c['id']] as $r): ?>
-                      <?php
-                        $rName = $display_of($r);
-                        $rAv   = $avatar_of($r);
-                        $rInit = strtoupper(substr(preg_replace('/\s+/', '', $rName), 0, 1));
-                        $rDel  = $viewerId && ($viewerId === (int)$r['user_id'] || $viewerId === (int)$jobOwnerId);
-                      ?>
-                      <div class="comment">
-                        <div class="avatar">
-                          <?php if ($rAv): ?><img src="<?php echo e($rAv); ?>" alt="<?php echo e($rName); ?>" /><?php else: ?><?php echo e($rInit); ?><?php endif; ?>
-                        </div>
-                        <div class="bubble">
-                          <span class="name"><?php echo e($rName); ?></span>
-                          <p class="text"><?php echo e($r['body']); ?></p>
-                          <div class="meta">
-                            <span><?php echo e(time_ago($r['created_at'])); ?></span>
-                            <?php if ($rDel): ?>
-                            <form method="post" style="display:inline;">
-                              <input type="hidden" name="action" value="delete_comment"/>
-                              <input type="hidden" name="comment_id" value="<?php echo (int)$r['id']; ?>"/>
-                              <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
-                              <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
-                            </form>
-                            <?php endif; ?>
+                  <div class="replies">
+                    <?php if (!empty($replies[(int)$c['id']])): ?>
+                      <?php foreach ($replies[(int)$c['id']] as $r): ?>
+                        <?php
+                          $rName = $display_of($r);
+                          $rAv   = $avatar_of($r);
+                          $rInit = strtoupper(substr(preg_replace('/\s+/', '', $rName), 0, 1));
+                          $rDel  = $viewerId && ($viewerId === (int)$r['user_id'] || $viewerId === (int)$jobOwnerId);
+                        ?>
+                        <div class="comment">
+                          <div class="avatar">
+                            <?php if ($rAv): ?><img src="<?php echo e($rAv); ?>" alt="<?php echo e($rName); ?>" /><?php else: ?><?php echo e($rInit); ?><?php endif; ?>
+                          </div>
+                          <div class="bubble">
+                            <span class="name"><?php echo e($rName); ?></span>
+                            <p class="text"><?php echo e($r['body']); ?></p>
+                            <div class="meta">
+                              <span><?php echo e(time_ago($r['created_at'])); ?></span>
+                              <?php if ($rDel): ?>
+                              <form method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="delete_comment"/>
+                                <input type="hidden" name="comment_id" value="<?php echo (int)$r['id']; ?>"/>
+                                <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                                <button class="delete-link" type="submit" style="background:none;border:0;cursor:pointer;">Delete</button>
+                              </form>
+                              <?php endif; ?>
+                            </div>
                           </div>
                         </div>
+                      <?php endforeach; ?>
+                    <?php endif; ?>
+
+                    <!-- Inline reply form (toggles) -->
+                    <form class="reply-form" method="post" style="display:none; margin-top:6px;">
+                      <input type="hidden" name="action" value="add_reply"/>
+                      <input type="hidden" name="parent_id" value="<?php echo (int)$c['id']; ?>"/>
+                      <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+                      <div class="avatar" style="width:32px;height:32px;"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
+                      <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                        <input class="ask-field" name="body" type="text" placeholder="Reply to <?php echo e($cName); ?>" aria-label="Write a reply" required <?php echo $viewerId ? '' : 'disabled'; ?> />
+                        <button type="submit" class="ask-send" aria-label="Send reply" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>>
+                          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+                        </button>
                       </div>
-                    <?php endforeach; ?>
-                  <?php endif; ?>
-
-                  <!-- Inline reply form (toggles) -->
-                  <form class="reply-form" method="post" style="display:none; margin-top:6px;">
-                    <input type="hidden" name="action" value="add_reply"/>
-                    <input type="hidden" name="parent_id" value="<?php echo (int)$c['id']; ?>"/>
-                    <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
-                    <div class="avatar" style="width:32px;height:32px;"><?php if (!empty($askerAvatarUrl)) : ?><img src="<?php echo e($askerAvatarUrl); ?>" alt="You" /><?php else: ?><?php echo e($askerInitial); ?><?php endif; ?></div>
-                    <div style="display:flex; gap:8px; align-items:center; width:100%;">
-                      <input class="ask-field" name="body" type="text" placeholder="Reply to <?php echo e($cName); ?>" aria-label="Write a reply" required <?php echo $viewerId ? '' : 'disabled'; ?> />
-                      <button type="submit" class="ask-send" aria-label="Send reply" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>>
-                        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
-                      </button>
-                    </div>
-                  </form>
+                    </form>
+                  </div>
                 </div>
-              </div>
-            <?php endforeach; ?>
-          <?php endif; ?>
-        </div>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </div>
 
-        <div class="ask-input-row">
-          <div class="ask-counter" id="askCount" aria-label="Questions count"><?php echo (int)count($thread); ?></div>
-          <form class="ask-form" id="askForm" method="post" novalidate>
-            <input type="hidden" name="action" value="add_comment"/>
-            <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
-            <input class="ask-field" type="text" name="body" placeholder="Write a comment..." aria-label="Write a comment" required <?php echo $viewerId ? '' : 'disabled'; ?> />
-            <button type="submit" class="ask-send" aria-label="Send question" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>>
-              <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
-            </button>
-          </form>
-        </div>
-        <?php if (!$viewerId): ?>
-          <small class="hint">You must log in to post.</small>
-        <?php endif; ?>
-      </aside>
-    </div>
+          <div class="ask-input-row">
+            <div class="ask-counter" id="askCount" aria-label="Questions count"><?php echo (int)count($thread); ?></div>
+            <form class="ask-form" id="askForm" method="post" novalidate>
+              <input type="hidden" name="action" value="add_comment"/>
+              <input type="hidden" name="csrf" value="<?php echo e($_SESSION['csrf']); ?>"/>
+              <input class="ask-field" type="text" name="body" placeholder="Write a comment..." aria-label="Write a comment" required <?php echo $viewerId ? '' : 'disabled'; ?> />
+              <button type="submit" class="ask-send" aria-label="Send question" title="Send"<?php echo $viewerId ? '' : ' disabled'; ?>>
+                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12l18-9-9 18-1.5-6L3 12z"/></svg>
+              </button>
+            </form>
+          </div>
+          <?php if (!$viewerId): ?>
+            <small class="hint">You must log in to post.</small>
+          <?php endif; ?>
+        </aside>
+      </div>
+    </section>
   </main>
 
   <footer class="footer-bar">

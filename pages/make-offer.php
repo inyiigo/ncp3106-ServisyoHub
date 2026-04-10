@@ -135,8 +135,8 @@ ob_end_flush();
     </main>
 
     <div class="offer-footer">
-      <form method="POST" action="./make-offer-submit.php" id="offerForm">
-        <input type="hidden" name="job_id" value="<?php echo $id; ?>" />
+      <form method="GET" action="./make-offer-compose.php" id="offerForm">
+        <input type="hidden" name="id" value="<?php echo (int)$id; ?>" />
         <button type="submit" class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
       </form>
     </div>
@@ -147,7 +147,7 @@ ob_end_flush();
       const c1 = document.getElementById('c1');
       const c2 = document.getElementById('c2');
       const btn = document.getElementById('offerCta');
-  const nextUrl = './make-offer-compose.php' + <?php echo json_encode($id ? ('?id='.(int)$id) : ''); ?>;
+
       function toggle(card){
         const v = card.getAttribute('aria-checked') === 'true';
         card.setAttribute('aria-checked', (!v).toString());
@@ -165,11 +165,12 @@ ob_end_flush();
         const amtok = amountValid();
         btn.disabled = !(c1ok && c2ok && amtok);
       }
+
       [c1,c2].forEach(card => {
         card.addEventListener('click', ()=> toggle(card));
         card.addEventListener('keydown', (e)=>{ if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(card); } });
       });
-      btn.addEventListener('click', ()=>{ window.location.href = nextUrl; });
+
       const amt = document.getElementById('offerAmount');
     amt.addEventListener('input', update);
     update();

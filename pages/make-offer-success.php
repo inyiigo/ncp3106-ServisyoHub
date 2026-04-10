@@ -49,9 +49,19 @@ ob_end_flush();
 
     .footer { position: fixed; left:50%; transform:translateX(-50%); bottom: 14px; width: min(100% - 24px, 640px); display:grid; }
     .cta { appearance:none; border:0; border-radius:12px; padding:16px; font-weight:900; color:#fff; background:#111827; cursor:pointer; }
+
+    .confetti-canvas{
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .wrap{ position: relative; z-index: 1; }
   </style>
 </head>
 <body>
+  <canvas id="confettiCanvas" class="confetti-canvas" aria-hidden="true"></canvas>
+
   <div class="wrap">
     <header class="hdr">
       <div class="top">
@@ -95,5 +105,69 @@ ob_end_flush();
       <a class="cta" href="<?php echo htmlspecialchars($nextHref, ENT_QUOTES); ?>">Next</a>
     </div>
   </div>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('confettiCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      let w = 0, h = 0, raf = 0;
+      const start = performance.now();
+      const duration = 4200; // was 2200
+
+      const colors = ['#22c55e','#38bdf8','#f59e0b','#ef4444','#a78bfa'];
+      const pieces = Array.from({ length: 90 }, () => ({
+        x: Math.random(),
+        y: -Math.random() * 0.5,
+        vx: (Math.random() - 0.5) * 0.007, // slower horizontal drift
+        vy: 0.006 + Math.random() * 0.008, // slower initial fall speed
+        s: 4 + Math.random() * 5,
+        a: Math.random() * Math.PI,
+        va: (Math.random() - 0.5) * 0.18,  // slower spin
+        c: colors[(Math.random() * colors.length) | 0]
+      }));
+
+      function resize(){
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+
+      function draw(t){
+        ctx.clearRect(0,0,w,h);
+        const active = (t - start) < duration;
+
+        for (const p of pieces){
+          p.vy += 0.00012; // was 0.00025
+          p.x += p.vx;
+          p.y += p.vy;
+          p.a += p.va;
+
+          const px = p.x * w, py = p.y * h;
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(p.a);
+          ctx.fillStyle = p.c;
+          ctx.fillRect(-p.s/2, -p.s/2, p.s, p.s * 0.7);
+          ctx.restore();
+
+          if (active && (p.y > 1.1 || p.x < -0.1 || p.x > 1.1)){
+            p.x = Math.random();
+            p.y = -0.1;
+            p.vx = (Math.random() - 0.5) * 0.007;
+            p.vy = 0.006 + Math.random() * 0.008;
+          }
+        }
+
+        if (active) raf = requestAnimationFrame(draw);
+        else ctx.clearRect(0,0,w,h);
+      }
+
+      resize();
+      window.addEventListener('resize', resize, { passive:true });
+      raf = requestAnimationFrame(draw);
+    })();
+  </script>
 </body>
 </html>
