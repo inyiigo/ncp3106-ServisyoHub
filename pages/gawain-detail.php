@@ -21,14 +21,26 @@ function fmt_money($v){
     $n = is_numeric($v) ? (float)$v : 0; return '₱' . number_format($n, 2);
 }
 function time_ago($dt){
-    $t = is_numeric($dt) ? (int)$dt : strtotime((string)$dt);
-    if (!$t) return '';
-    $d = time() - $t;
-    if ($d < 60) return $d.'s ago';
-    if ($d < 3600) return floor($d/60).'m ago';
-    if ($d < 86400) return floor($d/3600).'h ago';
-    if ($d < 604800) return floor($d/86400).'d ago';
-    return date('M j, Y', $t);
+    // Accept either a Unix timestamp or a datetime string.
+    try {
+        if (is_numeric($dt)) {
+            $ts = (int)$dt;
+            $then = (new DateTimeImmutable())->setTimestamp($ts);
+        } else {
+            // Let DateTimeImmutable parse the string using the default PHP timezone.
+            $then = new DateTimeImmutable((string)$dt);
+        }
+    } catch (Exception $e) {
+        return '';
+    }
+    $now = new DateTimeImmutable('now', new DateTimeZone(date_default_timezone_get()));
+    $diff = $now->getTimestamp() - $then->getTimestamp();
+    if ($diff < 0) $diff = 0; // future times -> show as just now
+    if ($diff < 60) return $diff . 's ago';
+    if ($diff < 3600) return floor($diff/60) . 'm ago';
+    if ($diff < 86400) return floor($diff/3600) . 'h ago';
+    if ($diff < 604800) return floor($diff/86400) . 'd ago';
+    return $then->format('M j, Y');
 }
 
 $jobs = null;
@@ -532,7 +544,7 @@ ob_end_flush();
                   <span class="name"><?php echo e($cName); ?></span>
                   <p class="text"><?php echo e($c['body']); ?></p>
                   <div class="meta">
-                    <span><?php echo e(time_ago(strtotime($c['created_at']))); ?></span>
+                    <span><?php echo e(time_ago($c['created_at'])); ?></span>
                     <a href="#" class="reply-toggle">Reply</a>
                     <?php if ($canDel): ?>
                     <form method="post" style="display:inline;">
@@ -562,7 +574,7 @@ ob_end_flush();
                           <span class="name"><?php echo e($rName); ?></span>
                           <p class="text"><?php echo e($r['body']); ?></p>
                           <div class="meta">
-                            <span><?php echo e(time_ago(strtotime($r['created_at']))); ?></span>
+                            <span><?php echo e(time_ago($r['created_at'])); ?></span>
                             <?php if ($rDel): ?>
                             <form method="post" style="display:inline;">
                               <input type="hidden" name="action" value="delete_comment"/>

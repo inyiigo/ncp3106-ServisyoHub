@@ -1978,13 +1978,6 @@ cursor: pointer;
 						></textarea>
 						<p class="char-count">Minimum 30 characters</p>
 						
-						<button type="button" class="generate-button" id="generateBtn">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-								<path d="M21 3v5h-5"/>
-							</svg>
-							Generate
-						</button>
 						
 						<div class="helper-section">
 							<p class="helper-label">How many helpers do you need?</p>
