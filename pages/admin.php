@@ -1,9 +1,30 @@
 <?php
 session_start();
-// Optional: basic guard
-// if (empty($_SESSION['is_admin'])) { header('Location: ./login.php'); exit; }
+
+// Verify user is logged in
+if (empty($_SESSION['user_id'])) {
+	header('Location: ./login.php');
+	exit;
+}
 
 require_once __DIR__ . '/../config/db_connect.php';
+
+// Verify user is admin
+$user_id = $_SESSION['user_id'];
+if ($stmt = mysqli_prepare($conn, "SELECT role FROM users WHERE id = ?")) {
+	mysqli_stmt_bind_param($stmt, 'i', $user_id);
+	mysqli_stmt_execute($stmt);
+	$res = mysqli_stmt_get_result($stmt);
+	$row = mysqli_fetch_assoc($res);
+	
+	$user_role = isset($row['role']) ? strtolower($row['role']) : 'user';
+	if ($user_role !== 'admin') {
+		header('Location: ./home-gawain.php');
+		exit;
+	}
+	mysqli_stmt_close($stmt);
+}
+
 $db = $conn ?? null;
 
 $totalUsers = 0;

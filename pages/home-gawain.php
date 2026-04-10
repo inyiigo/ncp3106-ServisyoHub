@@ -312,9 +312,9 @@ ob_end_flush();
 		.feed-title { font-weight:800; color:#0f172a; margin: 0 0 8px; }
 		.svc-card { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start; background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 		.svc-card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color:#0078a6; }
-		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; }
+		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; }
 		.svc-meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:#64748b; font-size:.9rem; }
-		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis; }
 		.svc-meta .item svg { width:14px; height:14px; }
 		.svc-posted { margin-top:8px; display:flex; align-items:center; gap:8px; color:#94a3b8; font-size:.85rem; }
 		.svc-av { width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#0f172a; display:grid; place-items:center; font-weight:800; font-size:.75rem; }

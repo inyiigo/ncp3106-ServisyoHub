@@ -30,7 +30,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 					if ($ok) {
 						$_SESSION['user_id'] = (int)($row['id'] ?? 0);
 						$_SESSION['mobile'] = (string)($row['mobile'] ?? $mobile);
-						header("Location: home-gawain.php");
+						
+						// Check if user is admin
+						$user_role = isset($row['role']) ? strtolower($row['role']) : 'user';
+						if ($user_role === 'admin') {
+							header("Location: admin.php");
+						} else {
+							header("Location: home-gawain.php");
+						}
 						exit();
 					} else {
 						$error = "Incorrect password. Please try again.";
