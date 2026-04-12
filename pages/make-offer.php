@@ -24,6 +24,27 @@ if (!$job) {
 }
 $loc = trim((string)$job['location']) !== '' ? $job['location'] : 'Online';
 $dateLabel = fallback_date_label($job['date_needed']);
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
+$jobOwnerId = 0;
+
+if ($id > 0 && isset($conn) && $conn) {
+  if ($ownerStmt = @mysqli_prepare($conn, "SELECT COALESCE(user_id, 0) AS user_id FROM jobs WHERE id=? LIMIT 1")) {
+    mysqli_stmt_bind_param($ownerStmt, 'i', $id);
+    if (@mysqli_stmt_execute($ownerStmt)) {
+      $ownerRes = @mysqli_stmt_get_result($ownerStmt);
+      if ($ownerRes && ($ownerRow = @mysqli_fetch_assoc($ownerRes))) {
+        $jobOwnerId = (int)($ownerRow['user_id'] ?? 0);
+      }
+    }
+    @mysqli_stmt_close($ownerStmt);
+  }
+}
+
+if ($viewerId && $jobOwnerId && $viewerId === $jobOwnerId) {
+  header('Location: ./chats.php?tab=citizen');
+  exit;
+}
+
 $backHref = './gawain-detail.php' . ($id ? ('?id='.(int)$id) : '');
 ob_end_flush();
 ?>

@@ -210,6 +210,11 @@ $profileHref = $isOwner
       ? ('./user-detail.php?id=' . (int)$jobOwnerId)
       : ($posterName !== '' ? ('./user-detail.php?name=' . urlencode($posterName)) : '#'));
 
+$footerActionHref = $isOwner
+  ? './chats.php?tab=citizen'
+  : './make-offer.php' . ($id ? ('?id=' . (int)$id) : '');
+$footerActionLabel = $isOwner ? 'View offers' : 'Make offer';
+
 // Compute offers count for this job (ensure $offers is set)
 $offers = 0;
 if ($id > 0 && $db) {
@@ -671,7 +676,7 @@ ob_end_flush();
   <footer class="footer-bar">
     <div class="footer-inner">
       <a class="btn-ghost" href="#ask-box">Ask a question</a>
-      <a class="btn-solid" href="./make-offer.php<?php echo $id ? ('?id='.(int)$id) : ''; ?>">Make offer</a>
+      <a class="btn-solid" href="<?php echo e($footerActionHref); ?>"><?php echo e($footerActionLabel); ?></a>
     </div>
   </footer>
 
