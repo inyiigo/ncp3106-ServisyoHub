@@ -10,6 +10,43 @@ if ($db) {
     @mysqli_select_db($db, 'login');
 }
 
+function notif_has_column($db, string $column): bool {
+    $col = mysqli_real_escape_string($db, $column);
+    $res = @mysqli_query($db, "SHOW COLUMNS FROM notifications LIKE '{$col}'");
+    $ok = ($res && mysqli_num_rows($res) > 0);
+    if ($res) { @mysqli_free_result($res); }
+    return $ok;
+}
+
+function ensure_notifications_table($db): void {
+    @mysqli_query($db, "CREATE TABLE IF NOT EXISTS notifications (
+        id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        user_id INT(10) UNSIGNED NOT NULL,
+        actor_id INT(10) UNSIGNED NOT NULL,
+        job_id INT(11) NOT NULL,
+        comment_id INT UNSIGNED DEFAULT NULL,
+        offer_id INT(11) DEFAULT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        seen_at DATETIME DEFAULT NULL,
+        PRIMARY KEY (id),
+        KEY idx_user_seen (user_id, seen_at),
+        KEY idx_job (job_id),
+        KEY idx_actor (actor_id),
+        KEY idx_offer (offer_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+    if (!notif_has_column($db, 'offer_id')) {
+        @mysqli_query($db, "ALTER TABLE notifications ADD COLUMN offer_id INT(11) DEFAULT NULL AFTER comment_id");
+        @mysqli_query($db, "ALTER TABLE notifications ADD KEY idx_offer (offer_id)");
+    }
+    if (!notif_has_column($db, 'seen_at')) {
+        @mysqli_query($db, "ALTER TABLE notifications ADD COLUMN seen_at DATETIME DEFAULT NULL AFTER created_at");
+    }
+    if (!notif_has_column($db, 'created_at')) {
+        @mysqli_query($db, "ALTER TABLE notifications ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
     $jobId  = (int)($_POST['job_id'] ?? 0);
     $amount = isset($_POST['amount']) && trim($_POST['amount']) !== '' ? (float)$_POST['amount'] : null;
@@ -37,6 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
                         @mysqli_stmt_close($g);
                     }
                     if ($jobOwnerId > 0 && $jobOwnerId !== $viewerId) {
+                        ensure_notifications_table($db);
                         if ($nst = @mysqli_prepare($db, "INSERT INTO `login`.`notifications` (user_id, actor_id, job_id, offer_id, created_at) VALUES (?, ?, ?, ?, NOW())")) {
                             mysqli_stmt_bind_param($nst, 'iiii', $jobOwnerId, $viewerId, $jobId, $offerId);
                             @mysqli_stmt_execute($nst);

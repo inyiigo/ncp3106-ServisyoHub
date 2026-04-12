@@ -111,10 +111,8 @@ body.theme-profile-bg { background: #ffffff !important; background-attachment: i
 	padding: 12px 8px 8px 8px;
 	background: #2596be !important;
 	backdrop-filter: saturate(1.15) blur(12px);
-	border-top-left-radius: 16px;
-	border-bottom-left-radius: 16px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
+	border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+	border-top-left-radius: 0; border-bottom-left-radius: 0;
 	box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
 	transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 	width: 56px;

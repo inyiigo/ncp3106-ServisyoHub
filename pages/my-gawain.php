@@ -138,10 +138,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 
 		/* Replace old tooltip nav with profile.php sidebar nav */
 		.dash-float-nav {
-			position: fixed;
-			top: 0;
-			right: 0;
-			bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			z-index: 1000;
 			display: flex !important;
 			flex-direction: column;
@@ -151,10 +148,8 @@ if ($tab === 'posted' && $viewerId && $db) {
 			border-right: 0;
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px;
-			border-bottom-left-radius: 16px;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+			border-top-left-radius: 0; border-bottom-left-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 			width: 56px;

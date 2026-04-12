@@ -64,6 +64,45 @@ function ensure_chat_table($db): void {
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 }
 
+function notifications_has_column($db, string $column): bool {
+	$col = mysqli_real_escape_string($db, $column);
+	$res = @mysqli_query($db, "SHOW COLUMNS FROM notifications LIKE '{$col}'");
+	$ok = ($res && mysqli_num_rows($res) > 0);
+	if ($res) {
+		@mysqli_free_result($res);
+	}
+	return $ok;
+}
+
+function ensure_notifications_table($db): void {
+	@mysqli_query($db, "CREATE TABLE IF NOT EXISTS notifications (
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		user_id INT(10) UNSIGNED NOT NULL,
+		actor_id INT(10) UNSIGNED NOT NULL,
+		job_id INT(11) NOT NULL,
+		comment_id INT UNSIGNED DEFAULT NULL,
+		offer_id INT(11) DEFAULT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		seen_at DATETIME DEFAULT NULL,
+		PRIMARY KEY (id),
+		KEY idx_user_seen (user_id, seen_at),
+		KEY idx_job (job_id),
+		KEY idx_actor (actor_id),
+		KEY idx_offer (offer_id)
+	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
+
+	if (!notifications_has_column($db, 'offer_id')) {
+		@mysqli_query($db, "ALTER TABLE notifications ADD COLUMN offer_id INT(11) DEFAULT NULL AFTER comment_id");
+		@mysqli_query($db, "ALTER TABLE notifications ADD KEY idx_offer (offer_id)");
+	}
+	if (!notifications_has_column($db, 'seen_at')) {
+		@mysqli_query($db, "ALTER TABLE notifications ADD COLUMN seen_at DATETIME DEFAULT NULL AFTER created_at");
+	}
+	if (!notifications_has_column($db, 'created_at')) {
+		@mysqli_query($db, "ALTER TABLE notifications ADD COLUMN created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP");
+	}
+}
+
 function fetch_participants($db, int $offerId, int $jobId): ?array {
 	$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount, o.status AS offer_status,
 			   j.user_id AS owner_id, j.title, COALESCE(j.location,'Online') AS location,
@@ -181,6 +220,7 @@ if (!$db) {
 
 @mysqli_select_db($db, 'login');
 ensure_chat_table($db);
+ensure_notifications_table($db);
 
 $viewerId = (int)($_SESSION['user_id'] ?? 0);
 $tab = (($_REQUEST['tab'] ?? 'kasangga') === 'citizen') ? 'citizen' : 'kasangga';
@@ -255,6 +295,16 @@ if ($action === 'decision') {
 		mysqli_stmt_bind_param($set, 'sii', $decision, $offerId, $jobId);
 		@mysqli_stmt_execute($set);
 		@mysqli_stmt_close($set);
+
+		// Notify offer sender that the owner has made a decision.
+		if ($notify = @mysqli_prepare($db, "INSERT INTO notifications (user_id, actor_id, job_id, offer_id, created_at) VALUES (?, ?, ?, ?, NOW())")) {
+			$recipientId = (int)($thread['offerer_id'] ?? 0);
+			$actorId = (int)$viewerId;
+			mysqli_stmt_bind_param($notify, 'iiii', $recipientId, $actorId, $jobId, $offerId);
+			@mysqli_stmt_execute($notify);
+			@mysqli_stmt_close($notify);
+		}
+
 		j([
 			'ok' => true,
 			'offer_status' => $decision,

@@ -147,8 +147,8 @@ function e($value): string {
 		.bg-logo img { width:100%; height:auto; display:block; }
 
 		.dash-float-nav {
-			position:fixed; top:0; right:0; bottom:0; z-index:1000; display:flex; flex-direction:column; gap:8px; padding:12px 8px 8px; width:56px; overflow:hidden;
-			border-top-left-radius:16px; border-bottom-left-radius:16px; background:#2596be !important; box-shadow:0 8px 24px rgba(0,0,0,.24) !important; transition:width .3s cubic-bezier(0.4,0,0.2,1), box-shadow .2s ease;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0; z-index:1000; display:flex; flex-direction:column; gap:8px; padding:12px 8px 8px; width:56px; overflow:hidden;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px; background:#2596be !important; box-shadow:0 8px 24px rgba(0,0,0,.24) !important; transition:width .3s cubic-bezier(0.4,0,0.2,1), box-shadow .2s ease;
 		}
 		.dash-float-nav:hover { width:200px; box-shadow:0 12px 32px rgba(0,120,166,.35), 0 0 0 1px rgba(255,255,255,.5) inset; }
 		.dash-float-nav .nav-brand { display:grid; place-items:center; position:relative; height:56px; padding:6px 0; }
@@ -452,7 +452,7 @@ function e($value): string {
 				const preview = item.latest_message_body ? item.latest_message_body : `Offer ${formatAmount(item.amount)}`;
 				const unread = Number(item.unread_count || 0);
 				const previewClass = unread > 0 ? 'chat-preview unread' : 'chat-preview';
-				const badge = state.tab === 'citizen' ? 'Offerer' : 'Citizen';
+				const badge = state.tab === 'citizen' ? 'Kasangga' : 'Citizen';
 				return `
 					<button type="button" class="chat-item ${active}" data-offer="${escapeHtml(item.offer_id)}" data-job="${escapeHtml(item.job_id)}">
 						<div class="chat-avatar">${avatar}</div>
