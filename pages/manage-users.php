@@ -149,6 +149,12 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			--shadow: 0 18px 50px rgba(2, 6, 23, .10);
 		}
 		* { box-sizing: border-box; }
+		html,
+		body {
+			min-height: 100%;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
 		body {
 			margin: 0;
 			font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -261,7 +267,9 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			background: rgba(239, 68, 68, .28);
 			border-color: rgba(255,255,255,.35);
 		}
-		.content { padding: 24px; }
+		.content {
+			padding: 24px;
+		}
 		.hero {
 			display: grid;
 			grid-template-columns: 1fr;
@@ -347,7 +355,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			display: grid;
 			grid-template-columns: .95fr 2fr;
 			gap: 18px;
-			align-items: start;
+			align-items: stretch;
 		}
 		.panel {
 			background: var(--surface);
@@ -355,6 +363,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			border-radius: 20px;
 			box-shadow: var(--shadow);
 			overflow: hidden;
+			height: 100%;
 		}
 		.panel-head {
 			padding: 16px 18px 0;
@@ -369,11 +378,27 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			font-size: .9rem;
 		}
 		.chart-wrap {
-			height: 290px;
+			height: 240px;
 			padding: 0 14px 14px;
+		}
+		article[aria-label="Status graph"] {
+			display: flex;
+			flex-direction: column;
+		}
+		article[aria-label="Status graph"] .chart-wrap {
+			flex: 0 0 270px;
+			height: 270px;
+			min-height: 270px;
+			max-width: 400px;
+			margin: 35px auto 14px;
 		}
 		.table-wrap { padding: 8px 0 0; }
 		.table-wrap + .table-wrap { border-top: 1px solid var(--line); }
+		.table-wrap.scrollable {
+			max-height: 320px;
+			overflow-y: auto;
+			overflow-x: hidden;
+		}
 		table {
 			width: 100%;
 			border-collapse: collapse;
@@ -388,15 +413,11 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			padding: 12px 14px;
 			border-bottom: 1px solid var(--line);
 		}
-		tbody {
-			display: block;
-			max-height: 460px;
-			overflow: auto;
-		}
-		thead, tbody tr {
-			display: table;
-			width: 100%;
-			table-layout: auto;
+		.table-wrap.scrollable thead th {
+			position: sticky;
+			top: 0;
+			z-index: 2;
+			background: #f4f9fc;
 		}
 		tbody td {
 			padding: 14px;
@@ -413,6 +434,13 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		article[aria-label="User table"] thead th:nth-child(4), article[aria-label="User table"] tbody td:nth-child(4) { width: 14%; }
 		article[aria-label="User table"] thead th:nth-child(5), article[aria-label="User table"] tbody td:nth-child(5) { width: 13%; }
 		article[aria-label="User table"] thead th:nth-child(6), article[aria-label="User table"] tbody td:nth-child(6) { width: 18%; }
+		article[aria-label="User table"] {
+			display: flex;
+			flex-direction: column;
+		}
+		article[aria-label="User table"] .table-wrap {
+			flex: 1;
+		}
 		section[aria-label="Profile picture review"] thead th:nth-child(1), section[aria-label="Profile picture review"] tbody td:nth-child(1) { width: 6%; }
 		section[aria-label="Profile picture review"] thead th:nth-child(2), section[aria-label="Profile picture review"] tbody td:nth-child(2) { width: 20%; }
 		section[aria-label="Profile picture review"] thead th:nth-child(3), section[aria-label="Profile picture review"] tbody td:nth-child(3) { width: 13%; }
@@ -496,6 +524,16 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		section[aria-label="Profile picture review"] tbody td:nth-child(3) {
 			text-align: center;
 		}
+		section[aria-label="Profile picture review"] {
+			display: block;
+			height: auto;
+		}
+		section[aria-label="Profile picture review"].panel {
+			height: auto;
+		}
+		section[aria-label="Profile picture review"] .table-wrap {
+			padding-bottom: 0;
+		}
 		section[aria-label="Profile picture review"] thead th:nth-child(4),
 		section[aria-label="Profile picture review"] tbody td:nth-child(4),
 		section[aria-label="Profile picture review"] thead th:nth-child(6),
@@ -531,8 +569,10 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			.grid {
 				grid-template-columns: 1fr;
 			}
-			.content { padding: 16px; }
-			tbody { max-height: 420px; }
+			.content {
+				padding: 16px;
+			}
+			.table-wrap.scrollable { max-height: 420px; }
 		}
 	</style>
 </head>
@@ -611,7 +651,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 					<h3>Verification and Suspension Queue</h3>
 					<p>Manage each account directly from this table.</p>
 				</div>
-				<div class="table-wrap">
+				<div class="table-wrap scrollable">
 					<table>
 						<thead>
 							<tr>
@@ -680,7 +720,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 				<h3>Profile Picture Review</h3>
 				<p>Separate table for checking uploaded profile photos before accepting account identity details.</p>
 			</div>
-			<div class="table-wrap">
+			<div class="table-wrap scrollable">
 				<table>
 					<thead>
 						<tr>

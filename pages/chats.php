@@ -352,7 +352,20 @@ function e($value): string {
 			}
 
 			const status = String(thread.offer_status || 'pending').toLowerCase();
+			const adminStatus = String(thread.admin_status || 'pending').toLowerCase();
 			const isCitizenOwner = String(thread.viewer_role || '') === 'citizen';
+
+			if (adminStatus === 'pending') {
+				if (els.offerDecisionActions) els.offerDecisionActions.hidden = true;
+				setComposerState(true, 'Waiting for admin review before this offer is visible to citizen decisions.');
+				return;
+			}
+
+			if (adminStatus === 'rejected') {
+				if (els.offerDecisionActions) els.offerDecisionActions.hidden = true;
+				setComposerState(true, 'This offer was rejected by admin. Messaging is disabled.');
+				return;
+			}
 
 			if (status === 'pending') {
 				if (isCitizenOwner) {
@@ -499,6 +512,7 @@ function e($value): string {
 			if (els.threadMetaLine) {
 				const meta = [];
 				if (thread.offer_amount !== null && thread.offer_amount !== undefined) meta.push(formatAmount(thread.offer_amount));
+				if (thread.admin_status) meta.push(`ADMIN ${String(thread.admin_status).toUpperCase()}`);
 				if (thread.offer_status) meta.push(String(thread.offer_status).toUpperCase());
 				els.threadMetaLine.innerHTML = meta.map((value) => `<span class="chat-pill">${escapeHtml(value)}</span>`).join('');
 			}

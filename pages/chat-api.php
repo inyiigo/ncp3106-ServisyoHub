@@ -64,6 +64,41 @@ function ensure_chat_table($db): void {
 	) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 }
 
+function offers_has_column($db, string $column): bool {
+	$col = mysqli_real_escape_string($db, $column);
+	$res = @mysqli_query($db, "SHOW COLUMNS FROM offers LIKE '{$col}'");
+	$ok = ($res && mysqli_num_rows($res) > 0);
+	if ($res) {
+		@mysqli_free_result($res);
+	}
+	return $ok;
+}
+
+function ensure_offers_review_columns($db): void {
+	$addedAdmin = false;
+	$addedCitizen = false;
+
+	if (!offers_has_column($db, 'admin_status')) {
+		@mysqli_query($db, "ALTER TABLE offers ADD COLUMN admin_status VARCHAR(20) NOT NULL DEFAULT 'pending' AFTER status");
+		$addedAdmin = true;
+	}
+	if (!offers_has_column($db, 'citizen_status')) {
+		@mysqli_query($db, "ALTER TABLE offers ADD COLUMN citizen_status VARCHAR(20) NOT NULL DEFAULT 'pending' AFTER admin_status");
+		$addedCitizen = true;
+	}
+
+	// One-time backfill to preserve legacy status behavior when columns are first introduced.
+	if ($addedCitizen) {
+		@mysqli_query($db, "UPDATE offers SET citizen_status = LOWER(COALESCE(status, 'pending')) WHERE citizen_status IS NULL OR citizen_status = ''");
+	}
+	if ($addedAdmin) {
+		@mysqli_query($db, "UPDATE offers SET admin_status = CASE
+			WHEN LOWER(COALESCE(status, 'pending')) IN ('accepted','rejected','denied','cancelled','canceled','withdrawn') THEN 'accepted'
+			ELSE 'pending'
+		END WHERE admin_status IS NULL OR admin_status = ''");
+	}
+}
+
 function notifications_has_column($db, string $column): bool {
 	$col = mysqli_real_escape_string($db, $column);
 	$res = @mysqli_query($db, "SHOW COLUMNS FROM notifications LIKE '{$col}'");
@@ -104,7 +139,9 @@ function ensure_notifications_table($db): void {
 }
 
 function fetch_participants($db, int $offerId, int $jobId): ?array {
-	$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount, o.status AS offer_status,
+	$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount,
+			   LOWER(COALESCE(o.admin_status, 'pending')) AS admin_status,
+			   LOWER(COALESCE(o.citizen_status, COALESCE(o.status, 'pending'))) AS offer_status,
 			   j.user_id AS owner_id, j.title, COALESCE(j.location,'Online') AS location,
 			   COALESCE(j.date_needed,'Anytime') AS date_needed,
 			   COALESCE(uo.username,'') AS offerer_username, COALESCE(uo.first_name,'') AS offerer_first,
@@ -135,7 +172,9 @@ function conversation_rows($db, int $viewerId, string $tab): array {
 	$rows = [];
 	$latestOffersSql = "SELECT job_id, user_id, MAX(id) AS offer_id FROM offers GROUP BY job_id, user_id";
 	if ($tab === 'citizen') {
-		$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount, o.status AS offer_status,
+		$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount,
+			       LOWER(COALESCE(o.admin_status, 'pending')) AS admin_status,
+			       LOWER(COALESCE(o.citizen_status, COALESCE(o.status, 'pending'))) AS offer_status,
 			       o.created_at AS offer_created_at,
 			       j.user_id AS owner_id, j.title, COALESCE(j.location,'Online') AS location,
 			       COALESCE(j.date_needed,'Anytime') AS date_needed,
@@ -152,6 +191,7 @@ function conversation_rows($db, int $viewerId, string $tab): array {
 				SELECT cm2.id FROM chat_messages cm2 WHERE cm2.offer_id = o.id ORDER BY cm2.id DESC LIMIT 1
 			)
 			WHERE j.user_id = ?
+			  AND LOWER(COALESCE(o.admin_status, 'pending')) = 'accepted'
 			  AND o.user_id <> ?
 			ORDER BY COALESCE(lm.created_at, o.created_at) DESC, o.id DESC";
 		if ($stmt = @mysqli_prepare($db, $sql)) {
@@ -172,7 +212,9 @@ function conversation_rows($db, int $viewerId, string $tab): array {
 			@mysqli_stmt_close($stmt);
 		}
 	} else {
-		$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount, o.status AS offer_status,
+		$sql = "SELECT o.id AS offer_id, o.job_id, o.user_id AS offerer_id, o.amount,
+			       LOWER(COALESCE(o.admin_status, 'pending')) AS admin_status,
+			       LOWER(COALESCE(o.citizen_status, COALESCE(o.status, 'pending'))) AS offer_status,
 			       o.created_at AS offer_created_at,
 			       j.user_id AS owner_id, j.title, COALESCE(j.location,'Online') AS location,
 			       COALESCE(j.date_needed,'Anytime') AS date_needed,
@@ -221,6 +263,7 @@ if (!$db) {
 @mysqli_select_db($db, 'login');
 ensure_chat_table($db);
 ensure_notifications_table($db);
+ensure_offers_review_columns($db);
 
 $viewerId = (int)($_SESSION['user_id'] ?? 0);
 $tab = (($_REQUEST['tab'] ?? 'kasangga') === 'citizen') ? 'citizen' : 'kasangga';
@@ -278,10 +321,15 @@ if ($counterpartyId === $viewerId) {
 }
 
 $offerStatus = strtolower((string)($thread['offer_status'] ?? 'pending'));
+$adminStatus = strtolower((string)($thread['admin_status'] ?? 'pending'));
 
 if ($action === 'decision') {
 	if (!$isOwner) {
 		j(['ok' => false, 'error' => 'Only the post owner can decide on an offer'], 403);
+		exit;
+	}
+	if ($adminStatus !== 'accepted') {
+		j(['ok' => false, 'error' => 'Admin approval is required before citizen decision'], 403);
 		exit;
 	}
 
@@ -291,8 +339,9 @@ if ($action === 'decision') {
 		exit;
 	}
 
-	if ($set = @mysqli_prepare($db, "UPDATE offers SET status = ? WHERE id = ? AND job_id = ?")) {
-		mysqli_stmt_bind_param($set, 'sii', $decision, $offerId, $jobId);
+	if ($set = @mysqli_prepare($db, "UPDATE offers SET citizen_status = ?, status = ? WHERE id = ? AND job_id = ?")) {
+		$legacyStatus = $decision;
+		mysqli_stmt_bind_param($set, 'ssii', $decision, $legacyStatus, $offerId, $jobId);
 		@mysqli_stmt_execute($set);
 		@mysqli_stmt_close($set);
 
@@ -307,6 +356,7 @@ if ($action === 'decision') {
 
 		j([
 			'ok' => true,
+			'admin_status' => $adminStatus,
 			'offer_status' => $decision,
 		]);
 		exit;
@@ -369,6 +419,7 @@ if ($action === 'thread') {
 			'location' => (string)($thread['location'] ?? 'Online'),
 			'date_needed' => (string)($thread['date_needed'] ?? 'Anytime'),
 			'offer_amount' => isset($thread['amount']) ? (float)$thread['amount'] : null,
+			'admin_status' => (string)($thread['admin_status'] ?? 'pending'),
 			'offer_status' => (string)($thread['offer_status'] ?? 'pending'),
 			'viewer_role' => $isOwner ? 'citizen' : 'kasangga',
 			'counterparty_id' => $counterpartyId,
@@ -391,8 +442,12 @@ if ($action === 'thread') {
 }
 
 if ($action === 'send') {
+	if ($adminStatus !== 'accepted') {
+		j(['ok' => false, 'error' => 'Chat is locked until admin approves this offer'], 403);
+		exit;
+	}
 	if ($offerStatus !== 'accepted') {
-		j(['ok' => false, 'error' => 'Chat is locked until the offer is accepted'], 403);
+		j(['ok' => false, 'error' => 'Chat is locked until the citizen accepts this offer'], 403);
 		exit;
 	}
 

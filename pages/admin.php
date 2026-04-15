@@ -859,7 +859,7 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 			<div class="panel list-panel recent-fixed">
 				<div class="panel-head">
 					<h2>Recent offers</h2>
-					<a class="mini-action" href="./chats.php">Manage offers</a>
+					<a class="mini-action" href="./manage-offers.php">Manage offers</a>
 				</div>
 				<p class="subhead">Latest offer activity from the live marketplace.</p>
 				<div class="list-scroll">

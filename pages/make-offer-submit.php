@@ -18,6 +18,23 @@ function notif_has_column($db, string $column): bool {
     return $ok;
 }
 
+function offer_has_column($db, string $column): bool {
+    $col = mysqli_real_escape_string($db, $column);
+    $res = @mysqli_query($db, "SHOW COLUMNS FROM offers LIKE '{$col}'");
+    $ok = ($res && mysqli_num_rows($res) > 0);
+    if ($res) { @mysqli_free_result($res); }
+    return $ok;
+}
+
+function ensure_offer_review_columns($db): void {
+    if (!offer_has_column($db, 'admin_status')) {
+        @mysqli_query($db, "ALTER TABLE offers ADD COLUMN admin_status VARCHAR(20) NOT NULL DEFAULT 'pending' AFTER status");
+    }
+    if (!offer_has_column($db, 'citizen_status')) {
+        @mysqli_query($db, "ALTER TABLE offers ADD COLUMN citizen_status VARCHAR(20) NOT NULL DEFAULT 'pending' AFTER admin_status");
+    }
+}
+
 function ensure_notifications_table($db): void {
     @mysqli_query($db, "CREATE TABLE IF NOT EXISTS notifications (
         id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -48,6 +65,8 @@ function ensure_notifications_table($db): void {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
+    ensure_offer_review_columns($db);
+
     $jobId  = (int)($_POST['job_id'] ?? 0);
     $amount = isset($_POST['amount']) && trim($_POST['amount']) !== '' ? (float)$_POST['amount'] : null;
     
@@ -62,6 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
                 
                 // Notify job owner
                 if ($offerId > 0) {
+                    if ($up = @mysqli_prepare($db, "UPDATE `login`.`offers` SET status = 'pending', admin_status = 'pending', citizen_status = 'pending' WHERE id = ?")) {
+                        mysqli_stmt_bind_param($up, 'i', $offerId);
+                        @mysqli_stmt_execute($up);
+                        @mysqli_stmt_close($up);
+                    }
+
                     $jobOwnerId = 0;
                     if ($g = @mysqli_prepare($db, "SELECT user_id FROM `login`.`jobs` WHERE id = ? LIMIT 1")) {
                         mysqli_stmt_bind_param($g, 'i', $jobId);
