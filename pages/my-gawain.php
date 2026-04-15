@@ -5,6 +5,11 @@ $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : (isset
 // --- Fetch "Offered" data: only offers received on MY posts ---
 require_once __DIR__ . '/../config/db_connect.php';
 $db = $conn ?? $mysqli ?? null;
+$dbName = 'login';
+$dbPrefix = '`' . $dbName . '`.';
+if ($db) {
+	@mysqli_select_db($db, $dbName);
+}
 $viewerId = (int)($_SESSION['user_id'] ?? 0);
 $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered';
 
@@ -24,7 +29,7 @@ function offerer_name(array $r): string {
 
 $offered_list = [];
 if ($tab === 'offered' && $viewerId && $db) {
-	// Only offers received on jobs owned by the current user
+	// Show only offers created by the current user.
 	$sql = "SELECT 
 	            o.id            AS offer_id,
 	            o.job_id        AS job_id,
@@ -39,10 +44,10 @@ if ($tab === 'offered' && $viewerId && $db) {
 	            COALESCE(u.first_name,'') AS offerer_first,
 	            COALESCE(u.last_name,'')  AS offerer_last,
 	            COALESCE(u.avatar,'')     AS offerer_avatar
-	        FROM offers o
-	        JOIN jobs j  ON j.id = o.job_id
-	        LEFT JOIN users u ON u.id = o.user_id
-	        WHERE j.user_id = ?
+	        FROM {$dbPrefix}`offers` o
+	        JOIN {$dbPrefix}`jobs` j  ON j.id = o.job_id
+	        LEFT JOIN {$dbPrefix}`users` u ON u.id = o.user_id
+	        WHERE o.user_id = ?
 	        ORDER BY o.created_at DESC, o.id DESC";
 	if ($st = @mysqli_prepare($db, $sql)) {
 		mysqli_stmt_bind_param($st, 'i', $viewerId);
@@ -59,7 +64,10 @@ if ($tab === 'posted' && $viewerId && $db) {
 	$psql = "SELECT id, title, COALESCE(location,'Online') AS location,
 	         COALESCE(date_needed,'Anytime') AS date_needed,
 	         COALESCE(status,'pending') AS status, posted_at
-	         FROM jobs WHERE user_id = ? ORDER BY posted_at DESC, id DESC";
+	         FROM {$dbPrefix}`jobs`
+	         WHERE user_id = ?
+	           AND LOWER(COALESCE(status,'pending')) = 'approved'
+	         ORDER BY posted_at DESC, id DESC";
 	if ($pst = @mysqli_prepare($db, $psql)) {
 		mysqli_stmt_bind_param($pst, 'i', $viewerId);
 		if (@mysqli_stmt_execute($pst)) {
@@ -130,10 +138,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 
 		/* Replace old tooltip nav with profile.php sidebar nav */
 		.dash-float-nav {
-			position: fixed;
-			top: 0;
-			right: 0;
-			bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			z-index: 1000;
 			display: flex !important;
 			flex-direction: column;
@@ -143,10 +148,8 @@ if ($tab === 'posted' && $viewerId && $db) {
 			border-right: 0;
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px;
-			border-bottom-left-radius: 16px;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+			border-top-left-radius: 0; border-bottom-left-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 			width: 56px;
@@ -251,6 +254,47 @@ if ($tab === 'posted' && $viewerId && $db) {
 		/* Slightly shift content downward for breathing room */
 		.dash-content { margin-top: clamp(12px, 4vh, 28px) !important; }
 
+		/* Empty state: center and push below the fold so background art shows above */
+		.mq-empty {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			gap: 12px;
+			/* push lower on larger screens, keep reasonable on small */
+			margin-top: clamp(18vh, 22vh, 30vh) !important;
+			padding: 0 18px;
+		}
+
+		/* Browse button styling to match mock */
+		.mq-browse {
+			display: inline-block;
+			background: #7cd4c4;
+			color: #0b2c24;
+			padding: 12px 20px;
+			border-radius: 12px;
+			font-weight: 800;
+			text-decoration: none;
+			box-shadow: 0 6px 18px rgba(11,44,36,0.12);
+		}
+
+		/* Filter modal / bottom-sheet styles (page-scoped) */
+		.mq-filter-modal { position: fixed; inset: 0; display: none; z-index: 1200; }
+		.mq-filter-modal[aria-hidden="false"] { display: block; }
+		.mq-filter-backdrop { position: absolute; inset: 0; background: rgba(4,6,8,0.45); }
+		.mq-filter-sheet { position: absolute; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 720px; background: #fff; border-top-left-radius: 18px; border-top-right-radius: 18px; padding: 18px 18px 28px; box-shadow: 0 -12px 40px rgba(2,6,23,.16); }
+		.mq-filter-header { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; margin-bottom: 12px; position: relative; }
+		.mq-filter-title { margin: 0; text-align: center; font-size: 1.05rem; font-weight: 800; }
+		.mq-filter-reset, .mq-filter-close { background: transparent; border: none; color: #374151; font-weight: 600; font-size: .95rem; padding: 6px 8px; cursor: pointer; }
+		.mq-filter-close { font-size: 1.4rem; line-height: 1; }
+
+		.mq-filter-form { display: grid; gap: 14px; }
+		.mq-filter-item { display: flex; gap: 12px; align-items: center; padding: 8px 6px; border-radius: 10px; }
+		.mq-filter-item input[type="checkbox"] { width: 22px; height: 22px; appearance: none; -webkit-appearance: none; border: 2px solid #d1d5db; border-radius: 6px; display: inline-grid; place-items: center; cursor: pointer; }
+		.mq-filter-item input[type="checkbox"]:checked { background: #0b2c24; border-color: #0b2c24; }
+		.mq-filter-item span { color: #0b2c24; font-weight: 500; }
+
+		.mq-filter-apply { margin-top: 8px; width: 100%; background: #111827; color: #fff; border: none; padding: 14px 18px; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
 		/* NEW: simple list styling for Offered cards */
 		.mg-list { max-width: 980px; margin: 12px auto; padding: 0 16px; display: grid; gap: 10px; }
 		.mg-item { background:#fff; border:2px solid #e2e8f0; border-radius:14px; padding:12px; }
@@ -296,17 +340,17 @@ if ($tab === 'posted' && $viewerId && $db) {
 
 	<div class="dash-shell">
 		<main class="dash-content">
-			<header class="mq-header">
+			<header class="mq-header mq-header-centered">
 				<h1 class="mq-title">My Gawain</h1>
-				<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
-					<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
-					<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
-					<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
-				</nav>
-				<div class="mq-filter-row">
-					<button class="mq-filter" id="mqFilterBtn" type="button" aria-haspopup="dialog" aria-controls="mqFilterModal" aria-expanded="false">Filter: <strong id="mqFilterLabel">All</strong></button>
-				</div>
 			</header>
+			<nav class="mq-tabs" role="tablist" aria-label="Gawain tabs">
+				<?php $tab = isset($_GET['tab']) ? $_GET['tab'] : 'offered'; ?>
+				<a class="mq-tab <?php echo $tab==='offered'?'active':''; ?>" href="?tab=offered" role="tab" aria-selected="<?php echo $tab==='offered'?'true':'false'; ?>">Offered</a>
+				<a class="mq-tab <?php echo $tab==='posted'?'active':''; ?>" href="?tab=posted" role="tab" aria-selected="<?php echo $tab==='posted'?'true':'false'; ?>">Posted</a>
+			</nav>
+			<div class="mq-filter-row">
+				<button class="mq-filter" id="mqFilterBtn" type="button" aria-haspopup="dialog" aria-controls="mqFilterModal" aria-expanded="false">Filter: <strong id="mqFilterLabel">All</strong></button>
+			</div>
 
 			<?php if ($tab === 'offered' && !empty($offered_list)): ?>
 			<section class="mg-list" aria-label="Offers" id="offerList">
@@ -317,6 +361,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 					if ($av !== '' && !preg_match('#^https?://#i', $av)) $av = '../' . ltrim($av, '/');
 					$status = strtolower(trim($o['status'] ?? 'pending'));
 					$statusLabel = ucfirst($status);
+					$metaLabel = 'Offer sent';
 					// Map filter checkbox values to actual DB status
 					$filterClass = $status;
 					if ($status === 'accepted') $filterClass = 'inprogress'; // if you want "In-progress" to match accepted
@@ -340,7 +385,7 @@ if ($tab === 'posted' && $viewerId && $db) {
 						</div>
 						<div class="mg-meta">
 							<?php if ($av): ?><img class="mg-av" src="<?php echo e($av); ?>" alt=""><?php endif; ?>
-							Offer received • <?php echo date('M j, Y g:ia', strtotime($o['created_at'])); ?>
+							<?php echo e($metaLabel); ?> • <?php echo date('M j, Y g:ia', strtotime($o['created_at'])); ?>
 						</div>
 					</article>
 				</a>
@@ -350,8 +395,8 @@ if ($tab === 'posted' && $viewerId && $db) {
 		<?php if (!empty($posted_list)): ?>
 		<section class="pg-list" aria-label="Posted jobs">
 			<?php foreach ($posted_list as $j): 
-				$st = strtolower(trim($j['status']));
-				$label = ucfirst($st);
+				$st = 'approved';
+				$label = 'Approved';
 				$link = './gawain-detail.php?id='.(int)$j['id'];
 			?>
 			<a href="<?php echo e($link); ?>" class="mg-link" style="text-decoration:none;">
@@ -370,7 +415,6 @@ if ($tab === 'posted' && $viewerId && $db) {
 					</div>
 					<div class="pg-meta">
 						<span>Posted <?php echo date('M j, Y g:ia', strtotime($j['posted_at'])); ?></span>
-						<?php if ($st === 'pending'): ?><span style="font-weight:700;">Awaiting admin review</span><?php endif; ?>
 					</div>
 				</article>
 			</a>
@@ -378,19 +422,19 @@ if ($tab === 'posted' && $viewerId && $db) {
 		</section>
 		<?php else: ?>
 		<section class="mq-empty" aria-label="Empty posted">
-			<p class="empty-text">You have not posted any quests yet. Create one to see it here pending review.</p>
+			<p class="empty-text">No approved posts yet. Your new posts will appear here after admin approval.</p>
 			<a class="btn mq-browse" href="./post.php">Post a quest</a>
 		</section>
 		<?php endif; ?>
 			<?php else: ?>
 			<section class="mq-empty" aria-label="Empty state">
 				<p class="empty-text">Uh oh! You don't have any activity yet. Head over to the homepage to make offers to gawain that interest you.</p>
-				<a class="btn mq-browse" href="./home-gawain.php">Browse gawain</a>
+				<a class="btn mq-browse" href="./home-gawain.php">Browse Gawain</a>
 			</section>
 			<?php endif; ?>
 
 			<!-- Filter Bottom Sheet Modal -->
-			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true">
+			<div class="mq-filter-modal" id="mqFilterModal" role="dialog" aria-modal="true" aria-labelledby="mqFilterTitle" aria-hidden="true" data-tab="<?php echo $tab; ?>">
 				<div class="mq-filter-backdrop" data-filter-close></div>
 				<div class="mq-filter-sheet" role="document">
 					<div class="mq-filter-header">
@@ -399,10 +443,14 @@ if ($tab === 'posted' && $viewerId && $db) {
 						<button class="mq-filter-close" type="button" aria-label="Close" data-filter-close>&times;</button>
 					</div>
 					<form class="mq-filter-form" id="mqFilterForm">
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="accepted"> <span>In-progress</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
-						<label class="mq-filter-item"><input type="checkbox" name="status" value="rejected"> <span>Cancellations</span></label>
+						<?php if($tab === 'offered'): ?>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="pending"> <span>Pending offers</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="inprogress"> <span>In-progress</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="completed"> <span>Completed</span></label>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="cancelled"> <span>Cancellations</span></label>
+						<?php else: ?>
+							<label class="mq-filter-item"><input type="checkbox" name="status" value="approved"> <span>Approved posts</span></label>
+						<?php endif; ?>
 
 						<button class="mq-filter-apply" id="mqFilterApply" type="button">Apply</button>
 					</form>

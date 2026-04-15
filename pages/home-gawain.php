@@ -129,7 +129,7 @@ if ($dbAvailable) {
 	$max = $_GET['max'] ?? '';
 
 	// base where
-	$where = "WHERE COALESCE(status,'open') IN ('open','pending')";
+	$where = "WHERE LOWER(COALESCE(status,'approved')) IN ('open','pending','approved')";
 
 	// category filter
 	if ($catFilter !== '') {
@@ -180,7 +180,7 @@ if ($dbAvailable) {
 	// include epoch seconds posted_ts for accurate time calculations
 	$sql = "SELECT j.*, 'User' AS display_name, '' AS email, UNIX_TIMESTAMP(j.posted_at) AS posted_ts
 	        FROM jobs j 
-	        WHERE j.status = 'open' 
+	        WHERE LOWER(COALESCE(j.status,'')) IN ('open','approved') 
 	        ORDER BY j.posted_at DESC 
 	        LIMIT 10";
 	
@@ -208,23 +208,32 @@ if ($dbAvailable && $viewerId) {
 	$hasActorCol   = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'actor_id')  : false;
 	// NEW: check comment_id presence
 	$hasCommentCol = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'comment_id') : false;
+	$hasOfferCol   = $hasNotifTable ? db_has_column($mysqli, 'notifications', 'offer_id')   : false;
+	$notifId       = isset($_POST['notification_id']) ? (int)$_POST['notification_id'] : 0;
 
 	// Handle mark as read only when seen_at exists
 	if ($hasNotifTable && $hasSeenCol && $notifAction === 'mark_seen') {
 		@mysqli_query($mysqli, "UPDATE notifications SET seen_at = NOW() WHERE user_id = ".(int)$viewerId." AND seen_at IS NULL");
+	}
+	if ($hasNotifTable && $hasSeenCol && $notifAction === 'mark_one_seen' && $notifId > 0) {
+		@mysqli_query($mysqli, "UPDATE notifications SET seen_at = NOW() WHERE id = ".(int)$notifId." AND user_id = ".(int)$viewerId." AND seen_at IS NULL");
 	}
 
 	if ($hasNotifTable) {
 		// Build SELECT dynamically to avoid unknown column errors
 		$seenSelect    = $hasSeenCol ? 'n.seen_at' : 'NULL AS seen_at';
 		$commentSelect = $hasCommentCol ? 'n.comment_id' : 'NULL AS comment_id';
+		$offerSelect   = $hasOfferCol ? 'n.offer_id' : 'NULL AS offer_id';
 		$joinUsers     = $hasActorCol ? 'LEFT JOIN users u ON u.id = n.actor_id' : 'LEFT JOIN users u ON 1=0'; // force null user fields if actor_id missing
+		$joinOffers    = $hasOfferCol ? 'LEFT JOIN offers o ON o.id = n.offer_id' : 'LEFT JOIN offers o ON 1=0';
 
-		$sqlN = "SELECT n.id, n.created_at, {$seenSelect}, {$commentSelect},
-		                j.id AS job_id, j.title, j.category,
+		$sqlN = "SELECT n.id, n.user_id AS notif_user_id, n.created_at, {$seenSelect}, {$commentSelect}, {$offerSelect},
+		                j.id AS job_id, j.user_id AS job_owner_id, j.title, j.category,
+		                COALESCE(o.status,'') AS offer_status, COALESCE(o.amount,'') AS offer_amount,
 		                u.username, u.first_name, u.last_name
 		         FROM notifications n
 		         JOIN jobs j ON j.id = n.job_id
+		         {$joinOffers}
 		         {$joinUsers}
 		         WHERE n.user_id = ".(int)$viewerId."
 		         ORDER BY n.created_at DESC
@@ -306,15 +315,15 @@ ob_end_flush();
 		.toggle-btn { display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; border:2px solid #e2e8f0; background:#fff; color:#0f172a; cursor:pointer; text-decoration:none; transition: transform .15s ease, box-shadow .15s ease, background .15s ease, border-color .15s ease; }
 		.toggle-btn:hover { background:#f8fafc; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color:#0078a6; }
 		.toggle-btn svg, .toggle-btn img { width:18px; height:18px; }
-		.svc-list { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px; }
+		.svc-list { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; display:grid; gap:10px; grid-template-columns: 1fr !important; }
 		/* Align Recent Posts with above elements */
 		.jobs-feed { max-width: 1100px; margin: 0 auto 18px; padding: 0 16px; }
 		.feed-title { font-weight:800; color:#0f172a; margin: 0 0 8px; }
 		.svc-card { display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:flex-start; background:#fff; border:2px solid #e2e8f0; border-radius:12px; padding:14px 16px; transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease; }
 		.svc-card:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color:#0078a6; }
-		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; }
+		.svc-title { margin:0 0 8px; font-weight:800; color:#0f172a; word-break: break-word; overflow-wrap: break-word; white-space: normal; line-height: 1.3; }
 		.svc-meta { display:flex; flex-wrap:wrap; gap:8px 14px; color:#64748b; font-size:.9rem; }
-		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+		.svc-meta .item { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; overflow: hidden; text-overflow: ellipsis; }
 		.svc-meta .item svg { width:14px; height:14px; }
 		.svc-posted { margin-top:8px; display:flex; align-items:center; gap:8px; color:#94a3b8; font-size:.85rem; }
 		.svc-av { width:22px; height:22px; border-radius:50%; background:#e2e8f0; color:#0f172a; display:grid; place-items:center; font-weight:800; font-size:.75rem; }
@@ -372,7 +381,7 @@ ob_end_flush();
 
 		/* Right-side full-height sidebar nav (from profile.php) */
 		.dash-float-nav {
-			position: fixed; top: 0; right: 0; bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			z-index: 1000;
 			display: flex !important; flex-direction: column; justify-content: flex-start;
 			gap: 8px;
@@ -380,8 +389,8 @@ ob_end_flush();
 			border-right: 0;
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px; border-bottom-left-radius: 16px;
-			border-top-right-radius: 0; border-bottom-right-radius: 0;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+			border-top-left-radius: 0; border-bottom-left-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 			width: 56px; overflow: hidden;
@@ -551,13 +560,45 @@ ob_end_flush();
 											$link .= '#c' . (int)$n['comment_id'];
 										}
 										$bg = empty($n['seen_at']) ? 'background:#f8fbff;' : '';
+										$isUnread = empty($n['seen_at']);
+
+										$actorName = disp_name($n);
+										$isCommentNotif = !empty($n['comment_id']);
+										$isOfferNotif = !$isCommentNotif && !empty($n['offer_id']);
+										$isOwnerRecipient = ((int)($n['notif_user_id'] ?? 0) > 0) && ((int)($n['notif_user_id'] ?? 0) === (int)($n['job_owner_id'] ?? -1));
+										$role = 'citizen';
+										$title = $actorName . ' commented on your post';
+										$meta = trim((string)($n['category'] ?? '')) . ' • ' . trim((string)($n['title'] ?? ''));
+
+										if ($isOfferNotif) {
+											if ($isOwnerRecipient) {
+												$role = 'citizen';
+												$title = $actorName . ' sent an offer on your post';
+												$amount = trim((string)($n['offer_amount'] ?? ''));
+												$meta = trim((string)($n['title'] ?? ''));
+												if ($amount !== '') {
+													$meta .= ' • Offer ₱' . number_format((float)$amount, 2);
+												}
+											} else {
+												$role = 'kasangga';
+												$status = strtolower((string)($n['offer_status'] ?? ''));
+												if ($status === 'accepted') {
+													$title = 'Your offer was accepted';
+												} elseif ($status === 'rejected') {
+													$title = 'Your offer was rejected';
+												} else {
+													$title = 'Your offer was updated';
+												}
+												$meta = trim((string)($n['title'] ?? '')) . ' • From ' . $actorName;
+											}
+										}
 									?>
-									<li class="svc-notify-item" data-role="citizen" style="display:none; <?php echo $bg; ?> position:relative;">
+										<li class="svc-notify-item" data-role="<?php echo e($role); ?>" data-notification-id="<?php echo (int)($n['id'] ?? 0); ?>" data-unread="<?php echo $isUnread ? '1' : '0'; ?>" style="display:none; <?php echo $bg; ?> position:relative;">
 										<!-- Full-item clickable overlay -->
 										<a href="<?php echo e($link); ?>" class="notify-item-link" aria-label="Open post" style="position:absolute; inset:0; z-index:1;"></a>
 										<div>
-											<p class="title"><?php echo e(disp_name($n)); ?> commented on your post</p>
-											<p class="meta"><?php echo e($n['category'] ?? ''); ?> • <?php echo e($n['title'] ?? ''); ?></p>
+											<p class="title"><?php echo e($title); ?></p>
+											<p class="meta"><?php echo e($meta); ?></p>
 										</div>
 										<time class="time"><?php echo e(time_ago(strtotime($n['created_at'] ?? 'now'))); ?></time>
 									</li>
@@ -866,6 +907,7 @@ ob_end_flush();
 		const btn = document.querySelector('.svc-notify-btn');
 		const drawer = document.getElementById('svcNotifyDrawer');
 		const backdrop = document.querySelector('.svc-notify-backdrop');
+		const notifyList = drawer ? drawer.querySelector('.svc-notify-list') : null;
 		if (!btn || !drawer || !backdrop) return;
 
 		function openDrawer(){
@@ -922,6 +964,49 @@ ob_end_flush();
 			const count = parseInt(badge.getAttribute('data-count')||'0',10);
 			badge.textContent = String(count);
 			if (!count) badge.setAttribute('hidden',''); else badge.removeAttribute('hidden');
+		}
+
+		function decrementBadge(){
+			if (!badge) return;
+			const current = parseInt(badge.getAttribute('data-count') || '0', 10) || 0;
+			const next = Math.max(0, current - 1);
+			badge.setAttribute('data-count', String(next));
+			badge.textContent = String(next);
+			if (!next) badge.setAttribute('hidden', ''); else badge.removeAttribute('hidden');
+		}
+
+		function markNotificationSeen(notificationId){
+			const body = new URLSearchParams();
+			body.set('action', 'mark_one_seen');
+			body.set('notification_id', String(notificationId));
+
+			if (navigator.sendBeacon) {
+				navigator.sendBeacon(window.location.href, new Blob([body.toString()], { type: 'application/x-www-form-urlencoded;charset=UTF-8' }));
+				return;
+			}
+
+			fetch(window.location.href, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+				body: body.toString(),
+				keepalive: true
+			}).catch(()=>{});
+		}
+
+		if (notifyList) {
+			notifyList.addEventListener('click', (e)=>{
+				const link = e.target.closest('.notify-item-link');
+				if (!link) return;
+				const item = link.closest('.svc-notify-item');
+				if (!item) return;
+				const unread = item.getAttribute('data-unread') === '1';
+				const notificationId = parseInt(item.getAttribute('data-notification-id') || '0', 10);
+				if (unread && notificationId > 0) {
+					item.setAttribute('data-unread', '0');
+					decrementBadge();
+					markNotificationSeen(notificationId);
+				}
+			});
 		}
 	})();
 	</script>

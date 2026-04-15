@@ -179,6 +179,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 $display = isset($_SESSION['display_name']) ? $_SESSION['display_name'] : 'there';
 $avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
 
+// NEW: fetch avatar (and optionally username/name) from DB for the logged-in user
+$avatar_path = '';
+if ($dbAvailable && $user_id) {
+	if ($st = @mysqli_prepare($mysqli, "SELECT COALESCE(avatar,''), COALESCE(username,''), COALESCE(first_name,''), COALESCE(last_name,'') FROM users WHERE id = ?")) {
+		mysqli_stmt_bind_param($st, 'i', $user_id);
+		@mysqli_stmt_execute($st);
+		@mysqli_stmt_bind_result($st, $db_avatar, $db_username, $db_first, $db_last);
+		if (@mysqli_stmt_fetch($st)) {
+			$avatar_path = $db_avatar ?: '';
+			// Prefer a better display name when available
+			if ($db_username) {
+				$display = $db_username;
+			} elseif ($db_first || $db_last) {
+				$display = trim($db_first . ' ' . $db_last);
+			}
+			// Refresh initial if display changed
+			$avatar = strtoupper(substr(preg_replace('/\s+/', '', $display), 0, 1));
+		}
+		@mysqli_stmt_close($st);
+	}
+}
+
+// helper to get avatar URL or empty string
+function avatar_url_from_db($path){
+	if (!$path) return '';
+	// stored like 'assets/uploads/avatars/xxx.jpg' → page is under /pages, so prefix '../'
+	return '../' . ltrim($path, '/');
+}
+
 /* Fetch recent job posts from users */
 $recentSearches = [];
 if ($dbAvailable) {
@@ -315,6 +344,14 @@ body {
 	font-size: 1.3rem;
 	flex-shrink: 0;
 	box-shadow: 0 4px 12px rgba(0,120,166,.15);
+	overflow: hidden; /* ensure image is clipped to circle */
+}
+.jobs-avatar img {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	object-fit: cover;
+	display: block;
 }
 .jobs-greeting-text {
 	display: flex;
@@ -511,12 +548,16 @@ body {
 	left: 0;
 	width: 100%;
 	height: 100%;
+	--action-side-gap: 20px;
+	--action-max-width: 600px;
+	--action-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
 	background: #fff;
 	z-index: 2000;
 	opacity: 0;
 	visibility: hidden;
 	transition: opacity 0.3s ease, visibility 0.3s ease;
 	overflow-y: auto;
+	scrollbar-gutter: stable;
 	-webkit-overflow-scrolling: touch;
 	contain: layout style paint;
 }
@@ -761,12 +802,12 @@ body {
 
 /* Sub-steps */
 .sub-step {
-	animation: fadeIn 0.3s ease;
+	animation: fadeIn 0.2s ease;
 	min-height: 200px;
 }
 @keyframes fadeIn {
-	from { opacity: 0; transform: translateY(10px); }
-	to { opacity: 1; transform: translateY(0); }
+	from { opacity: 0; }
+	to { opacity: 1; }
 }
 
 /* Question Items */
@@ -1296,10 +1337,12 @@ cursor: pointer;
 	cursor: pointer;
 	transition: all 0.15s ease;
 	position: fixed;
-	bottom: 20px;
-	left: 20px;
-	right: 20px;
-	max-width: 600px;
+	left: 50%;
+	bottom: var(--action-bottom);
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
+	transform: translateX(-50%);
+	z-index: 2100;
 }
 .generate-screening-button:hover {
 	background: #ef4444;
@@ -1334,6 +1377,7 @@ cursor: pointer;
 }
 .modal-button {
 	width: 100%;
+	box-sizing: border-box;
 	background: #cbd5e1;
 	color: #64748b;
 	border: none;
@@ -1355,11 +1399,14 @@ cursor: pointer;
 }
 .modal-button.next-button {
 	position: fixed;
-	bottom: 20px;
-	left: 20px;
-	right: 20px;
-	max-width: 600px;
-	margin: 0 auto;
+	left: 50%;
+	bottom: var(--action-bottom);
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
+	margin: 0;
+	transform: translateX(-50%);
+	z-index: 2100;
+	transition: transform 0.2s ease, bottom 0.2s ease, opacity 0.2s ease;
 }
 .back-button {
 	background: transparent;
@@ -1375,28 +1422,37 @@ cursor: pointer;
 .button-group {
 	position: fixed !important;
 	left: 50% !important;
-	bottom: 80px !important;
-	width: calc(100% - 40px);
-	max-width: 560px;
+	bottom: var(--action-bottom) !important;
+	width: calc(100% - (var(--action-side-gap) * 2));
+	max-width: var(--action-max-width);
 	transform: translateX(-50%) translateZ(0);
 	display: flex;
-	flex-direction: column-reverse;
+	flex-direction: column;
 	gap: 12px;
 	z-index: 2100;
 	background: #fff;
 	padding-top: 12px;
+	transition: transform 0.2s ease, bottom 0.2s ease, opacity 0.2s ease;
 	will-change: transform;
 	backface-visibility: hidden;
 	contain: layout style paint;
 	pointer-events: auto;
 }
 .button-group .modal-button {
+	width: 100%;
+	max-width: none;
 	margin-top: 0 !important;
 	margin-bottom: 0 !important;
 	transform: translateZ(0);
 }
 .button-group .modal-button.next-button {
 	position: static !important;
+	left: auto !important;
+	right: auto !important;
+	bottom: auto !important;
+	width: 100% !important;
+	max-width: none !important;
+	transform: none !important;
 	margin: 0;
 	background: #0f172a;
 	color: #fff;
@@ -1407,7 +1463,7 @@ cursor: pointer;
 
 /* Right-side full-height sidebar nav (from profile.php) */
 .dash-float-nav {
-	position: fixed; top: 0; right: 0; bottom: 0;
+	position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 	z-index: 1000;
 	display: flex !important; flex-direction: column; justify-content: flex-start;
 	gap: 8px;
@@ -1415,8 +1471,8 @@ cursor: pointer;
 	border-right: 0;
 	background: #2596be !important;
 	backdrop-filter: saturate(1.15) blur(12px);
-	border-top-left-radius: 16px; border-bottom-left-radius: 16px;
-	border-top-right-radius: 0; border-bottom-right-radius: 0;
+	border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+	border-top-left-radius: 0; border-bottom-left-radius: 0;
 	box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
 	transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 	width: 56px; overflow: hidden;
@@ -1663,7 +1719,14 @@ cursor: pointer;
 
 	<!-- Greeting with avatar (left) and text (right) -->
 	<div class="jobs-greeting">
-		<div class="jobs-avatar"><?php echo htmlspecialchars($avatar); ?></div>
+		<div class="jobs-avatar">
+			<?php $avatarUrl = avatar_url_from_db($avatar_path); ?>
+			<?php if ($avatarUrl): ?>
+				<img src="<?php echo e($avatarUrl); ?>" alt="Your avatar">
+			<?php else: ?>
+				<?php echo htmlspecialchars($avatar); ?>
+			<?php endif; ?>
+		</div>
 		<div class="jobs-greeting-text">
 			<?php
 			$hour = (int)date('G');
@@ -1815,7 +1878,7 @@ cursor: pointer;
 				</svg>
 				<span class="dash-text">Terms & Conditions</span>
 			</a>
-			<a href="./logout.php" aria-label="Log out">
+			<a href="./profile.php?logout=1" aria-label="Log out">
 				<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 					<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
 					<polyline points="16 17 21 12 16 7"/>
@@ -1907,7 +1970,7 @@ cursor: pointer;
 						</select>
 					</div>
 					
-					<button type="button" class="modal-button next-button" id="nextStep1">Generate task description</button>
+					<button type="button" class="modal-button next-button" id="nextStep1">Next</button>
 				</div>
 
 				<!-- Step 2: Description -->
@@ -1932,15 +1995,8 @@ cursor: pointer;
 							required
 							id="descriptionInput"
 						></textarea>
-						<p class="char-count">Minimum 30 characters</p>
+						<p class="char-count" id="descriptionCharCount">Minimum 30 characters</p>
 						
-						<button type="button" class="generate-button" id="generateBtn">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
-								<path d="M21 3v5h-5"/>
-							</svg>
-							Generate
-						</button>
 						
 						<div class="helper-section">
 							<p class="helper-label">How many helpers do you need?</p>
@@ -2679,6 +2735,9 @@ cursor: pointer;
 		const suggestionPills = document.querySelectorAll('.suggestion-pill');
 		const trendingItems = document.querySelectorAll('.service-item');
 		const titleInput = document.getElementById('titleInput');
+		const descriptionInput = document.getElementById('descriptionInput');
+		const descriptionCharCount = document.getElementById('descriptionCharCount');
+		const MIN_DESCRIPTION_CHARS = 30;
 		
 		// Guard against missing elements
 		if (!modal || !searchInput || !titleInput) {
@@ -2740,6 +2799,22 @@ cursor: pointer;
 				document.body.style.overflow = '';
 			}
 		});
+
+		function updateDescriptionCounter() {
+			if (!descriptionInput || !descriptionCharCount) return;
+			const length = descriptionInput.value.trim().length;
+			if (length === 0) {
+				descriptionCharCount.textContent = `Minimum ${MIN_DESCRIPTION_CHARS} characters`;
+				return;
+			}
+			const left = Math.max(0, MIN_DESCRIPTION_CHARS - length);
+			descriptionCharCount.textContent = `${left} character${left === 1 ? '' : 's'} left`;
+		}
+
+		if (descriptionInput) {
+			descriptionInput.addEventListener('input', updateDescriptionCounter);
+			updateDescriptionCounter();
+		}
 	})();
 	
 	// Helper counter
@@ -3379,6 +3454,7 @@ cursor: pointer;
 		document.getElementById('generateBudgetBtn').addEventListener('click', function() {
 			const hoursVal = parseFloat(document.getElementById('estimatedHoursInput').value || '0');
 			const paymentType = (document.getElementById('paymentTypeInput')?.value || 'one-time');
+		
 			if (!hoursVal || hoursVal <= 0) {
 				alert('Please enter estimated hours.');
 				return;

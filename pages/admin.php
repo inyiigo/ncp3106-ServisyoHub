@@ -1,7 +1,59 @@
 <?php
 session_start();
-// Optional: basic guard
-// if (empty($_SESSION['is_admin'])) { header('Location: ./login.php'); exit; }
+
+// Verify user is logged in
+if (empty($_SESSION['user_id'])) {
+	header('Location: ./login.php');
+	exit;
+}
+
+require_once __DIR__ . '/../config/db_connect.php';
+
+// Verify user is admin
+$user_id = $_SESSION['user_id'];
+if ($stmt = mysqli_prepare($conn, "SELECT role FROM users WHERE id = ?")) {
+	mysqli_stmt_bind_param($stmt, 'i', $user_id);
+	mysqli_stmt_execute($stmt);
+	$res = mysqli_stmt_get_result($stmt);
+	$row = mysqli_fetch_assoc($res);
+	
+	$user_role = isset($row['role']) ? strtolower($row['role']) : 'user';
+	if ($user_role !== 'admin') {
+		header('Location: ./home-gawain.php');
+		exit;
+	}
+	mysqli_stmt_close($stmt);
+}
+
+$db = $conn ?? null;
+
+$totalUsers = 0;
+$activeUsers = 0;
+$pendingVerification = 0;
+$suspendedUsers = 0;
+
+if ($db) {
+	if ($res = @mysqli_query($db, "SELECT COUNT(*) AS c FROM users")) {
+		$row = @mysqli_fetch_assoc($res);
+		$totalUsers = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	if ($res = @mysqli_query($db, "SELECT COUNT(DISTINCT user_id) AS c FROM jobs WHERE LOWER(COALESCE(status,'')) IN ('approved','open')")) {
+		$row = @mysqli_fetch_assoc($res);
+		$activeUsers = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	if ($res = @mysqli_query($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'pending')) = 'pending'")) {
+		$row = @mysqli_fetch_assoc($res);
+		$pendingVerification = (int)($row['c'] ?? 0);
+		@mysqli_free_result($res);
+	}
+
+	// Keep suspended at 0 until a suspension flag/column is added to the users table.
+	$suspendedUsers = 0;
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -208,10 +260,7 @@ session_start();
 
 		/* NEW: floating right-side nav bar */
 		.dash-float-nav {
-	position: fixed;
-	top: 0;
-	right: 0;
-	bottom: 0;
+	position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 	z-index: 1000;
 	display: flex !important;
 	flex-direction: column;
@@ -220,10 +269,8 @@ session_start();
 	padding: 12px 8px 8px 8px;
 	background: #2596be !important;
 	backdrop-filter: saturate(1.15) blur(12px);
-	border-top-left-radius: 16px;
-	border-bottom-left-radius: 16px;
-	border-top-right-radius: 0;
-	border-bottom-right-radius: 0;
+	border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+	border-top-left-radius: 0; border-bottom-left-radius: 0;
 	box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
 	transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 	width: 56px;
@@ -354,23 +401,19 @@ session_start();
 			<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:0;">
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Total Users</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">+0 this month</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$totalUsers; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Active Users</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">0 online</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$activeUsers; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Pending Verification</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">—</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$pendingVerification; ?></div>
 				</div>
 				<div style="display:flex; flex-direction:column; align-items:flex-start; justify-content:center;">
 					<h4 style="margin-bottom:8px; text-align:left;">Suspended</h4>
-					<div class="metric" style="margin-bottom:4px;">0</div>
-					<div class="delta">—</div>
+					<div class="metric" style="margin-bottom:4px;"><?php echo (int)$suspendedUsers; ?></div>
 				</div>
 			</div>
 		</div>

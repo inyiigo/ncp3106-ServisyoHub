@@ -24,6 +24,27 @@ if (!$job) {
 }
 $loc = trim((string)$job['location']) !== '' ? $job['location'] : 'Online';
 $dateLabel = fallback_date_label($job['date_needed']);
+$viewerId = (int)($_SESSION['user_id'] ?? 0);
+$jobOwnerId = 0;
+
+if ($id > 0 && isset($conn) && $conn) {
+  if ($ownerStmt = @mysqli_prepare($conn, "SELECT COALESCE(user_id, 0) AS user_id FROM jobs WHERE id=? LIMIT 1")) {
+    mysqli_stmt_bind_param($ownerStmt, 'i', $id);
+    if (@mysqli_stmt_execute($ownerStmt)) {
+      $ownerRes = @mysqli_stmt_get_result($ownerStmt);
+      if ($ownerRes && ($ownerRow = @mysqli_fetch_assoc($ownerRes))) {
+        $jobOwnerId = (int)($ownerRow['user_id'] ?? 0);
+      }
+    }
+    @mysqli_stmt_close($ownerStmt);
+  }
+}
+
+if ($viewerId && $jobOwnerId && $viewerId === $jobOwnerId) {
+  header('Location: ./chats.php?tab=citizen');
+  exit;
+}
+
 $backHref = './gawain-detail.php' . ($id ? ('?id='.(int)$id) : '');
 ob_end_flush();
 ?>
@@ -135,8 +156,8 @@ ob_end_flush();
     </main>
 
     <div class="offer-footer">
-      <form method="POST" action="./make-offer-submit.php" id="offerForm">
-        <input type="hidden" name="job_id" value="<?php echo $id; ?>" />
+      <form method="GET" action="./make-offer-compose.php" id="offerForm">
+        <input type="hidden" name="id" value="<?php echo (int)$id; ?>" />
         <button type="submit" class="cta" id="offerCta" disabled>I meet the necessary conditions</button>
       </form>
     </div>
@@ -147,7 +168,7 @@ ob_end_flush();
       const c1 = document.getElementById('c1');
       const c2 = document.getElementById('c2');
       const btn = document.getElementById('offerCta');
-  const nextUrl = './make-offer-compose.php' + <?php echo json_encode($id ? ('?id='.(int)$id) : ''); ?>;
+
       function toggle(card){
         const v = card.getAttribute('aria-checked') === 'true';
         card.setAttribute('aria-checked', (!v).toString());
@@ -165,11 +186,12 @@ ob_end_flush();
         const amtok = amountValid();
         btn.disabled = !(c1ok && c2ok && amtok);
       }
+
       [c1,c2].forEach(card => {
         card.addEventListener('click', ()=> toggle(card));
         card.addEventListener('keydown', (e)=>{ if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(card); } });
       });
-      btn.addEventListener('click', ()=>{ window.location.href = nextUrl; });
+
       const amt = document.getElementById('offerAmount');
     amt.addEventListener('input', update);
     update();

@@ -1,13 +1,61 @@
 <?php
 session_start();
-// ...existing code for DB connection if needed...
 
-// Dummy data for pending client posts (replace with DB query)
-$pendingPosts = [
-	['id'=>1, 'client'=>'Juan Dela Cruz', 'title'=>'Need help with moving', 'date'=>'2024-06-05', 'status'=>'Pending'],
-	['id'=>2, 'client'=>'Maria Santos', 'title'=>'Booth staff for pop-up', 'date'=>'2024-06-06', 'status'=>'Pending'],
-	// ...more rows...
-];
+require_once __DIR__ . '/../config/db_connect.php';
+$db = $conn ?? null;
+$posts = [];
+
+if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
+	$action = strtolower(trim((string)($_POST['action'] ?? '')));
+	$postId = (int)($_POST['post_id'] ?? 0);
+	$statusMap = [
+		'approve' => 'approved',
+		'reject' => 'rejected',
+	];
+
+	if ($postId > 0 && isset($statusMap[$action])) {
+		$newStatus = $statusMap[$action];
+		if ($stmt = @mysqli_prepare($db, "UPDATE jobs SET status = ? WHERE id = ? AND LOWER(COALESCE(status,'pending')) = 'pending'")) {
+			mysqli_stmt_bind_param($stmt, 'si', $newStatus, $postId);
+			@mysqli_stmt_execute($stmt);
+			@mysqli_stmt_close($stmt);
+		}
+	}
+
+	header('Location: ./post-approvals.php');
+	exit;
+}
+
+if ($db) {
+	$sql = "SELECT
+		j.id,
+		COALESCE(j.title, 'Untitled') AS title,
+		COALESCE(j.date_needed, DATE(j.posted_at), CURDATE()) AS date_needed,
+		LOWER(COALESCE(j.status, 'pending')) AS status,
+		COALESCE(
+			NULLIF(TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))), ''),
+			NULLIF(u.username, ''),
+			CONCAT('User #', j.user_id)
+		) AS client
+	FROM jobs j
+	LEFT JOIN users u ON u.id = j.user_id
+	ORDER BY
+		CASE LOWER(COALESCE(j.status,'pending'))
+			WHEN 'pending' THEN 0
+			WHEN 'approved' THEN 1
+			WHEN 'rejected' THEN 2
+			ELSE 3
+		END,
+		j.posted_at DESC,
+		j.id DESC";
+
+	if ($res = @mysqli_query($db, $sql)) {
+		while ($row = @mysqli_fetch_assoc($res)) {
+			$posts[] = $row;
+		}
+		@mysqli_free_result($res);
+	}
+}
 ?>
 <!doctype html>
 <html lang="en">
@@ -59,6 +107,7 @@ $pendingPosts = [
 			border-bottom:1px solid rgba(255,255,255,.2); 
 			text-align:left; 
 			font-size:.95rem; 
+			vertical-align: top;
 		}
 		/* Make ID, Client, Title, Date columns black */
 		.table td.id, 
@@ -68,6 +117,14 @@ $pendingPosts = [
 			color: #222 !important;
 			font-weight: 500;
 		}
+		.table td.title {
+			white-space: normal;
+			overflow-wrap: anywhere;
+			word-break: break-word;
+		}
+		.table td.date {
+			white-space: nowrap;
+		}
 		.table th { 
 			font-weight:800; 
 			color: #0b2c24 !important; /* header text color */
@@ -76,6 +133,28 @@ $pendingPosts = [
 		.status-pending {
 			background: #fef3c7;
 			color: #92400e;
+			font-weight: 800;
+			border-radius: 999px;
+			padding: 4px 14px;
+			display: inline-block;
+			font-size: .95rem;
+			letter-spacing: 0.02em;
+			border: none;
+		}
+		.status-approved {
+			background: #dcfce7;
+			color: #166534;
+			font-weight: 800;
+			border-radius: 999px;
+			padding: 4px 14px;
+			display: inline-block;
+			font-size: .95rem;
+			letter-spacing: 0.02em;
+			border: none;
+		}
+		.status-rejected {
+			background: #fee2e2;
+			color: #991b1b;
 			font-weight: 800;
 			border-radius: 999px;
 			padding: 4px 14px;
@@ -110,12 +189,29 @@ $pendingPosts = [
 			border:none; 
 			cursor:pointer; 
 		}
+		.actions-cell {
+			min-width: 120px;
+		}
+		.action-form {
+			display: block;
+			margin: 0 0 8px;
+		}
+		.action-form:last-child {
+			margin-bottom: 0;
+		}
+		.action-form .btn-primary,
+		.action-form .btn-danger {
+			width: 92px;
+			height: 40px;
+			padding: 0 10px;
+			font-size: .95rem;
+			font-weight: 700;
+			line-height: 40px;
+			text-align: center;
+		}
 		/* ...nav bar styles from admin.php... */
 		.dash-float-nav {
-			position: fixed;
-			top: 0;
-			right: 0;
-			bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			z-index: 1000;
 			display: flex !important;
 			flex-direction: column;
@@ -124,10 +220,8 @@ $pendingPosts = [
 			padding: 12px 8px 8px 8px;
 			background: #2596be !important;
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px;
-			border-bottom-left-radius: 16px;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+			border-top-left-radius: 0; border-bottom-left-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
 			width: 56px;
@@ -179,7 +273,7 @@ $pendingPosts = [
 			</svg>
 			<span class="dash-text">Dashboard</span>
 		</a>
-		<a href="./approvals-clients.php" class="active" aria-current="page" aria-label="Post Approvals">
+		<a href="./post-approvals.php" class="active" aria-current="page" aria-label="Post Approvals">
 			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 				<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
 			</svg>
@@ -205,12 +299,12 @@ $pendingPosts = [
 <main class="container">
 	<!-- Title row with left alignment -->
 	<div style="margin-bottom:8px;">
-		<h2 class="section-title" style="margin:0; text-align:left;">Pending Client Posts</h2>
+		<h2 class="section-title" style="margin:0; text-align:left;">Client Posts</h2>
 	</div>
 	<!-- Blue card box copied from admin.php -->
-	<section class="card" aria-label="Pending Client Posts" style="margin-bottom:24px;">
+	<section class="card" aria-label="Client Posts" style="margin-bottom:24px;">
 		<h4 style="margin:0 0 10px; text-align:left;">Approve or Reject Client Posts</h4>
-		<table class="table" aria-label="Pending Client Posts">
+		<table class="table" aria-label="Client Posts">
 			<thead>
 				<tr>
 					<th>ID</th>
@@ -222,29 +316,46 @@ $pendingPosts = [
 				</tr>
 			</thead>
 			<tbody>
-				<?php foreach ($pendingPosts as $post): ?>
+				<?php if (!empty($posts)): ?>
+				<?php foreach ($posts as $post): ?>
 				<tr>
-					<td class="id"><?php echo $post['id']; ?></td>
-					<td class="client"><?php echo htmlspecialchars($post['client']); ?></td>
-					<td class="title"><?php echo htmlspecialchars($post['title']); ?></td>
-					<td class="date"><?php echo htmlspecialchars($post['date']); ?></td>
+					<td class="id"><?php echo (int)$post['id']; ?></td>
+					<td class="client"><?php echo htmlspecialchars((string)$post['client'], ENT_QUOTES); ?></td>
+					<td class="title"><?php echo htmlspecialchars((string)$post['title'], ENT_QUOTES); ?></td>
+					<td class="date"><?php echo htmlspecialchars((string)$post['date_needed'], ENT_QUOTES); ?></td>
 					<td>
-						<span class="status-pending">Pending</span>
+						<?php $st = strtolower((string)($post['status'] ?? 'pending')); ?>
+						<?php if ($st === 'approved'): ?>
+							<span class="status-approved">APPROVED</span>
+						<?php elseif ($st === 'rejected'): ?>
+							<span class="status-rejected">REJECTED</span>
+						<?php else: ?>
+							<span class="status-pending">PENDING</span>
+						<?php endif; ?>
 					</td>
-					<td>
-						<form method="post" style="display:inline">
-							<input type="hidden" name="action" value="approve">
-							<input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-							<button type="submit" class="btn-primary">Approve</button>
-						</form>
-						<form method="post" style="display:inline" onsubmit="return confirm('Reject this post?');">
-							<input type="hidden" name="action" value="reject">
-							<input type="hidden" name="post_id" value="<?php echo $post['id']; ?>">
-							<button type="submit" class="btn-danger">Reject</button>
-						</form>
+					<td class="actions-cell">
+						<?php if ($st === 'pending'): ?>
+							<form method="post" class="action-form">
+								<input type="hidden" name="action" value="approve">
+								<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+								<button type="submit" class="btn-primary">Approve</button>
+							</form>
+							<form method="post" class="action-form" onsubmit="return confirm('Reject this post?');">
+								<input type="hidden" name="action" value="reject">
+								<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+								<button type="submit" class="btn-danger">Reject</button>
+							</form>
+						<?php else: ?>
+							<span style="color:#64748b; font-weight:700;">-</span>
+						<?php endif; ?>
 					</td>
 				</tr>
 				<?php endforeach; ?>
+				<?php else: ?>
+				<tr>
+					<td colspan="6" style="color:#64748b; text-align:center; font-weight:700;">No posts found.</td>
+				</tr>
+				<?php endif; ?>
 			</tbody>
 		</table>
 	</section>

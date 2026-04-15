@@ -307,10 +307,7 @@ $full_name = trim(($first_name ?? '') . ' ' . ($last_name ?? ''));
 
 		/* Right-side full-height sidebar nav (smooth expand on hover) */
 		.dash-float-nav {
-			position: fixed;
-			top: 0;
-			right: 0;
-			bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			z-index: 1000;
 			display: flex !important;
 			flex-direction: column;
@@ -324,10 +321,8 @@ $full_name = trim(($first_name ?? '') . ' ' . ($last_name ?? ''));
 			border-top: 2px solid color-mix(in srgb, #0078a6 75%, #0000); /* explicit top border */
 			background: rgba(255,255,255,.95);
 			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-left-radius: 16px;
-			border-bottom-left-radius: 16px;
-			border-top-right-radius: 0;
-			border-bottom-right-radius: 0;
+			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+			border-top-left-radius: 0; border-bottom-left-radius: 0;
 			box-shadow: 0 8px 24px rgba(0,120,166,.28), 0 0 0 1px rgba(255,255,255,.4) inset;
 			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease; /* removed transform transition */
 			width: 56px;
@@ -427,7 +422,7 @@ $full_name = trim(($first_name ?? '') . ' ' . ($last_name ?? ''));
 		/* Sidebar: stack from top; keep Settings pinned bottom */
 		.dash-float-nav {
 			/* ensure full height at the very top */
-			position: fixed; top: 0; right: 0; bottom: 0;
+			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
 			/* force flex layout so items start at top */
 			display: flex !important;
 			flex-direction: column;
