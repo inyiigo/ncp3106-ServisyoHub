@@ -1,5 +1,10 @@
 <?php
 session_start();
+
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
 require_once "../config/db_connect.php";
 
 if (empty($_SESSION['user_id'])) {
@@ -102,7 +107,7 @@ $result = @mysqli_query($db, "
 		DATE_FORMAT(created_at, '%Y-%m-%d') AS date_registered,
 		LOWER(COALESCE(status, 'pending')) AS status
 	FROM users
-	ORDER BY created_at DESC
+	ORDER BY id DESC
 ");
 if ($result) {
 	while ($row = mysqli_fetch_assoc($result)) {
@@ -230,6 +235,31 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			color: rgba(255,255,255,.68);
 			font-size: .9rem;
 			line-height: 1.5;
+		}
+		.logout-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			width: 100%;
+			margin-top: 14px;
+			padding: 11px 12px;
+			border-radius: 12px;
+			border: 1px solid rgba(255,255,255,.22);
+			background: rgba(239, 68, 68, .18);
+			color: #fff;
+			font-weight: 800;
+			font-size: .9rem;
+			text-decoration: none;
+		}
+		.logout-btn svg {
+			width: 16px;
+			height: 16px;
+			flex: 0 0 16px;
+		}
+		.logout-btn:hover {
+			background: rgba(239, 68, 68, .28);
+			border-color: rgba(255,255,255,.35);
 		}
 		.content { padding: 24px; }
 		.hero {
@@ -531,8 +561,10 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			</a>
 		</nav>
 		<div class="sidebar-footer">
-			Signed in as admin.<br>
-			<a href="./profile.php?logout=1" style="color:#fff; text-decoration:underline;">Log out</a>
+			<a class="logout-btn" href="./logout.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+				<span>Log out</span>
+			</a>
 		</div>
 	</aside>
 

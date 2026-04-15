@@ -1,6 +1,15 @@
 <?php
 session_start();
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
+if (empty($_SESSION['user_id'])) {
+	header('Location: ./login.php');
+	exit;
+}
+
 require_once __DIR__ . '/../config/db_connect.php';
 $db = $conn ?? null;
 $posts = [];
@@ -64,15 +73,7 @@ if ($db) {
 		) AS client
 	FROM jobs j
 	LEFT JOIN users u ON u.id = j.user_id
-	ORDER BY
-		CASE LOWER(COALESCE(j.status,'pending'))
-			WHEN 'pending' THEN 0
-			WHEN 'approved' THEN 1
-			WHEN 'rejected' THEN 2
-			ELSE 3
-		END,
-		j.posted_at DESC,
-		j.id DESC";
+	ORDER BY j.id DESC";
 
 	if ($res = @mysqli_query($db, $sql)) {
 		while ($row = @mysqli_fetch_assoc($res)) {
@@ -190,18 +191,29 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 			margin-top: auto;
 			padding-top: 16px;
 		}
-		.logout-link {
+		.logout-btn {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			padding: 10px 14px;
+			gap: 8px;
+			width: 100%;
+			padding: 11px 12px;
 			border-radius: 12px;
-			background: rgba(255,255,255,.14);
+			border: 1px solid rgba(255,255,255,.22);
+			background: rgba(239, 68, 68, .18);
 			color: #fff;
 			font-weight: 800;
-			border: 1px solid rgba(255,255,255,.16);
+			font-size: .9rem;
 		}
-		.logout-link:hover { background: rgba(255,255,255,.22); }
+		.logout-btn svg {
+			width: 16px;
+			height: 16px;
+			flex: 0 0 16px;
+		}
+		.logout-btn:hover {
+			background: rgba(239, 68, 68, .28);
+			border-color: rgba(255,255,255,.35);
+		}
 
 		.content {
 			padding: 24px;
@@ -465,7 +477,10 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		</nav>
 
 		<div class="sidebar-footer">
-			<a class="logout-link" href="./profile.php?logout=1">Log out</a>
+			<a class="logout-btn" href="./logout.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+				<span>Log out</span>
+			</a>
 		</div>
 	</aside>
 

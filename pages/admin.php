@@ -1,6 +1,10 @@
 <?php
 session_start();
 
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
+
 if (empty($_SESSION['user_id'])) {
 	header('Location: ./login.php');
 	exit;
@@ -167,7 +171,7 @@ if ($totalOffers > 0) {
 }
 
 $recentJobs = db_rows($db, "SELECT id, title, category, COALESCE(location,'') AS location, COALESCE(budget,0) AS budget, LOWER(COALESCE(status,'open')) AS status, posted_at FROM jobs ORDER BY posted_at DESC, id DESC LIMIT 5");
-$recentOffers = db_rows($db, "SELECT o.id, o.job_id, COALESCE(j.title, CONCAT('Job #', o.job_id)) AS job_title, COALESCE(o.amount, 0) AS amount, LOWER(COALESCE(o.status,'pending')) AS status, o.created_at FROM offers o LEFT JOIN jobs j ON j.id = o.job_id ORDER BY o.created_at DESC, o.id DESC LIMIT 5");
+$recentOffers = db_rows($db, "SELECT o.id, o.job_id, COALESCE(j.title, CONCAT('Job #', o.job_id)) AS job_title, COALESCE(o.amount, 0) AS amount, LOWER(COALESCE(o.status,'pending')) AS status, o.created_at FROM offers o LEFT JOIN jobs j ON j.id = o.job_id ORDER BY o.id DESC LIMIT 5");
 $recentComments = db_has_table($db, 'comments') ? db_rows($db, "SELECT c.id, c.job_id, COALESCE(j.title, CONCAT('Job #', c.job_id)) AS job_title, LEFT(c.body, 80) AS body, c.created_at FROM comments c LEFT JOIN jobs j ON j.id = c.job_id ORDER BY c.created_at DESC, c.id DESC LIMIT 5") : [];
 
 $jobApprovedTotal = (int)$jobStatusCounts['approved'] + (int)$jobStatusCounts['open'];
@@ -243,27 +247,23 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 		}
 		.brand {
 			display: flex;
+			flex-direction: column;
 			align-items: center;
-			gap: 12px;
+			gap: 10px;
 			padding: 6px 8px 18px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(255,255,255,.14);
 		}
 		.brand-logo {
-			width: 48px;
-			height: 48px;
-			border-radius: 16px;
-			background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
-			padding: 10px;
-			flex: 0 0 48px;
+			width: 56px;
+			height: 56px;
+			object-fit: contain;
 		}
 		.brand h1 {
 			margin: 0;
-			font-size: 1.1rem;
+			font-size: 1.2rem;
 			line-height: 1.1;
-		}
-		.brand p {
-			margin: 4px 0 0;
-			color: rgba(255,255,255,.68);
-			font-size: .9rem;
+			text-align: center;
 		}
 		.nav {
 			display: grid;
@@ -293,6 +293,30 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 			color: rgba(255,255,255,.68);
 			font-size: .9rem;
 			line-height: 1.5;
+		}
+		.logout-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			width: 100%;
+			margin-top: 14px;
+			padding: 11px 12px;
+			border-radius: 12px;
+			border: 1px solid rgba(255,255,255,.22);
+			background: rgba(239, 68, 68, .18);
+			color: #fff;
+			font-weight: 800;
+			font-size: .9rem;
+		}
+		.logout-btn svg {
+			width: 16px;
+			height: 16px;
+			flex: 0 0 16px;
+		}
+		.logout-btn:hover {
+			background: rgba(239, 68, 68, .28);
+			border-color: rgba(255,255,255,.35);
 		}
 
 		.content {
@@ -339,41 +363,11 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 			max-width: 12ch;
 		}
 		.hero-copy {
-			margin: 14px 0 22px;
+			margin: 14px 0 0;
 			max-width: 58ch;
 			font-size: 1rem;
 			line-height: 1.6;
 			opacity: .92;
-		}
-		.hero-actions {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-		}
-		.hero-actions a,
-		.hero-actions button {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			gap: 10px;
-			padding: 12px 16px;
-			border-radius: 14px;
-			font-weight: 800;
-			border: 0;
-			cursor: pointer;
-		}
-		.hero-actions .primary {
-			background: #fff;
-			color: var(--brand-dark);
-		}
-		.hero-actions .secondary {
-			background: rgba(255,255,255,.14);
-			color: #fff;
-			border: 1px solid rgba(255,255,255,.18);
-		}
-		.hero-actions a:hover,
-		.hero-actions button:hover {
-			transform: translateY(-1px);
 		}
 		.hero-metrics {
 			display: grid;
@@ -559,6 +553,7 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 			border: 1px solid var(--line);
 			box-shadow: 0 10px 22px rgba(2, 6, 23, .05);
 			min-height: 58px;
+			transition: background-color .18s ease, border-color .18s ease, transform .18s ease, box-shadow .18s ease;
 		}
 		.action-card strong {
 			display: block;
@@ -575,7 +570,12 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 			flex: 0 0 20px;
 			color: var(--brand);
 		}
-		.action-card:hover { transform: translateY(-1px); }
+		.action-card:hover {
+			background: #e0f2fe;
+			border-color: #0ea5e9;
+			box-shadow: 0 12px 24px rgba(14, 165, 233, .18);
+			transform: translateY(-1px);
+		}
 
 		.list-panel .table {
 			width: 100%;
@@ -697,11 +697,8 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 <div class="admin-shell">
 	<aside class="sidebar">
 		<div class="brand">
-			<img class="brand-logo" src="../assets/images/newlogo2.png" alt="ServisyoHub">
-			<div>
-				<h1>Admin Console</h1>
-				<p>ServisyoHub marketplace control</p>
-			</div>
+			<img class="brand-logo" src="../assets/images/job_logo.png" alt="ServisyoHub">
+			<h1>Admin Console</h1>
 		</div>
 
 		<nav class="nav" aria-label="Admin navigation">
@@ -724,8 +721,10 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 		</nav>
 
 		<div class="sidebar-footer">
-			<p style="margin:0 0 8px; font-weight:800; color:#fff;">Operations</p>
-			<p style="margin:0;">Keep the marketplace clean, responsive, and visible from one place.</p>
+			<a class="logout-btn" href="./logout.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+				<span>Log out</span>
+			</a>
 		</div>
 	</aside>
 
@@ -735,10 +734,6 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 				<p class="hero-kicker">Admin dashboard</p>
 				<h2 class="hero-title">Marketplace control for ServisyoHub</h2>
 				<p class="hero-copy">Track user growth, post moderation, offers, and service activity from one command center built around this project’s workflow.</p>
-				<div class="hero-actions">
-					<a class="primary" href="./post-approvals.php">Review posts</a>
-					<a class="secondary" href="./manage-users.php">Manage users</a>
-				</div>
 			</div>
 			<div class="hero-metrics">
 				<div class="hero-stat">
@@ -872,6 +867,7 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 						<table class="table">
 							<thead>
 								<tr>
+									<th class="col-center">ID</th>
 									<th>Offer</th>
 									<th class="col-center">Status</th>
 									<th>Amount</th>
@@ -881,9 +877,10 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 								<?php foreach ($recentOffers as $offer): ?>
 									<?php $offerStatus = normalize_status((string)($offer['status'] ?? 'other')); ?>
 									<tr>
+										<td class="col-center">#<?php echo (int)$offer['id']; ?></td>
 										<td>
 											<div style="font-weight:800;"><?php echo h((string)$offer['job_title']); ?></div>
-											<div class="meta-line">#<?php echo (int)$offer['id']; ?> • <?php echo h(date('M j, Y', strtotime((string)$offer['created_at']))); ?></div>
+											<div class="meta-line"><?php echo h(date('M j, Y', strtotime((string)$offer['created_at']))); ?></div>
 										</td>
 										<td class="col-center"><span class="badge <?php echo h($offerStatus); ?>"><?php echo h(pretty_status((string)($offer['status'] ?? 'other'))); ?></span></td>
 										<td class="money"><?php echo h(money_value($offer['amount'] ?? null)); ?></td>
