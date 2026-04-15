@@ -153,7 +153,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		body {
 			min-height: 100%;
 			overflow-x: hidden;
-			overflow-y: auto;
+			overflow-y: scroll;
 		}
 		body {
 			margin: 0;
@@ -172,12 +172,12 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		.sidebar {
 			position: sticky;
 			top: 0;
+			align-self: start;
 			height: 100vh;
 			padding: 24px 18px;
 			background: rgba(7, 17, 24, .90);
 			color: #fff;
 			border-right: 1px solid rgba(255,255,255,.08);
-			backdrop-filter: blur(14px);
 			display: flex;
 			flex-direction: column;
 		}
@@ -395,13 +395,19 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		.table-wrap { padding: 8px 0 0; }
 		.table-wrap + .table-wrap { border-top: 1px solid var(--line); }
 		.table-wrap.scrollable {
+			position: relative;
+			padding-top: 0;
 			max-height: 320px;
 			overflow-y: auto;
 			overflow-x: hidden;
+			overscroll-behavior: contain;
+			scrollbar-gutter: stable both-edges;
+			-webkit-overflow-scrolling: touch;
 		}
 		table {
 			width: 100%;
-			border-collapse: collapse;
+			border-collapse: separate;
+			border-spacing: 0;
 			table-layout: auto;
 		}
 		thead th, section[aria-label="Profile picture review"] thead th {
@@ -416,7 +422,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		.table-wrap.scrollable thead th {
 			position: sticky;
 			top: 0;
-			z-index: 2;
+			z-index: 3;
 			background: #f4f9fc;
 		}
 		tbody td {
@@ -599,6 +605,10 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
 				<span>Manage Users</span>
 			</a>
+			<a href="./manage-offers.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
+				<span>Manage Offers</span>
+			</a>
 		</nav>
 		<div class="sidebar-footer">
 			<a class="logout-btn" href="./logout.php">
@@ -778,6 +788,26 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
+const scrollableTables = document.querySelectorAll('.table-wrap.scrollable');
+
+scrollableTables.forEach((container) => {
+	container.addEventListener('wheel', (event) => {
+		const delta = event.deltaY;
+		if (!delta) {
+			return;
+		}
+
+		const atTop = container.scrollTop <= 0;
+		const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 1;
+
+		// Keep wheel motion inside the table to avoid page+table scroll fighting (jiggle effect).
+		if ((delta < 0 && !atTop) || (delta > 0 && !atBottom)) {
+			event.preventDefault();
+			container.scrollTop += delta;
+		}
+	}, { passive: false });
+});
+
 const userStatusLabels = <?php echo json_encode($userStatusLabels, JSON_UNESCAPED_SLASHES); ?>;
 const userStatusValues = <?php echo json_encode($userStatusData, JSON_UNESCAPED_SLASHES); ?>;
 const userStatusColors = <?php echo json_encode($userStatusColors, JSON_UNESCAPED_SLASHES); ?>;

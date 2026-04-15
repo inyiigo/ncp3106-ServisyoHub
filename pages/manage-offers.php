@@ -168,6 +168,15 @@ if (db_has_table($db, 'offers')) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$action = strtolower(trim((string)($_POST['action'] ?? '')));
 	$offerId = (int)($_POST['offer_id'] ?? 0);
+	if ($offerId > 0 && $action === 'trash') {
+		if ($stmt = @mysqli_prepare($db, "UPDATE offers SET admin_status = 'cancelled', citizen_status = 'cancelled', status = 'cancelled' WHERE id = ?")) {
+			mysqli_stmt_bind_param($stmt, 'i', $offerId);
+			@mysqli_stmt_execute($stmt);
+			@mysqli_stmt_close($stmt);
+		}
+		header('Location: ./manage-offers.php');
+		exit;
+	}
 	$statusMap = [
 		'accept' => 'accepted',
 		'reject' => 'rejected',
@@ -646,14 +655,19 @@ while ($cursor <= $today) {
 		.money { font-weight: 800; color: var(--brand-dark); }
 		.meta { color: var(--muted); font-size: .88rem; margin-top: 4px; }
 		.action-stack {
-			display: grid;
+			display: flex;
+			align-items: center;
+			justify-content: center;
 			gap: 8px;
+			flex-wrap: wrap;
 		}
+		.action-stack form { margin: 0; }
 		.action-btn {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			width: 100%;
+			width: auto;
+			min-width: 88px;
 			height: 34px;
 			padding: 0 10px;
 			border-radius: 10px;
@@ -666,10 +680,24 @@ while ($cursor <= $today) {
 		.action-btn.reject { background: #ef4444; color: #fff; }
 		.action-btn.retrieve { background: #64748b; color: #fff; }
 		.action-btn.undo { background: #334155; color: #fff; }
+		.action-btn.trash {
+			min-width: 34px;
+			width: 34px;
+			padding: 0;
+			background: #ef4444;
+			color: #fff;
+		}
+		.action-btn.trash svg {
+			width: 16px;
+			height: 16px;
+			stroke: currentColor;
+			fill: none;
+		}
 		.action-btn.accept:hover { filter: brightness(.96); }
 		.action-btn.reject:hover { filter: brightness(.94); }
 		.action-btn.retrieve:hover { background: #475569; }
 		.action-btn.undo:hover { background: #1f2937; }
+		.action-btn.trash:hover { filter: brightness(.92); }
 		.action-na { color: var(--muted); font-weight: 700; }
 		.job-link-btn {
 			appearance: none;
@@ -999,17 +1027,35 @@ while ($cursor <= $today) {
 												</form>
 											</div>
 											<?php elseif ($isAccepted): ?>
-												<form method="post" onsubmit="return confirm('Undo admin acceptance for this offer?');">
-													<input type="hidden" name="action" value="undo">
-													<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
-													<button type="submit" class="action-btn undo">Undo</button>
-												</form>
+												<div class="action-stack">
+													<form method="post" onsubmit="return confirm('Undo admin acceptance for this offer?');">
+														<input type="hidden" name="action" value="undo">
+														<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+														<button type="submit" class="action-btn undo">Undo</button>
+													</form>
+													<form method="post" onsubmit="return confirm('Move this offer to trash?');">
+														<input type="hidden" name="action" value="trash">
+														<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+														<button type="submit" class="action-btn trash" aria-label="Trash offer" title="Trash offer">
+															<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 15a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+														</button>
+													</form>
+												</div>
 										<?php elseif ($isDenied): ?>
-											<form method="post" onsubmit="return confirm('Retrieve this denied offer for admin review again?');">
-												<input type="hidden" name="action" value="retrieve">
-												<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
-												<button type="submit" class="action-btn retrieve">Retrieve</button>
-											</form>
+											<div class="action-stack">
+												<form method="post" onsubmit="return confirm('Retrieve this denied offer for admin review again?');">
+													<input type="hidden" name="action" value="retrieve">
+													<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+													<button type="submit" class="action-btn retrieve">Retrieve</button>
+												</form>
+												<form method="post" onsubmit="return confirm('Move this offer to trash?');">
+													<input type="hidden" name="action" value="trash">
+													<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+													<button type="submit" class="action-btn trash" aria-label="Trash offer" title="Trash offer">
+														<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 15a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+													</button>
+												</form>
+											</div>
 										<?php else: ?>
 											<span class="action-na">-</span>
 										<?php endif; ?>
