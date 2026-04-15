@@ -4,6 +4,23 @@ session_start();
 require_once __DIR__ . '/../config/db_connect.php';
 $db = $conn ?? null;
 $posts = [];
+$totalUsers = 0;
+$totalPosts = 0;
+$pendingPosts = 0;
+$approvedPosts = 0;
+$rejectedPosts = 0;
+$inProgressPosts = 0;
+$closedPosts = 0;
+
+function db_count(mysqli $db, string $sql): int {
+	$res = @mysqli_query($db, $sql);
+	if (!$res) {
+		return 0;
+	}
+	$row = @mysqli_fetch_assoc($res);
+	@mysqli_free_result($res);
+	return (int)($row['c'] ?? 0);
+}
 
 if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$action = strtolower(trim((string)($_POST['action'] ?? '')));
@@ -27,6 +44,14 @@ if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($db) {
+	$totalUsers = db_count($db, "SELECT COUNT(*) AS c FROM users");
+	$totalPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs");
+	$pendingPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'pending')) = 'pending'");
+	$approvedPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'approved')) IN ('approved','open')");
+	$rejectedPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'')) = 'rejected'");
+	$inProgressPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(REPLACE(REPLACE(COALESCE(status,''), '-', ' '), '_', ' ')) = 'in progress'");
+	$closedPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'')) = 'closed'");
+
 	$sql = "SELECT
 		j.id,
 		COALESCE(j.title, 'Untitled') AS title,
@@ -56,6 +81,16 @@ if ($db) {
 		@mysqli_free_result($res);
 	}
 }
+
+$postStatusLabels = ['Pending', 'Approved', 'Rejected', 'In Progress', 'Closed'];
+$postStatusData = [
+	(int)$pendingPosts,
+	(int)$approvedPosts,
+	(int)$rejectedPosts,
+	(int)$inProgressPosts,
+	(int)$closedPosts,
+];
+$postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 ?>
 <!doctype html>
 <html lang="en">
@@ -65,300 +100,529 @@ if ($db) {
 	<meta name="viewport" content="width=device-width,initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/styles.css">
 	<style>
-		/* ...copy styles from admin.php... */
-		body { background: #ffffff !important; }
-		.container { max-width: 980px; margin: 24px auto; padding: 18px; position: relative; z-index: 1; }
-		.section-title { margin: 4px 4px 2px; color: #64748b; font-weight: 800; font-size: .95rem; }
-		.card { 
-			background: linear-gradient(135deg, rgba(255,255,255,0.97) 70%, rgba(37,150,190,0.08) 100%);
-			color: #2596be;
-			border-radius: 28px;
-			padding: 36px 32px 24px 32px;
-			box-shadow: 0 16px 40px rgba(37,150,190,.22), 0 2px 12px rgba(0,0,0,.10);
-			border: 2px solid #b6e6f7;
-			height: 480px;
-			overflow: hidden;
+		:root {
+			--brand: #0078a6;
+			--brand-dark: #0b2c24;
+			--bg: #f3f8fb;
+			--surface: rgba(255,255,255,.88);
+			--line: rgba(15, 23, 42, .08);
+			--text: #0f172a;
+			--muted: #64748b;
+			--shadow: 0 18px 50px rgba(2, 6, 23, .10);
+		}
+		* { box-sizing: border-box; }
+		html, body { min-height: 100%; }
+		body {
+			margin: 0;
+			font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at top left, rgba(0,120,166,.14), transparent 30%),
+				radial-gradient(circle at right top, rgba(124,212,196,.22), transparent 28%),
+				linear-gradient(180deg, #f7fbfd 0%, #eef7fb 100%);
+		}
+		a { color: inherit; text-decoration: none; }
+
+		.admin-shell {
+			display: grid;
+			grid-template-columns: 280px minmax(0, 1fr);
+			min-height: 100vh;
+		}
+		.sidebar {
+			position: sticky;
+			top: 0;
+			height: 100vh;
+			padding: 24px 18px;
+			background: rgba(7, 17, 24, .90);
+			color: #fff;
+			border-right: 1px solid rgba(255,255,255,.08);
+			backdrop-filter: blur(14px);
 			display: flex;
 			flex-direction: column;
-			backdrop-filter: blur(10px) saturate(1.18);
-			transition: box-shadow .22s, transform .22s, border-color .22s;
+		}
+		.brand {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 6px 8px 18px;
+		}
+		.brand-logo {
+			width: 48px;
+			height: 48px;
+			border-radius: 16px;
+			background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
+			padding: 10px;
+			flex: 0 0 48px;
+		}
+		.brand h1 {
+			margin: 0;
+			font-size: 1.1rem;
+			line-height: 1.1;
+		}
+		.brand p {
+			margin: 4px 0 0;
+			color: rgba(255,255,255,.68);
+			font-size: .9rem;
+		}
+		.nav {
+			display: grid;
+			gap: 8px;
+			margin-top: 18px;
+		}
+		.nav a {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 12px 14px;
+			border-radius: 14px;
+			color: rgba(255,255,255,.86);
+			border: 1px solid transparent;
+			font-weight: 700;
+		}
+		.nav a.active {
+			background: rgba(255,255,255,.12);
+			border-color: rgba(255,255,255,.14);
+			color: #fff;
+		}
+		.nav a:hover { background: rgba(255,255,255,.08); }
+		.nav svg { width: 18px; height: 18px; flex: 0 0 18px; }
+		.sidebar-footer {
+			margin-top: auto;
+			padding-top: 16px;
+		}
+		.logout-link {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 14px;
+			border-radius: 12px;
+			background: rgba(255,255,255,.14);
+			color: #fff;
+			font-weight: 800;
+			border: 1px solid rgba(255,255,255,.16);
+		}
+		.logout-link:hover { background: rgba(255,255,255,.22); }
+
+		.content {
+			padding: 24px;
+		}
+		.hero {
+			background: linear-gradient(135deg, rgba(0,120,166,.97), rgba(14,116,162,.84));
+			color: #fff;
+			border-radius: 24px;
+			padding: 20px 22px;
+			box-shadow: var(--shadow);
+			margin-bottom: 18px;
+		}
+		.hero h2 {
+			margin: 0;
+			font-size: clamp(1.2rem, 2vw, 1.8rem);
+			font-weight: 900;
+		}
+		.hero p {
+			margin: 8px 0 0;
+			opacity: .92;
+		}
+		.stats-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 12px;
+			margin-bottom: 18px;
+		}
+		.stat-card {
+			background: var(--surface);
+			border: 1px solid rgba(255,255,255,.8);
+			border-radius: 18px;
+			padding: 14px;
+			box-shadow: var(--shadow);
+		}
+		.stat-card .label {
+			font-size: .74rem;
+			font-weight: 800;
+			text-transform: uppercase;
+			letter-spacing: .1em;
+			color: var(--muted);
+		}
+		.stat-card .value {
+			margin-top: 8px;
+			font-size: 1.7rem;
+			font-weight: 900;
+			line-height: 1;
+		}
+		.stat-card .hint {
+			margin-top: 6px;
+			font-size: .86rem;
+			color: var(--muted);
+		}
+
+		.overview-grid {
+			display: grid;
+			grid-template-columns: 1.1fr .9fr;
+			gap: 14px;
+			margin-bottom: 18px;
+		}
+		.chart-card {
+			background: #fff;
+			border: 1px solid var(--line);
+			border-radius: 16px;
+			padding: 14px;
+		}
+		.chart-card h4 {
+			margin: 0 0 10px;
+			font-size: .84rem;
+			letter-spacing: .1em;
+			text-transform: uppercase;
+			color: var(--muted);
+		}
+		.chart-wrap {
 			position: relative;
+			height: 260px;
 		}
-		.card::before {
-			content: "";
-			position: absolute;
-			inset: 0;
-			border-radius: 28px;
-			pointer-events: none;
-			background: linear-gradient(120deg, rgba(124,212,196,0.08) 0%, rgba(37,150,190,0.10) 100%);
-			z-index: 0;
+		.quick-stats {
+			display: grid;
+			gap: 10px;
 		}
-		.card > * { position: relative; z-index: 1; }
-		.card:hover {
-			box-shadow: 0 24px 64px rgba(37,150,190,.28), 0 6px 24px rgba(0,0,0,.14);
-			transform: translateY(-3px) scale(1.015);
-			border-color: #7cd4c4;
+		.quick-item {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 12px;
+			border-radius: 12px;
+			border: 1px solid var(--line);
+			background: #fff;
 		}
-		.card h4 { margin:0 0 10px; font-size:1.12rem; color:#2596be; letter-spacing:0.03em; font-weight: 800; } /* match text color */
-		.table { width:100%; border-collapse:collapse; margin-top:12px; }
-		.table thead { position: sticky; top: 0; background: #2596be; z-index: 1; }
-		.table th, .table td { 
-			padding:12px; 
-			border-bottom:1px solid rgba(255,255,255,.2); 
-			text-align:left; 
-			font-size:.95rem; 
+		.quick-item .name {
+			font-weight: 700;
+			color: #334155;
+		}
+		.quick-item .num {
+			font-weight: 900;
+		}
+
+		.panel {
+			background: var(--surface);
+			border: 1px solid rgba(255,255,255,.8);
+			border-radius: 24px;
+			box-shadow: var(--shadow);
+			padding: 20px;
+		}
+		.panel-head {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 10px;
+			margin-bottom: 10px;
+		}
+		.panel-head h3 {
+			margin: 0;
+			font-size: 1.08rem;
+		}
+		.chip {
+			display: inline-flex;
+			align-items: center;
+			padding: 6px 10px;
+			border-radius: 999px;
+			background: #e0f2fe;
+			color: #075985;
+			font-size: .8rem;
+			font-weight: 800;
+		}
+		.subhead {
+			margin: 0 0 12px;
+			color: var(--muted);
+			font-size: .95rem;
+			line-height: 1.5;
+		}
+
+		.table-wrap {
+			max-height: 62vh;
+			overflow: auto;
+			border-radius: 16px;
+			border: 1px solid var(--line);
+			background: #fff;
+		}
+		.table {
+			width: 100%;
+			border-collapse: collapse;
+		}
+		.table thead th {
+			position: sticky;
+			top: 0;
+			background: #f7fbfd;
+			z-index: 1;
+		}
+		.table th,
+		.table td {
+			padding: 12px 10px;
+			border-bottom: 1px solid var(--line);
+			text-align: left;
+			font-size: .94rem;
 			vertical-align: top;
 		}
-		/* Make ID, Client, Title, Date columns black */
-		.table td.id, 
-		.table td.client, 
-		.table td.title, 
-		.table td.date {
-			color: #222 !important;
-			font-weight: 500;
+		.table th {
+			font-size: .76rem;
+			text-transform: uppercase;
+			letter-spacing: .1em;
+			color: var(--muted);
 		}
 		.table td.title {
-			white-space: normal;
 			overflow-wrap: anywhere;
 			word-break: break-word;
 		}
-		.table td.date {
+		.table td.date,
+		.table td.status-cell,
+		.table td.id {
 			white-space: nowrap;
 		}
-		.table th { 
-			font-weight:800; 
-			color: #0b2c24 !important; /* header text color */
-		}
-		/* Status pill for Pending */
-		.status-pending {
-			background: #fef3c7;
-			color: #92400e;
-			font-weight: 800;
+
+		.status-pill {
+			display: inline-flex;
+			align-items: center;
+			padding: 5px 12px;
 			border-radius: 999px;
-			padding: 4px 14px;
-			display: inline-block;
-			font-size: .95rem;
-			letter-spacing: 0.02em;
-			border: none;
-		}
-		.status-approved {
-			background: #dcfce7;
-			color: #166534;
+			font-size: .78rem;
 			font-weight: 800;
-			border-radius: 999px;
-			padding: 4px 14px;
-			display: inline-block;
-			font-size: .95rem;
-			letter-spacing: 0.02em;
-			border: none;
+			letter-spacing: .02em;
 		}
-		.status-rejected {
-			background: #fee2e2;
-			color: #991b1b;
-			font-weight: 800;
-			border-radius: 999px;
-			padding: 4px 14px;
-			display: inline-block;
-			font-size: .95rem;
-			letter-spacing: 0.02em;
-			border: none;
-		}
-		.card .table tbody {
-			display: block;
-			max-height: 370px; /* scrollable area inside card */
-			overflow-y: auto;
-			width: 100%;
-		}
-		.card .table thead, .card .table tfoot {
-			display: table;
-			width: 100%;
-			table-layout: fixed;
-		}
-		.card .table tr {
-			display: table;
-			width: 100%;
-			table-layout: fixed;
-		}
-		.btn-ghost { background: #fff; border: 1px solid rgba(255,255,255,.3); color: #0078a6; padding:8px 10px; border-radius:10px; cursor:pointer; text-decoration:none; }
-		.btn-danger { background:#ef4444; color:#fff; padding:8px 10px; border-radius:10px; border:none; cursor:pointer; }
-		.btn-primary { 
-			background: #7cd4c4; /* updated color */
-			color: #0b2c24;      /* updated text color */
-			padding:8px 10px; 
-			border-radius:10px; 
-			border:none; 
-			cursor:pointer; 
-		}
+		.status-pending { background: #fef3c7; color: #92400e; }
+		.status-approved { background: #dcfce7; color: #166534; }
+		.status-rejected { background: #fee2e2; color: #991b1b; }
+
 		.actions-cell {
-			min-width: 120px;
+			min-width: 132px;
 		}
-		.action-form {
-			display: block;
-			margin: 0 0 8px;
-		}
-		.action-form:last-child {
-			margin-bottom: 0;
-		}
-		.action-form .btn-primary,
-		.action-form .btn-danger {
-			width: 92px;
-			height: 40px;
-			padding: 0 10px;
-			font-size: .95rem;
-			font-weight: 700;
-			line-height: 40px;
-			text-align: center;
-		}
-		/* ...nav bar styles from admin.php... */
-		.dash-float-nav {
-			position: fixed; top: 0; left: 0; right: auto; bottom: 0;
-			z-index: 1000;
-			display: flex !important;
-			flex-direction: column;
-			justify-content: flex-start;
+		.action-stack {
+			display: grid;
 			gap: 8px;
-			padding: 12px 8px 8px 8px;
-			background: #2596be !important;
-			backdrop-filter: saturate(1.15) blur(12px);
-			border-top-right-radius: 16px; border-bottom-right-radius: 16px;
-			border-top-left-radius: 0; border-bottom-left-radius: 0;
-			box-shadow: 0 8px 24px rgba(0,0,0,.24) !important;
-			transition: width .3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow .2s ease;
-			width: 56px;
-			overflow: hidden;
 		}
-		.dash-float-nav:hover { width: 200px; box-shadow: 0 12px 32px rgba(0,0,0,.32) !important; }
-		.dash-float-nav .nav-brand { display: grid; place-items: center; position: relative; height: 56px; padding: 6px 0; }
-		.dash-float-nav .nav-brand a { display:block; width:100%; height:100%; position:relative; text-decoration:none; }
-		.dash-float-nav .nav-brand img {
-			position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-			display:block; object-fit:contain; pointer-events:none;
-			transition: opacity .25s ease, transform .25s ease, width .3s ease;
+		.action-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 36px;
+			padding: 0 10px;
+			border-radius: 10px;
+			font-size: .86rem;
+			font-weight: 800;
+			border: 0;
+			cursor: pointer;
 		}
-		.dash-float-nav .nav-brand .logo-small { width:26px; height:auto; opacity:1; }
-		.dash-float-nav .nav-brand .logo-wide { width:160px; height:auto; opacity:0; }
-		.dash-float-nav:hover .nav-brand .logo-small { opacity:0; transform:translate(-50%,-50%) scale(.96); }
-		.dash-float-nav:hover .nav-brand .logo-wide { opacity:1; transform:translate(-50%,-50%) scale(1); }
-		.dash-float-nav > .nav-main { display:grid; gap:8px; align-content:start; }
-		.dash-float-nav > .nav-settings { margin-top:auto; display:grid; gap:8px; }
-		.dash-float-nav a {
-			position: relative;
-			width: 40px; height: 40px;
-			display: grid; grid-template-columns: 40px 1fr; place-items: center; align-items: center;
-			border-radius: 12px; color: #fff !important; text-decoration: none; outline: none; white-space: nowrap;
-			transition: background .2s ease, color .2s ease, box-shadow .2s ease, transform .2s ease, width .3s cubic-bezier(0.4,0,0.2,1);
+		.action-btn.approve { background: #7cd4c4; color: #0b2c24; }
+		.action-btn.reject { background: #ef4444; color: #fff; }
+		.action-btn.approve:hover { filter: brightness(.96); }
+		.action-btn.reject:hover { filter: brightness(.94); }
+		.action-na { color: var(--muted); font-weight: 700; }
+
+		@media (max-width: 1000px) {
+			.admin-shell { grid-template-columns: 1fr; }
+			.sidebar {
+				position: static;
+				height: auto;
+				border-right: 0;
+				border-bottom: 1px solid rgba(255,255,255,.08);
+			}
+			.nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.overview-grid { grid-template-columns: 1fr; }
 		}
-		.dash-float-nav:hover a { width: 184px; }
-		.dash-float-nav a:hover:not(.active) { background: rgba(255,255,255,.15) !important; transform: scale(1.05); }
-		.dash-float-nav a:focus-visible { box-shadow: 0 0 0 3px rgba(255,255,255,.3); }
-		.dash-float-nav a.active { background: rgba(255,255,255,.22) !important; color: #fff !important; box-shadow: 0 6px 18px rgba(0,0,0,.22) !important; }
-		.dash-float-nav a.active::after { display: none !important; }
-		.dash-float-nav .dash-icon { width: 18px; height: 18px; justify-self: center; }
-		.dash-float-nav .dash-text { opacity: 0; transform: translateX(-10px); transition: opacity .3s cubic-bezier(0.4,0,0.2,1) .1s, transform .3s cubic-bezier(0.4,0,0.2,1) .1s; font-weight: 800; font-size: .85rem; color: inherit; justify-self: start; padding-left: 8px; }
-		.dash-float-nav:hover .dash-text { opacity: 1; transform: translateX(0); }
+		@media (max-width: 680px) {
+			.content { padding: 14px; }
+			.panel, .hero { border-radius: 18px; }
+			.table th, .table td { font-size: .88rem; padding: 10px 8px; }
+			.stats-grid { grid-template-columns: 1fr; }
+		}
 	</style>
 </head>
 <body>
-<nav class="dash-float-nav" id="dashNav">
-	<div class="nav-brand">
-		<a>
-			<img class="logo-small" src="../assets/images/job_logo.png" alt="ServisyoHub">
-			<img class="logo-wide" src="../assets/images/newlogo2.png" alt="ServisyoHub">
-		</a>
-	</div>
-	<div class="nav-main">
-		<a href="./admin.php" aria-label="Dashboard">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/>
-			</svg>
-			<span class="dash-text">Dashboard</span>
-		</a>
-		<a href="./post-approvals.php" class="active" aria-current="page" aria-label="Post Approvals">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>
-			</svg>
-			<span class="dash-text">Post Approvals</span>
-		</a>
-		<a href="./manage-users.php" aria-label="Manage Users">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/>
-			</svg>
-			<span class="dash-text">Manage Users</span>
-		</a>
-	</div>
-	<div class="nav-settings">
-		<a href="./profile.php?logout=1" aria-label="Log out">
-			<svg class="dash-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<path d="M15 3h4v4M14 10l5-5M9 7H7a4 4 0 0 0-4 4v5a4 4 0 0 0 4 4h5a4 4 0 0 0 4-4v-2"/>
-			</svg>
-			<span class="dash-text">Log out</span>
-		</a>
-	</div>
-</nav>
+<div class="admin-shell">
+	<aside class="sidebar">
+		<div class="brand">
+			<img class="brand-logo" src="../assets/images/newlogo2.png" alt="ServisyoHub">
+			<div>
+				<h1>Admin Console</h1>
+				<p>ServisyoHub marketplace control</p>
+			</div>
+		</div>
 
-<main class="container">
-	<!-- Title row with left alignment -->
-	<div style="margin-bottom:8px;">
-		<h2 class="section-title" style="margin:0; text-align:left;">Client Posts</h2>
-	</div>
-	<!-- Blue card box copied from admin.php -->
-	<section class="card" aria-label="Client Posts" style="margin-bottom:24px;">
-		<h4 style="margin:0 0 10px; text-align:left;">Approve or Reject Client Posts</h4>
-		<table class="table" aria-label="Client Posts">
-			<thead>
-				<tr>
-					<th>ID</th>
-					<th>Client</th>
-					<th>Title</th>
-					<th>Date</th>
-					<th>Status</th>
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				<?php if (!empty($posts)): ?>
-				<?php foreach ($posts as $post): ?>
-				<tr>
-					<td class="id"><?php echo (int)$post['id']; ?></td>
-					<td class="client"><?php echo htmlspecialchars((string)$post['client'], ENT_QUOTES); ?></td>
-					<td class="title"><?php echo htmlspecialchars((string)$post['title'], ENT_QUOTES); ?></td>
-					<td class="date"><?php echo htmlspecialchars((string)$post['date_needed'], ENT_QUOTES); ?></td>
-					<td>
-						<?php $st = strtolower((string)($post['status'] ?? 'pending')); ?>
-						<?php if ($st === 'approved'): ?>
-							<span class="status-approved">APPROVED</span>
-						<?php elseif ($st === 'rejected'): ?>
-							<span class="status-rejected">REJECTED</span>
+		<nav class="nav" aria-label="Admin navigation">
+			<a href="./admin.php" aria-label="Dashboard">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>
+				<span>Dashboard</span>
+			</a>
+			<a href="./post-approvals.php" class="active" aria-current="page" aria-label="Post Approvals">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+				<span>Post approvals</span>
+			</a>
+			<a href="./manage-users.php" aria-label="Manage users">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+				<span>Manage users</span>
+			</a>
+			<a href="./pencil-booking.php" aria-label="Pencil booking">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+				<span>Pencil booking</span>
+			</a>
+		</nav>
+
+		<div class="sidebar-footer">
+			<a class="logout-link" href="./profile.php?logout=1">Log out</a>
+		</div>
+	</aside>
+
+	<main class="content">
+		<section class="hero">
+			<h2>Post Approvals</h2>
+			<p>Review pending client job posts and decide which listings go live in the marketplace.</p>
+		</section>
+
+		<section class="stats-grid" aria-label="Post approval metrics">
+			<div class="stat-card">
+				<div class="label">Total Users</div>
+				<div class="value"><?php echo (int)$totalUsers; ?></div>
+				<div class="hint">Registered accounts</div>
+			</div>
+			<div class="stat-card">
+				<div class="label">Total Posts</div>
+				<div class="value"><?php echo (int)$totalPosts; ?></div>
+				<div class="hint">All job listings</div>
+			</div>
+			<div class="stat-card">
+				<div class="label">Pending Posts</div>
+				<div class="value"><?php echo (int)$pendingPosts; ?></div>
+				<div class="hint">Waiting for review</div>
+			</div>
+			<div class="stat-card">
+				<div class="label">Approved Posts</div>
+				<div class="value"><?php echo (int)$approvedPosts; ?></div>
+				<div class="hint">Live or approved listings</div>
+			</div>
+		</section>
+
+		<section class="panel" aria-label="Post overview" style="margin-bottom:18px;">
+			<div class="panel-head">
+				<h3>Post Status Overview</h3>
+				<span class="chip">Live snapshot</span>
+			</div>
+			<p class="subhead">Track moderation outcomes and current listing states before processing new approvals.</p>
+			<div class="overview-grid">
+				<div class="chart-card">
+					<h4>Post Status Graph</h4>
+					<div class="chart-wrap"><canvas id="postStatusChart"></canvas></div>
+				</div>
+				<div class="quick-stats">
+					<div class="quick-item"><span class="name">Pending</span><span class="num"><?php echo (int)$pendingPosts; ?></span></div>
+					<div class="quick-item"><span class="name">Approved</span><span class="num"><?php echo (int)$approvedPosts; ?></span></div>
+					<div class="quick-item"><span class="name">Rejected</span><span class="num"><?php echo (int)$rejectedPosts; ?></span></div>
+					<div class="quick-item"><span class="name">In Progress</span><span class="num"><?php echo (int)$inProgressPosts; ?></span></div>
+					<div class="quick-item"><span class="name">Closed</span><span class="num"><?php echo (int)$closedPosts; ?></span></div>
+				</div>
+			</div>
+		</section>
+
+		<section class="panel" aria-label="Client Posts">
+			<div class="panel-head">
+				<h3>Approve or Reject Client Posts</h3>
+				<span class="chip"><?php echo count($posts); ?> total</span>
+			</div>
+			<p class="subhead">Pending posts are prioritized first. Approved and rejected records remain visible for quick auditing.</p>
+
+			<div class="table-wrap">
+				<table class="table" aria-label="Client Posts">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Client</th>
+							<th>Title</th>
+							<th>Date</th>
+							<th>Status</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php if (!empty($posts)): ?>
+						<?php foreach ($posts as $post): ?>
+						<tr>
+							<td class="id"><?php echo (int)$post['id']; ?></td>
+							<td class="client"><?php echo htmlspecialchars((string)$post['client'], ENT_QUOTES); ?></td>
+							<td class="title"><?php echo htmlspecialchars((string)$post['title'], ENT_QUOTES); ?></td>
+							<td class="date"><?php echo htmlspecialchars((string)$post['date_needed'], ENT_QUOTES); ?></td>
+							<td class="status-cell">
+								<?php $st = strtolower((string)($post['status'] ?? 'pending')); ?>
+								<?php if ($st === 'approved'): ?>
+									<span class="status-pill status-approved">APPROVED</span>
+								<?php elseif ($st === 'rejected'): ?>
+									<span class="status-pill status-rejected">REJECTED</span>
+								<?php else: ?>
+									<span class="status-pill status-pending">PENDING</span>
+								<?php endif; ?>
+							</td>
+							<td class="actions-cell">
+								<?php if ($st === 'pending'): ?>
+									<div class="action-stack">
+										<form method="post">
+											<input type="hidden" name="action" value="approve">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn approve">Approve</button>
+										</form>
+										<form method="post" onsubmit="return confirm('Reject this post?');">
+											<input type="hidden" name="action" value="reject">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn reject">Reject</button>
+										</form>
+									</div>
+								<?php else: ?>
+									<span class="action-na">-</span>
+								<?php endif; ?>
+							</td>
+						</tr>
+						<?php endforeach; ?>
 						<?php else: ?>
-							<span class="status-pending">PENDING</span>
+						<tr>
+							<td colspan="6" style="color:#64748b; text-align:center; font-weight:700;">No posts found.</td>
+						</tr>
 						<?php endif; ?>
-					</td>
-					<td class="actions-cell">
-						<?php if ($st === 'pending'): ?>
-							<form method="post" class="action-form">
-								<input type="hidden" name="action" value="approve">
-								<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
-								<button type="submit" class="btn-primary">Approve</button>
-							</form>
-							<form method="post" class="action-form" onsubmit="return confirm('Reject this post?');">
-								<input type="hidden" name="action" value="reject">
-								<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
-								<button type="submit" class="btn-danger">Reject</button>
-							</form>
-						<?php else: ?>
-							<span style="color:#64748b; font-weight:700;">-</span>
-						<?php endif; ?>
-					</td>
-				</tr>
-				<?php endforeach; ?>
-				<?php else: ?>
-				<tr>
-					<td colspan="6" style="color:#64748b; text-align:center; font-weight:700;">No posts found.</td>
-				</tr>
-				<?php endif; ?>
-			</tbody>
-		</table>
-	</section>
-</main>
+					</tbody>
+				</table>
+			</div>
+		</section>
+	</main>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+const postStatusLabels = <?php echo json_encode($postStatusLabels, JSON_UNESCAPED_SLASHES); ?>;
+const postStatusValues = <?php echo json_encode($postStatusData, JSON_UNESCAPED_SLASHES); ?>;
+const postStatusColors = <?php echo json_encode($postStatusColors, JSON_UNESCAPED_SLASHES); ?>;
+
+const chartEl = document.getElementById('postStatusChart');
+if (chartEl) {
+	const hasData = postStatusValues.some((value) => value > 0);
+	new Chart(chartEl, {
+		type: 'doughnut',
+		data: {
+			labels: hasData ? postStatusLabels : ['No data'],
+			datasets: [{
+				data: hasData ? postStatusValues : [1],
+				backgroundColor: hasData ? postStatusColors : ['#cbd5e1'],
+				borderWidth: 0,
+				hoverOffset: 4,
+			}],
+		},
+		options: {
+			maintainAspectRatio: false,
+			plugins: {
+				legend: {
+					position: 'bottom',
+					labels: {
+						usePointStyle: true,
+						padding: 14,
+						boxWidth: 10,
+					},
+				},
+			},
+			cutout: '64%',
+		},
+	});
+}
+</script>
 </body>
 </html>

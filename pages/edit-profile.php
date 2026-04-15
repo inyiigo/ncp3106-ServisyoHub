@@ -17,6 +17,17 @@ if (isset($mysqli) && $mysqli instanceof mysqli && !$mysqli->connect_error) {
 	$errors[] = 'Database not available.';
 }
 
+if ($dbAvailable) {
+	$avatarStatusColumnExists = false;
+	if ($colRes = @mysqli_query($mysqli, "SHOW COLUMNS FROM users LIKE 'avatar_status'")) {
+		$avatarStatusColumnExists = (@mysqli_num_rows($colRes) > 0);
+		@mysqli_free_result($colRes);
+	}
+	if (!$avatarStatusColumnExists) {
+		@mysqli_query($mysqli, "ALTER TABLE users ADD COLUMN avatar_status VARCHAR(20) NOT NULL DEFAULT 'pending' AFTER avatar");
+	}
+}
+
 // helper
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
 
@@ -140,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 			$pwHash = password_hash($password, PASSWORD_DEFAULT);
 			// include avatar if uploaded
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, avatar=?, skills=? WHERE id=?");
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, avatar=?, avatar_status='pending', skills=? WHERE id=?");
 				$upd->bind_param('ssssssssis',$username,$first_name,$last_name,$email,$mobile,$address,$pwHash,$newAvatarPath,$skills,$user_id);
 			} else {
 				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, password=?, skills=? WHERE id=?");
@@ -148,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$not_logged_in && $dbAvailable) {
 			}
 		} else {
 			if ($newAvatarPath !== '') {
-				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, avatar=?, skills=? WHERE id=?");
+				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, avatar=?, avatar_status='pending', skills=? WHERE id=?");
 				$upd->bind_param('ssssssssi',$username,$first_name,$last_name,$email,$mobile,$address,$newAvatarPath,$skills,$user_id);
 			} else {
 				$upd = $mysqli->prepare("UPDATE users SET username=?, first_name=?, last_name=?, email=?, mobile=?, address=?, skills=? WHERE id=?");
