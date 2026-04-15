@@ -12,6 +12,7 @@ if (empty($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../config/db_connect.php';
 $db = $conn ?? null;
+$focusPostId = max(0, (int)($_GET['job_id'] ?? 0));
 $posts = [];
 $totalUsers = 0;
 $totalPosts = 0;
@@ -425,6 +426,11 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		.action-btn.approve:hover { filter: brightness(.96); }
 		.action-btn.reject:hover { filter: brightness(.94); }
 		.action-na { color: var(--muted); font-weight: 700; }
+		.row-focus {
+			background: rgba(0, 120, 166, .14);
+			outline: 2px solid #0078a6;
+			outline-offset: -2px;
+		}
 
 		@media (max-width: 1000px) {
 			.admin-shell { grid-template-columns: 1fr; }
@@ -556,7 +562,7 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 					<tbody>
 						<?php if (!empty($posts)): ?>
 						<?php foreach ($posts as $post): ?>
-						<tr>
+						<tr id="job-row-<?php echo (int)$post['id']; ?>"<?php echo $focusPostId === (int)$post['id'] ? ' class="row-focus"' : ''; ?>>
 							<td class="id"><?php echo (int)$post['id']; ?></td>
 							<td class="client"><?php echo htmlspecialchars((string)$post['client'], ENT_QUOTES); ?></td>
 							<td class="title"><?php echo htmlspecialchars((string)$post['title'], ENT_QUOTES); ?></td>
@@ -607,6 +613,7 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 const postStatusLabels = <?php echo json_encode($postStatusLabels, JSON_UNESCAPED_SLASHES); ?>;
 const postStatusValues = <?php echo json_encode($postStatusData, JSON_UNESCAPED_SLASHES); ?>;
 const postStatusColors = <?php echo json_encode($postStatusColors, JSON_UNESCAPED_SLASHES); ?>;
+const focusPostId = <?php echo (int)$focusPostId; ?>;
 
 const chartEl = document.getElementById('postStatusChart');
 if (chartEl) {
@@ -637,6 +644,13 @@ if (chartEl) {
 			cutout: '64%',
 		},
 	});
+}
+
+if (focusPostId > 0) {
+	const row = document.getElementById(`job-row-${focusPostId}`);
+	if (row) {
+		row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}
 }
 </script>
 </body>

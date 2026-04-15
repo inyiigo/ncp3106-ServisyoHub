@@ -44,6 +44,18 @@ if (!$dbAvailable) {
 }
 
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
+
+function db_has_column(mysqli $db, string $table, string $column): bool {
+	$table = mysqli_real_escape_string($db, $table);
+	$column = mysqli_real_escape_string($db, $column);
+	$res = @mysqli_query($db, "SHOW COLUMNS FROM `{$table}` LIKE '{$column}'");
+	if (!$res) {
+		return false;
+	}
+	$exists = @mysqli_num_rows($res) > 0;
+	@mysqli_free_result($res);
+	return $exists;
+}
 $errors = [];
 $success = '';
 $not_logged_in = empty($_SESSION['user_id']);
@@ -101,6 +113,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 	$estimated_hours = floatval($_POST['estimated_hours'] ?? 0);
 	$budget = floatval($_POST['budget'] ?? 0);
 	$additional_cost = floatval($_POST['additional_cost'] ?? 0);
+	$task_image = '';
+	$taskImageAbsPath = '';
 	
 	// Calculate fees
 	$booking_fee = round($budget * 0.1107, 2);
@@ -122,57 +136,170 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 	if ($budget <= 0) $errors[] = 'Budget is required.';
 	if ($estimated_hours <= 0) $errors[] = 'Estimated hours is required.';
 
-	if (empty($errors)) {
-		$sql = "INSERT INTO jobs (
-			user_id, title, category, description, location, budget, date_needed, status, posted_at,
-			helpers_needed, starting_location, ending_location,
-			urgency, time_preference, specific_time, time_range_start, time_range_end,
-			payment_type, estimated_hours, additional_cost,
-			requirements, make_mandatory
-		) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-		if ($stmt = mysqli_prepare($mysqli, $sql)) {
-			mysqli_stmt_bind_param(
-				$stmt,
-				'issssdsisssssssddssi',  // FIXED: Removed one 's' (was 22, now 21)
-				$user_id,                    // i
-				$title,                      // s
-				$category,                   // s
-				$description,                // s
-				$location,                   // s
-				$budget,                     // d
-				$date_needed,                // s
-				$helpers_needed,             // i
-				$starting_location,          // s
-				$ending_location,            // s
-				$urgency,                    // s
-				$time_preference,            // s
-				$specific_time,              // s
-				$time_range_start,           // s
-				$time_range_end,             // s
-				$payment_type,               // s
-				$estimated_hours,            // d
-				$additional_cost,            // d
-				$requirements,               // s
-				$make_mandatory              // i
-			);
-
-			if (mysqli_stmt_execute($stmt)) {
-				$job_id = mysqli_insert_id($mysqli);
-				// Redirect to My Gawain -> Posted tab to show pending job
-				header('Location: ./my-gawain.php?tab=posted');
-				exit;
-			} else {
-				$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
-				error_log("✗ INSERT FAILED: " . mysqli_stmt_error($stmt));
-			}
-			mysqli_stmt_close($stmt);
+	// Optional task image upload
+	if (isset($_FILES['task_image']) && (int)($_FILES['task_image']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+		$file = $_FILES['task_image'];
+		if ((int)$file['error'] !== UPLOAD_ERR_OK) {
+			$errors[] = 'Task image upload failed.';
 		} else {
-			$errors[] = 'Database error: ' . mysqli_error($mysqli);
-			error_log("✗ PREPARE FAILED: " . mysqli_error($mysqli));
+			$finfo = finfo_open(FILEINFO_MIME_TYPE);
+			$mime = $finfo ? finfo_file($finfo, $file['tmp_name']) : '';
+			if ($finfo) {
+				finfo_close($finfo);
+			}
+
+			$allowedMimes = [
+				'image/jpeg' => 'jpg',
+				'image/png' => 'png',
+				'image/webp' => 'webp',
+				'image/gif' => 'gif',
+			];
+
+			$maxBytes = 5 * 1024 * 1024;
+			if (!isset($allowedMimes[$mime])) {
+				$errors[] = 'Only JPG, PNG, WEBP, and GIF images are allowed.';
+			} elseif ((int)$file['size'] <= 0 || (int)$file['size'] > $maxBytes) {
+				$errors[] = 'Task image must be 5 MB or smaller.';
+			} else {
+				$uploadDir = __DIR__ . '/../assets/uploads/services';
+				if (!is_dir($uploadDir)) {
+					@mkdir($uploadDir, 0755, true);
+				}
+				$ext = $allowedMimes[$mime];
+				$fileName = 'task_' . ($user_id ?? 0) . '_' . time() . '_' . mt_rand(1000, 9999) . '.' . $ext;
+				$taskImageAbsPath = $uploadDir . '/' . $fileName;
+				if (!@move_uploaded_file($file['tmp_name'], $taskImageAbsPath)) {
+					$errors[] = 'Failed to save task image.';
+				} else {
+					$task_image = 'assets/uploads/services/' . $fileName;
+				}
+			}
+		}
+	}
+
+	if (empty($errors)) {
+		$jobImageColumn = '';
+		if (db_has_column($mysqli, 'jobs', 'image_path')) {
+			$jobImageColumn = 'image_path';
+		} elseif (db_has_column($mysqli, 'jobs', 'task_image')) {
+			$jobImageColumn = 'task_image';
+		}
+
+		if ($task_image !== '' && $jobImageColumn === '') {
+			@mysqli_query($mysqli, "ALTER TABLE jobs ADD COLUMN task_image VARCHAR(255) NULL AFTER additional_cost");
+			if (db_has_column($mysqli, 'jobs', 'task_image')) {
+				$jobImageColumn = 'task_image';
+			}
+		}
+
+		if ($task_image !== '' && $jobImageColumn === '') {
+			$errors[] = 'Unable to save task image metadata right now.';
+			if ($taskImageAbsPath !== '' && is_file($taskImageAbsPath)) {
+				@unlink($taskImageAbsPath);
+			}
+			$task_image = '';
+		}
+
+		if (empty($errors)) {
+			if ($jobImageColumn !== '') {
+				$sql = "INSERT INTO jobs (
+					user_id, title, category, description, location, budget, date_needed, status, posted_at,
+					helpers_needed, starting_location, ending_location,
+					urgency, time_preference, specific_time, time_range_start, time_range_end,
+					payment_type, estimated_hours, additional_cost, {$jobImageColumn},
+					requirements, make_mandatory
+				) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+				if ($stmt = mysqli_prepare($mysqli, $sql)) {
+					mysqli_stmt_bind_param(
+						$stmt,
+						'issssdsissssssssddssi',
+						$user_id,
+						$title,
+						$category,
+						$description,
+						$location,
+						$budget,
+						$date_needed,
+						$helpers_needed,
+						$starting_location,
+						$ending_location,
+						$urgency,
+						$time_preference,
+						$specific_time,
+						$time_range_start,
+						$time_range_end,
+						$payment_type,
+						$estimated_hours,
+						$additional_cost,
+						$task_image,
+						$requirements,
+						$make_mandatory
+					);
+				} else {
+					$errors[] = 'Database error: ' . mysqli_error($mysqli);
+					error_log("✗ PREPARE FAILED: " . mysqli_error($mysqli));
+				}
+			} else {
+				$sql = "INSERT INTO jobs (
+					user_id, title, category, description, location, budget, date_needed, status, posted_at,
+					helpers_needed, starting_location, ending_location,
+					urgency, time_preference, specific_time, time_range_start, time_range_end,
+					payment_type, estimated_hours, additional_cost,
+					requirements, make_mandatory
+				) VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+				if ($stmt = mysqli_prepare($mysqli, $sql)) {
+					mysqli_stmt_bind_param(
+						$stmt,
+						'issssdsisssssssddssi',
+						$user_id,
+						$title,
+						$category,
+						$description,
+						$location,
+						$budget,
+						$date_needed,
+						$helpers_needed,
+						$starting_location,
+						$ending_location,
+						$urgency,
+						$time_preference,
+						$specific_time,
+						$time_range_start,
+						$time_range_end,
+						$payment_type,
+						$estimated_hours,
+						$additional_cost,
+						$requirements,
+						$make_mandatory
+					);
+				} else {
+					$errors[] = 'Database error: ' . mysqli_error($mysqli);
+					error_log("✗ PREPARE FAILED: " . mysqli_error($mysqli));
+				}
+			}
+
+			if (!empty($stmt) && $stmt instanceof mysqli_stmt) {
+				if (mysqli_stmt_execute($stmt)) {
+					$job_id = mysqli_insert_id($mysqli);
+					header('Location: ./my-gawain.php?tab=posted');
+					exit;
+				} else {
+					$errors[] = 'Unable to publish: ' . mysqli_stmt_error($stmt);
+					error_log("✗ INSERT FAILED: " . mysqli_stmt_error($stmt));
+					if ($taskImageAbsPath !== '' && is_file($taskImageAbsPath)) {
+						@unlink($taskImageAbsPath);
+					}
+				}
+				mysqli_stmt_close($stmt);
+			}
 		}
 	} else {
 		error_log("✗ Validation errors: " . implode(', ', $errors));
+		if ($taskImageAbsPath !== '' && is_file($taskImageAbsPath)) {
+			@unlink($taskImageAbsPath);
+		}
 	}
 }
 
@@ -1926,7 +2053,7 @@ cursor: pointer;
 		</div>
 
 		<!-- Modal Form -->
-		<form id="postForm" method="POST" action="">
+		<form id="postForm" method="POST" action="" enctype="multipart/form-data">
 			<div class="modal-content">
 				<!-- Step 1: Title -->
 				<div class="modal-step active" data-step="1">
