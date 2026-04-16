@@ -183,34 +183,23 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		}
 		.brand {
 			display: flex;
+			flex-direction: column;
 			align-items: center;
-			gap: 12px;
+			gap: 10px;
 			padding: 6px 8px 18px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(255,255,255,.14);
 		}
 		.brand-logo {
-			width: 48px;
-			height: 48px;
-			border-radius: 16px;
-			background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
-			padding: 10px;
-			flex: 0 0 48px;
-			overflow: hidden;
-		}
-		.brand-logo img {
-			width: 100%;
-			height: 100%;
-			display: block;
 			object-fit: contain;
+			width: 56px;
+			height: 56px;
 		}
 		.brand h1 {
 			margin: 0;
-			font-size: 1.08rem;
+			font-size: 1.2rem;
 			line-height: 1.1;
-		}
-		.brand p {
-			margin: 4px 0 0;
-			color: rgba(255,255,255,.68);
-			font-size: .9rem;
+			text-align: center;
 		}
 		.nav {
 			display: grid;
@@ -566,7 +555,7 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 		.view-link:hover { filter: brightness(.95); }
 		@media (max-width: 1200px) {
 			.admin-shell { grid-template-columns: 80px minmax(0, 1fr); }
-			.brand h1, .brand p, .nav span, .sidebar-footer { display: none; }
+				.brand h1, .nav span, .sidebar-footer { display: none; }
 			.nav a { justify-content: center; }
 		}
 		@media (max-width: 980px) {
@@ -586,11 +575,8 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 <div class="admin-shell">
 	<aside class="sidebar" aria-label="Admin navigation">
 		<div class="brand">
-			<div class="brand-logo"><img src="../assets/images/newlogo2.png" alt="ServisyoHub"></div>
-			<div>
-				<h1>ServisyoHub</h1>
-				<p>Admin tools</p>
-			</div>
+			<img class="brand-logo" src="../assets/images/job_logo.png" alt="ServisyoHub">
+			<h1>Admin Console</h1>
 		</div>
 		<nav class="nav">
 			<a href="./admin.php">
@@ -608,6 +594,14 @@ $userStatusColors = ['#0ea5e9', '#f59e0b', '#ef4444'];
 			<a href="./manage-offers.php">
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
 				<span>Manage Offers</span>
+			</a>
+			<a href="./documents.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+				<span>Documents</span>
+			</a>
+			<a href="./archive.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+				<span>Archive</span>
 			</a>
 		</nav>
 		<div class="sidebar-footer">

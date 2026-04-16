@@ -130,6 +130,102 @@ if (!$missingImageColumn) {
 			background: linear-gradient(180deg, #f6fbfe 0%, #edf7fb 100%);
 			font-family: Montserrat, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 		}
+		a { color: inherit; text-decoration: none; }
+		img { max-width: 100%; }
+
+		.admin-shell {
+			display: grid;
+			grid-template-columns: 280px minmax(0, 1fr);
+			min-height: 100vh;
+		}
+		.sidebar {
+			position: sticky;
+			top: 0;
+			height: 100vh;
+			padding: 24px 18px;
+			background: rgba(7, 17, 24, .90);
+			color: #fff;
+			border-right: 1px solid rgba(255,255,255,.08);
+			backdrop-filter: blur(14px);
+			display: flex;
+			flex-direction: column;
+		}
+		.brand {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 10px;
+			padding: 6px 8px 18px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(255,255,255,.14);
+		}
+		.brand-logo {
+			width: 56px;
+			height: 56px;
+			object-fit: contain;
+		}
+		.brand h1 {
+			margin: 0;
+			font-size: 1.2rem;
+			line-height: 1.1;
+			text-align: center;
+		}
+		.nav {
+			display: grid;
+			gap: 8px;
+			margin-top: 18px;
+		}
+		.nav a {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			padding: 12px 14px;
+			border-radius: 14px;
+			color: rgba(255,255,255,.86);
+			border: 1px solid transparent;
+			font-weight: 700;
+		}
+		.nav a.active {
+			background: rgba(255,255,255,.12);
+			border-color: rgba(255,255,255,.14);
+			color: #fff;
+		}
+		.nav a:hover { background: rgba(255,255,255,.08); }
+		.nav svg { width: 18px; height: 18px; flex: 0 0 18px; }
+		.sidebar-footer {
+			margin-top: auto;
+			padding-top: 16px;
+			color: rgba(255,255,255,.68);
+			font-size: .9rem;
+			line-height: 1.5;
+		}
+		.logout-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 8px;
+			width: 100%;
+			margin-top: 14px;
+			padding: 11px 12px;
+			border-radius: 12px;
+			border: 1px solid rgba(255,255,255,.22);
+			background: rgba(239, 68, 68, .18);
+			color: #fff;
+			font-weight: 800;
+			font-size: .9rem;
+		}
+		.logout-btn svg {
+			width: 16px;
+			height: 16px;
+			flex: 0 0 16px;
+		}
+		.logout-btn:hover {
+			background: rgba(239, 68, 68, .28);
+			border-color: rgba(255,255,255,.35);
+		}
+		.content {
+			padding: 10px 0;
+		}
 		.page {
 			max-width: 1100px;
 			margin: 0 auto;
@@ -318,6 +414,15 @@ if (!$missingImageColumn) {
 			background: rgba(255, 255, 255, .7);
 		}
 		@media (max-width: 820px) {
+			.admin-shell { grid-template-columns: 1fr; }
+			.sidebar {
+				position: static;
+				height: auto;
+				border-right: 0;
+				border-bottom: 1px solid rgba(255,255,255,.08);
+			}
+			.nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.content { padding: 0; }
 			.hero-card {
 				flex-direction: column;
 				align-items: flex-start;
@@ -337,6 +442,51 @@ if (!$missingImageColumn) {
 	</style>
 </head>
 <body>
+	<?php if ($isAdmin): ?>
+	<div class="admin-shell">
+		<aside class="sidebar">
+			<div class="brand">
+				<img class="brand-logo" src="../assets/images/job_logo.png" alt="ServisyoHub">
+				<h1>Admin Console</h1>
+			</div>
+
+			<nav class="nav" aria-label="Admin navigation">
+				<a href="./admin.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 13h8V3H3v10Zm10 8h8V3h-8v18ZM3 21h8v-6H3v6Z"/></svg>
+					<span>Dashboard</span>
+				</a>
+				<a href="./post-approvals.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+					<span>Post approvals</span>
+				</a>
+				<a href="./manage-users.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
+					<span>Manage users</span>
+				</a>
+				<a href="./manage-offers.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
+					<span>Manage offers</span>
+				</a>
+				<a href="./documents.php" class="active" aria-current="page">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+					<span>Documents</span>
+				</a>
+				<a href="./archive.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+					<span>Archive</span>
+				</a>
+			</nav>
+
+			<div class="sidebar-footer">
+				<a class="logout-btn" href="./logout.php">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+					<span>Log out</span>
+				</a>
+			</div>
+		</aside>
+
+		<main class="content">
+	<?php endif; ?>
 	<div class="page">
 		<div class="hero-card" aria-label="Documents header">
 			<div class="hero-content">
@@ -406,5 +556,9 @@ if (!$missingImageColumn) {
 			<?php endif; ?>
 		</div>
 	</div>
+	<?php if ($isAdmin): ?>
+		</main>
+	</div>
+	<?php endif; ?>
 </body>
 </html>

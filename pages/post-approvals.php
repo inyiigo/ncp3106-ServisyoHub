@@ -40,6 +40,16 @@ if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 		'reject' => 'rejected',
 	];
 
+	if ($postId > 0 && $action === 'delete') {
+		if ($stmt = @mysqli_prepare($db, "UPDATE jobs SET status = 'deleted' WHERE id = ? AND LOWER(COALESCE(status,'')) = 'rejected'")) {
+			mysqli_stmt_bind_param($stmt, 'i', $postId);
+			@mysqli_stmt_execute($stmt);
+			@mysqli_stmt_close($stmt);
+		}
+		header('Location: ./post-approvals.php');
+		exit;
+	}
+
 	if ($postId > 0 && isset($statusMap[$action])) {
 		$newStatus = $statusMap[$action];
 		if ($stmt = @mysqli_prepare($db, "UPDATE jobs SET status = ? WHERE id = ? AND LOWER(COALESCE(status,'pending')) = 'pending'")) {
@@ -144,27 +154,23 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		}
 		.brand {
 			display: flex;
+			flex-direction: column;
 			align-items: center;
-			gap: 12px;
+			gap: 10px;
 			padding: 6px 8px 18px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(255,255,255,.14);
 		}
 		.brand-logo {
-			width: 48px;
-			height: 48px;
-			border-radius: 16px;
-			background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
-			padding: 10px;
-			flex: 0 0 48px;
+			width: 56px;
+			height: 56px;
+			object-fit: contain;
 		}
 		.brand h1 {
 			margin: 0;
-			font-size: 1.1rem;
+			font-size: 1.2rem;
 			line-height: 1.1;
-		}
-		.brand p {
-			margin: 4px 0 0;
-			color: rgba(255,255,255,.68);
-			font-size: .9rem;
+			text-align: center;
 		}
 		.nav {
 			display: grid;
@@ -400,6 +406,7 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		.status-pending { background: #fef3c7; color: #92400e; }
 		.status-approved { background: #dcfce7; color: #166534; }
 		.status-rejected { background: #fee2e2; color: #991b1b; }
+		.status-deleted { background: #e2e8f0; color: #334155; }
 
 		.actions-cell {
 			min-width: 132px;
@@ -423,8 +430,20 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		}
 		.action-btn.approve { background: #7cd4c4; color: #0b2c24; }
 		.action-btn.reject { background: #ef4444; color: #fff; }
+		.action-btn.delete {
+			background: #334155;
+			color: #fff;
+			gap: 6px;
+		}
+		.action-btn.delete svg {
+			width: 14px;
+			height: 14px;
+			stroke: currentColor;
+			fill: none;
+		}
 		.action-btn.approve:hover { filter: brightness(.96); }
 		.action-btn.reject:hover { filter: brightness(.94); }
+		.action-btn.delete:hover { background: #1f2937; }
 		.action-na { color: var(--muted); font-weight: 700; }
 		.row-focus {
 			background: rgba(0, 120, 166, .14);
@@ -456,11 +475,8 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 <div class="admin-shell">
 	<aside class="sidebar">
 		<div class="brand">
-			<img class="brand-logo" src="../assets/images/newlogo2.png" alt="ServisyoHub">
-			<div>
-				<h1>Admin Console</h1>
-				<p>ServisyoHub marketplace control</p>
-			</div>
+			<img class="brand-logo" src="../assets/images/job_logo.png" alt="ServisyoHub">
+			<h1>Admin Console</h1>
 		</div>
 
 		<nav class="nav" aria-label="Admin navigation">
@@ -476,9 +492,17 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
 				<span>Manage users</span>
 			</a>
-			<a href="./pencil-booking.php" aria-label="Pencil booking">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-				<span>Pencil booking</span>
+			<a href="./manage-offers.php" aria-label="Manage offers">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
+				<span>Manage offers</span>
+			</a>
+			<a href="./documents.php" aria-label="Documents">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+				<span>Documents</span>
+			</a>
+			<a href="./archive.php" aria-label="Archive">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+				<span>Archive</span>
 			</a>
 		</nav>
 
@@ -573,6 +597,8 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 									<span class="status-pill status-approved">APPROVED</span>
 								<?php elseif ($st === 'rejected'): ?>
 									<span class="status-pill status-rejected">REJECTED</span>
+									<?php elseif ($st === 'deleted'): ?>
+										<span class="status-pill status-deleted">DELETED</span>
 								<?php else: ?>
 									<span class="status-pill status-pending">PENDING</span>
 								<?php endif; ?>
@@ -589,6 +615,17 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 											<input type="hidden" name="action" value="reject">
 											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
 											<button type="submit" class="action-btn reject">Reject</button>
+										</form>
+									</div>
+								<?php elseif ($st === 'rejected'): ?>
+									<div class="action-stack">
+										<form method="post" onsubmit="return confirm('Delete this rejected post? It will move to Archive.');">
+											<input type="hidden" name="action" value="delete">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn delete" title="Delete post">
+												<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M6 6l1 15a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-15"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+												<span>Delete</span>
+											</button>
 										</form>
 									</div>
 								<?php else: ?>

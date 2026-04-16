@@ -718,9 +718,13 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
 				<span>Manage offers</span>
 			</a>
-			<a href="./pencil-booking.php">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-				<span>Pencil booking</span>
+			<a href="./documents.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+				<span>Documents</span>
+			</a>
+			<a href="./archive.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+				<span>Archive</span>
 			</a>
 		</nav>
 
@@ -803,19 +807,19 @@ $offerStatusColors = ['#22c55e', '#f59e0b', '#ef4444', '#64748b'];
 						</div>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg>
 					</a>
-					<a class="action-card" href="./pencil-booking.php">
-						<div>
-							<strong>Pencil booking</strong>
-							<span>Manage service bookings and scheduling.</span>
-						</div>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-					</a>
 					<a class="action-card" href="./documents.php">
 						<div>
 							<strong>Documents</strong>
 							<span>Keep supporting files and uploads organized.</span>
 						</div>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v6h6"/></svg>
+					</a>
+					<a class="action-card" href="./archive.php">
+						<div>
+							<strong>Archive</strong>
+							<span>Review archived records and inactive items.</span>
+						</div>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16"/><path d="M6 7v12h12V7"/><path d="M9 11h6"/></svg>
 					</a>
 				</div>
 			</div>

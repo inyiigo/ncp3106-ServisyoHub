@@ -116,6 +116,9 @@ function h(?string $value): string {
 
 function normalize_offer_status(string $status): string {
 	$status = strtolower(trim($status));
+	if ($status === 'deleted') {
+		return 'deleted';
+	}
 	if ($status === 'rejected') {
 		return 'denied';
 	}
@@ -130,6 +133,9 @@ function normalize_offer_status(string $status): string {
 
 function pretty_offer_status(string $status): string {
 	$status = normalize_offer_status($status);
+	if ($status === 'deleted') {
+		return 'Deleted';
+	}
 	if ($status === 'denied') {
 		return 'Denied';
 	}
@@ -169,7 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$action = strtolower(trim((string)($_POST['action'] ?? '')));
 	$offerId = (int)($_POST['offer_id'] ?? 0);
 	if ($offerId > 0 && $action === 'trash') {
-		if ($stmt = @mysqli_prepare($db, "UPDATE offers SET admin_status = 'cancelled', citizen_status = 'cancelled', status = 'cancelled' WHERE id = ?")) {
+		if ($stmt = @mysqli_prepare($db, "UPDATE offers SET admin_status = 'deleted', citizen_status = 'deleted', status = 'withdrawn' WHERE id = ?")) {
 			mysqli_stmt_bind_param($stmt, 'i', $offerId);
 			@mysqli_stmt_execute($stmt);
 			@mysqli_stmt_close($stmt);
@@ -415,20 +421,24 @@ while ($cursor <= $today) {
 		}
 		.brand {
 			display: flex;
+			flex-direction: column;
 			align-items: center;
-			gap: 12px;
+			gap: 10px;
 			padding: 6px 8px 18px;
+			margin-bottom: 10px;
+			border-bottom: 1px solid rgba(255,255,255,.14);
 		}
 		.brand-logo {
-			width: 48px;
-			height: 48px;
-			border-radius: 16px;
-			background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.05));
-			padding: 10px;
-			flex: 0 0 48px;
+			width: 56px;
+			height: 56px;
+			object-fit: contain;
 		}
-		.brand h1 { margin: 0; font-size: 1.1rem; line-height: 1.1; }
-		.brand p { margin: 4px 0 0; color: rgba(255,255,255,.68); font-size: .9rem; }
+		.brand h1 {
+			margin: 0;
+			font-size: 1.2rem;
+			line-height: 1.1;
+			text-align: center;
+		}
 		.nav {
 			display: grid;
 			gap: 8px;
@@ -533,10 +543,15 @@ while ($cursor <= $today) {
 
 		.overview-grid {
 			display: grid;
-			grid-template-columns: 1.1fr .9fr;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 14px;
-			align-items: start;
+			align-items: stretch;
 			margin-bottom: 18px;
+		}
+		.overview-grid > .panel {
+			height: 100%;
+			width: 100%;
+			min-width: 0;
 		}
 		.panel {
 			background: var(--surface);
@@ -651,6 +666,7 @@ while ($cursor <= $today) {
 		.badge.pending { background: #fef3c7; color: #92400e; }
 		.badge.denied { background: #fee2e2; color: #991b1b; }
 		.badge.cancelled { background: #e2e8f0; color: #475569; }
+		.badge.deleted { background: #f3e8ff; color: #6b21a8; }
 		.badge.other { background: #e0f2fe; color: #075985; }
 		.money { font-weight: 800; color: var(--brand-dark); }
 		.meta { color: var(--muted); font-size: .88rem; margin-top: 4px; }
@@ -827,11 +843,8 @@ while ($cursor <= $today) {
 <div class="admin-shell">
 	<aside class="sidebar">
 		<div class="brand">
-			<img class="brand-logo" src="../assets/images/newlogo2.png" alt="ServisyoHub">
-			<div>
-				<h1>Admin Console</h1>
-				<p>ServisyoHub marketplace control</p>
-			</div>
+			<img class="brand-logo" src="../assets/images/job_logo.png" alt="ServisyoHub">
+			<h1>Admin Console</h1>
 		</div>
 
 		<nav class="nav" aria-label="Admin navigation">
@@ -851,9 +864,13 @@ while ($cursor <= $today) {
 				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18"/><path d="M7 3v8"/><path d="M17 3v8"/><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 14h8"/></svg>
 				<span>Manage offers</span>
 			</a>
-			<a href="./pencil-booking.php">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-				<span>Pencil booking</span>
+			<a href="./documents.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+				<span>Documents</span>
+			</a>
+			<a href="./archive.php">
+				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="4" rx="1"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><path d="M9 13h6"/></svg>
+				<span>Archive</span>
 			</a>
 		</nav>
 
