@@ -14,6 +14,7 @@ $dbAvailable = false;
 $lastConnError = '';
 
 if (file_exists($configPath)) { require_once $configPath; }
+require_once __DIR__ . '/../config/ai_moderation.php';
 $attempts = [];
 // Prioritize the 'login' database where your jobs table exists
 if (isset($db_host, $db_user, $db_pass, $db_name)) $attempts[] = [$db_host, $db_user, $db_pass, $db_name];
@@ -41,6 +42,10 @@ foreach ($attempts as $creds) {
 
 if (!$dbAvailable) {
 	error_log("Database connection failed: $lastConnError");
+}
+
+if ($dbAvailable) {
+	ai_ensure_moderation_schema($mysqli);
 }
 
 function e($v){ return htmlspecialchars($v ?? '', ENT_QUOTES, 'UTF-8'); }
@@ -283,6 +288,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $dbAvailable) {
 			if (!empty($stmt) && $stmt instanceof mysqli_stmt) {
 				if (mysqli_stmt_execute($stmt)) {
 					$job_id = mysqli_insert_id($mysqli);
+
+					$moderation = ai_moderate_content('job_post', [
+						'title' => $title,
+						'category' => $category,
+						'description' => $description,
+						'requirements' => $requirements,
+						'location' => $location,
+						'budget' => $budget,
+						'helpers_needed' => $helpers_needed,
+					]);
+					ai_apply_job_decision($mysqli, (int)$job_id, $moderation);
+
 					header('Location: ./my-gawain.php?tab=posted');
 					exit;
 				} else {

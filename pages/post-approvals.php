@@ -11,6 +11,7 @@ if (empty($_SESSION['user_id'])) {
 }
 
 require_once __DIR__ . '/../config/db_connect.php';
+require_once __DIR__ . '/../config/ai_moderation.php';
 $db = $conn ?? null;
 $focusPostId = max(0, (int)($_GET['job_id'] ?? 0));
 $posts = [];
@@ -38,6 +39,7 @@ if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 	$statusMap = [
 		'approve' => 'approved',
 		'reject' => 'rejected',
+		'pending' => 'pending',
 	];
 
 	if ($postId > 0 && $action === 'delete') {
@@ -52,7 +54,7 @@ if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 	if ($postId > 0 && isset($statusMap[$action])) {
 		$newStatus = $statusMap[$action];
-		if ($stmt = @mysqli_prepare($db, "UPDATE jobs SET status = ? WHERE id = ? AND LOWER(COALESCE(status,'pending')) = 'pending'")) {
+		if ($stmt = @mysqli_prepare($db, "UPDATE jobs SET status = ? WHERE id = ? AND LOWER(COALESCE(status,'')) <> 'deleted'")) {
 			mysqli_stmt_bind_param($stmt, 'si', $newStatus, $postId);
 			@mysqli_stmt_execute($stmt);
 			@mysqli_stmt_close($stmt);
@@ -64,6 +66,15 @@ if ($db && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if ($db) {
+	ai_ensure_moderation_schema($db);
+	$hasAiDecision = ai_table_has_column($db, 'jobs', 'ai_decision');
+	$hasAiScore = ai_table_has_column($db, 'jobs', 'ai_score');
+	$hasAiReason = ai_table_has_column($db, 'jobs', 'ai_reason');
+
+	$aiDecisionExpr = $hasAiDecision ? "LOWER(COALESCE(j.ai_decision, 'pending')) AS ai_decision" : "'pending' AS ai_decision";
+	$aiScoreExpr = $hasAiScore ? "COALESCE(j.ai_score, NULL) AS ai_score" : "NULL AS ai_score";
+	$aiReasonExpr = $hasAiReason ? "COALESCE(j.ai_reason, '') AS ai_reason" : "'' AS ai_reason";
+
 	$totalUsers = db_count($db, "SELECT COUNT(*) AS c FROM users");
 	$totalPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs");
 	$pendingPosts = db_count($db, "SELECT COUNT(*) AS c FROM jobs WHERE LOWER(COALESCE(status,'pending')) = 'pending'");
@@ -77,6 +88,9 @@ if ($db) {
 		COALESCE(j.title, 'Untitled') AS title,
 		COALESCE(j.date_needed, DATE(j.posted_at), CURDATE()) AS date_needed,
 		LOWER(COALESCE(j.status, 'pending')) AS status,
+		{$aiDecisionExpr},
+		{$aiScoreExpr},
+		{$aiReasonExpr},
 		COALESCE(
 			NULLIF(TRIM(CONCAT(COALESCE(u.first_name, ''), ' ', COALESCE(u.last_name, ''))), ''),
 			NULLIF(u.username, ''),
@@ -411,6 +425,15 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 		.actions-cell {
 			min-width: 132px;
 		}
+		.ai-cell {
+			min-width: 190px;
+		}
+		.ai-note {
+			margin-top: 4px;
+			color: var(--muted);
+			font-size: .78rem;
+			line-height: 1.35;
+		}
 		.action-stack {
 			display: grid;
 			gap: 8px;
@@ -580,6 +603,7 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 							<th>Title</th>
 							<th>Date</th>
 							<th>Status</th>
+							<th>AI Review</th>
 							<th>Actions</th>
 						</tr>
 					</thead>
@@ -593,6 +617,9 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 							<td class="date"><?php echo htmlspecialchars((string)$post['date_needed'], ENT_QUOTES); ?></td>
 							<td class="status-cell">
 								<?php $st = strtolower((string)($post['status'] ?? 'pending')); ?>
+								<?php $aiDecision = strtolower((string)($post['ai_decision'] ?? 'pending')); ?>
+								<?php $aiScore = isset($post['ai_score']) ? (float)$post['ai_score'] : null; ?>
+								<?php $aiReason = trim((string)($post['ai_reason'] ?? '')); ?>
 								<?php if ($st === 'approved'): ?>
 									<span class="status-pill status-approved">APPROVED</span>
 								<?php elseif ($st === 'rejected'): ?>
@@ -602,6 +629,19 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 								<?php else: ?>
 									<span class="status-pill status-pending">PENDING</span>
 								<?php endif; ?>
+							</td>
+							<td class="ai-cell">
+								<?php if ($aiDecision === 'approve'): ?>
+									<span class="status-pill status-approved">AI APPROVE</span>
+								<?php elseif ($aiDecision === 'reject'): ?>
+									<span class="status-pill status-rejected">AI REJECT</span>
+								<?php else: ?>
+									<span class="status-pill status-pending">AI REVIEW</span>
+								<?php endif; ?>
+								<div class="ai-note">
+									<?php if ($aiScore !== null): ?>Risk score: <?php echo htmlspecialchars(number_format($aiScore, 2), ENT_QUOTES); ?><?php else: ?>Risk score: N/A<?php endif; ?>
+									<?php if ($aiReason !== ''): ?><br><?php echo htmlspecialchars($aiReason, ENT_QUOTES); ?><?php endif; ?>
+								</div>
 							</td>
 							<td class="actions-cell">
 								<?php if ($st === 'pending'): ?>
@@ -617,8 +657,31 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 											<button type="submit" class="action-btn reject">Reject</button>
 										</form>
 									</div>
+								<?php elseif ($st === 'approved'): ?>
+									<div class="action-stack">
+										<form method="post" onsubmit="return confirm('Mark this post as pending for re-review?');">
+											<input type="hidden" name="action" value="pending">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn delete">Mark Pending</button>
+										</form>
+										<form method="post" onsubmit="return confirm('Reject this approved post?');">
+											<input type="hidden" name="action" value="reject">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn reject">Reject</button>
+										</form>
+									</div>
 								<?php elseif ($st === 'rejected'): ?>
 									<div class="action-stack">
+										<form method="post" onsubmit="return confirm('Approve this rejected post?');">
+											<input type="hidden" name="action" value="approve">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn approve">Approve</button>
+										</form>
+										<form method="post" onsubmit="return confirm('Move this post back to pending?');">
+											<input type="hidden" name="action" value="pending">
+											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
+											<button type="submit" class="action-btn delete">Mark Pending</button>
+										</form>
 										<form method="post" onsubmit="return confirm('Delete this rejected post? It will move to Archive.');">
 											<input type="hidden" name="action" value="delete">
 											<input type="hidden" name="post_id" value="<?php echo (int)$post['id']; ?>">
@@ -636,7 +699,7 @@ $postStatusColors = ['#f59e0b', '#22c55e', '#ef4444', '#8b5cf6', '#64748b'];
 						<?php endforeach; ?>
 						<?php else: ?>
 						<tr>
-							<td colspan="6" style="color:#64748b; text-align:center; font-weight:700;">No posts found.</td>
+							<td colspan="7" style="color:#64748b; text-align:center; font-weight:700;">No posts found.</td>
 						</tr>
 						<?php endif; ?>
 					</tbody>

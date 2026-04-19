@@ -12,6 +12,7 @@ if (empty($_SESSION['user_id'])) {
 }
 
 require_once __DIR__ . '/../config/db_connect.php';
+require_once __DIR__ . '/../config/ai_moderation.php';
 
 $db = $conn ?? ($mysqli ?? null);
 if (!$db instanceof mysqli) {
@@ -168,6 +169,7 @@ if ($stmt = mysqli_prepare($db, 'SELECT role FROM users WHERE id = ?')) {
 }
 
 if (db_has_table($db, 'offers')) {
+	ai_ensure_moderation_schema($db);
 	ensure_offers_review_columns($db);
 }
 
@@ -204,12 +206,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 					ELSE status
 				END
 			WHERE id = ?
-			  AND (
-				(LOWER(COALESCE(admin_status,'pending')) = 'pending' AND ? IN ('accepted','rejected'))
-				OR (LOWER(COALESCE(admin_status,'')) = 'accepted' AND ? = 'pending')
-				OR (LOWER(COALESCE(admin_status,'')) IN ('rejected','denied') AND ? = 'pending')
-			  )")) {
-			mysqli_stmt_bind_param($stmt, 'ssssisss', $newStatus, $newStatus, $newStatus, $newStatus, $offerId, $newStatus, $newStatus, $newStatus);
+			  AND LOWER(COALESCE(admin_status,'')) <> 'deleted'")) {
+			mysqli_stmt_bind_param($stmt, 'ssssi', $newStatus, $newStatus, $newStatus, $newStatus, $offerId);
 			@mysqli_stmt_execute($stmt);
 			@mysqli_stmt_close($stmt);
 		}
@@ -306,6 +304,9 @@ if ($offersTableExists) {
 			COALESCE(o.amount, 0) AS amount,
 			LOWER(COALESCE(o.admin_status, 'pending')) AS admin_status,
 			LOWER(COALESCE(o.citizen_status, COALESCE(o.status, 'pending'))) AS citizen_status,
+			LOWER(COALESCE(o.ai_decision, 'pending')) AS ai_decision,
+			COALESCE(o.ai_score, NULL) AS ai_score,
+			COALESCE(o.ai_reason, '') AS ai_reason,
 			o.created_at,
 			COALESCE(
 				NULLIF(TRIM(CONCAT(COALESCE(k.first_name,''), ' ', COALESCE(k.last_name,''))), ''),
@@ -334,6 +335,9 @@ if ($offersTableExists) {
 			COALESCE(o.amount, 0) AS amount,
 			LOWER(COALESCE(o.admin_status, 'pending')) AS admin_status,
 			LOWER(COALESCE(o.citizen_status, COALESCE(o.status, 'pending'))) AS citizen_status,
+			LOWER(COALESCE(o.ai_decision, 'pending')) AS ai_decision,
+			COALESCE(o.ai_score, NULL) AS ai_score,
+			COALESCE(o.ai_reason, '') AS ai_reason,
 			o.created_at,
 			COALESCE(
 				NULLIF(TRIM(CONCAT(COALESCE(k.first_name,''), ' ', COALESCE(k.last_name,''))), ''),
@@ -653,6 +657,7 @@ while ($cursor <= $today) {
 			color: var(--muted);
 		}
 		.table .col-center { text-align: center; }
+		.table .ai-cell { min-width: 190px; }
 		.table tr:hover { background: rgba(14, 165, 233, .04); }
 		.badge {
 			display: inline-flex;
@@ -670,6 +675,7 @@ while ($cursor <= $today) {
 		.badge.other { background: #e0f2fe; color: #075985; }
 		.money { font-weight: 800; color: var(--brand-dark); }
 		.meta { color: var(--muted); font-size: .88rem; margin-top: 4px; }
+		.ai-note { color: var(--muted); font-size: .78rem; line-height: 1.35; margin-top: 4px; }
 		.action-stack {
 			display: flex;
 			align-items: center;
@@ -988,6 +994,7 @@ while ($cursor <= $today) {
 								<th>Job</th>
 								<th class="col-center">Admin Status</th>
 								<th class="col-center">Citizen Status</th>
+								<th>AI Review</th>
 								<th>Amount</th>
 								<th class="col-center">Date</th>
 								<th class="col-center">Actions</th>
@@ -997,6 +1004,9 @@ while ($cursor <= $today) {
 							<?php foreach ($recentOffers as $offer): ?>
 								<?php $adminStatus = normalize_offer_status((string)($offer['admin_status'] ?? 'other')); ?>
 								<?php $citizenStatus = normalize_offer_status((string)($offer['citizen_status'] ?? 'other')); ?>
+								<?php $aiDecision = strtolower((string)($offer['ai_decision'] ?? 'pending')); ?>
+								<?php $aiScore = isset($offer['ai_score']) ? (float)$offer['ai_score'] : null; ?>
+								<?php $aiReason = trim((string)($offer['ai_reason'] ?? '')); ?>
 								<?php $isPending = strtolower(trim((string)($offer['admin_status'] ?? ''))) === 'pending'; ?>
 								<?php $isAccepted = $adminStatus === 'accepted'; ?>
 								<?php $isDenied = in_array($adminStatus, ['denied'], true); ?>
@@ -1027,6 +1037,19 @@ while ($cursor <= $today) {
 									</td>
 									<td class="col-center"><span class="badge <?php echo h($adminStatus); ?>"><?php echo h(pretty_offer_status((string)$adminStatus)); ?></span></td>
 									<td class="col-center"><span class="badge <?php echo h($citizenStatus); ?>"><?php echo h(pretty_offer_status((string)$citizenStatus)); ?></span></td>
+									<td class="ai-cell">
+										<?php if ($aiDecision === 'approve'): ?>
+											<span class="badge accepted">AI Approve</span>
+										<?php elseif ($aiDecision === 'reject'): ?>
+											<span class="badge denied">AI Reject</span>
+										<?php else: ?>
+											<span class="badge pending">AI Review</span>
+										<?php endif; ?>
+										<div class="ai-note">
+											<?php if ($aiScore !== null): ?>Risk score: <?php echo h(number_format($aiScore, 2)); ?><?php else: ?>Risk score: N/A<?php endif; ?>
+											<?php if ($aiReason !== ''): ?><br><?php echo h($aiReason); ?><?php endif; ?>
+										</div>
+									</td>
 									<td class="money"><?php echo h(money_value($offer['amount'] ?? null)); ?></td>
 									<td class="col-center"><?php echo h(date('M j, Y', strtotime((string)$offer['created_at']))); ?></td>
 									<td class="col-center">
@@ -1050,6 +1073,11 @@ while ($cursor <= $today) {
 														<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
 														<button type="submit" class="action-btn undo">Undo</button>
 													</form>
+													<form method="post" onsubmit="return confirm('Reject this accepted offer?');">
+														<input type="hidden" name="action" value="reject">
+														<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+														<button type="submit" class="action-btn reject">Reject</button>
+													</form>
 													<form method="post" onsubmit="return confirm('Move this offer to trash?');">
 														<input type="hidden" name="action" value="trash">
 														<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
@@ -1064,6 +1092,11 @@ while ($cursor <= $today) {
 													<input type="hidden" name="action" value="retrieve">
 													<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
 													<button type="submit" class="action-btn retrieve">Retrieve</button>
+												</form>
+												<form method="post" onsubmit="return confirm('Approve this denied offer?');">
+													<input type="hidden" name="action" value="accept">
+													<input type="hidden" name="offer_id" value="<?php echo (int)$offer['id']; ?>">
+													<button type="submit" class="action-btn accept">Accept</button>
 												</form>
 												<form method="post" onsubmit="return confirm('Move this offer to trash?');">
 													<input type="hidden" name="action" value="trash">

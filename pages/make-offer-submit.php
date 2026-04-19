@@ -2,6 +2,7 @@
 ob_start();
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 require_once __DIR__ . '/../config/db_connect.php';
+require_once __DIR__ . '/../config/ai_moderation.php';
 
 $db = $conn ?? $mysqli ?? null;
 $viewerId = (int)($_SESSION['user_id'] ?? 0);
@@ -65,6 +66,7 @@ function ensure_notifications_table($db): void {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
+    ai_ensure_moderation_schema($db);
     ensure_offer_review_columns($db);
 
     $jobId  = (int)($_POST['job_id'] ?? 0);
@@ -86,6 +88,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $db && $viewerId) {
                         @mysqli_stmt_execute($up);
                         @mysqli_stmt_close($up);
                     }
+
+                    $jobContext = [
+                        'job_title' => '',
+                        'job_description' => '',
+                        'job_location' => '',
+                    ];
+                    if ($ctx = @mysqli_prepare($db, "SELECT COALESCE(title,''), COALESCE(description,''), COALESCE(location,'') FROM `login`.`jobs` WHERE id = ? LIMIT 1")) {
+                        mysqli_stmt_bind_param($ctx, 'i', $jobId);
+                        if (@mysqli_stmt_execute($ctx)) {
+                            $ctxRes = @mysqli_stmt_get_result($ctx);
+                            if ($ctxRes && ($ctxRow = @mysqli_fetch_row($ctxRes))) {
+                                $jobContext['job_title'] = (string)($ctxRow[0] ?? '');
+                                $jobContext['job_description'] = (string)($ctxRow[1] ?? '');
+                                $jobContext['job_location'] = (string)($ctxRow[2] ?? '');
+                            }
+                        }
+                        @mysqli_stmt_close($ctx);
+                    }
+
+                    $moderation = ai_moderate_content('offer', [
+                        'amount' => (float)$amount,
+                        'job_id' => (int)$jobId,
+                        'job_title' => $jobContext['job_title'],
+                        'description' => $jobContext['job_description'],
+                        'location' => $jobContext['job_location'],
+                    ]);
+                    ai_apply_offer_decision($db, (int)$offerId, $moderation);
 
                     $jobOwnerId = 0;
                     if ($g = @mysqli_prepare($db, "SELECT user_id FROM `login`.`jobs` WHERE id = ? LIMIT 1")) {
