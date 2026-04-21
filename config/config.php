@@ -1,6 +1,12 @@
 <?php
 // Database configuration
 $db_host = getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: '127.0.0.1';
+if (!filter_var($db_host, FILTER_VALIDATE_IP) && strtolower($db_host) !== 'localhost') {
+	$resolvedHost = gethostbyname($db_host);
+	if ($resolvedHost === $db_host) {
+		$db_host = '127.0.0.1';
+	}
+}
 $db_port = (int)(getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: 3306);
 $db_user = getenv('DB_USER') ?: getenv('MYSQLUSER') ?: 'root';
 $db_pass = getenv('DB_PASS') ?: getenv('MYSQLPASSWORD') ?: '';
